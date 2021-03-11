@@ -296,9 +296,9 @@ class TokenBalancesLayout(QTableWidget):
         """Only shows database entries where token=token"""
         self.setSortingEnabled(False)
         self.clear()
-        self.setColumnCount(5)
+        self.setColumnCount(7)
         self.setHorizontalHeaderLabels(
-            ['Account', 'Balance ({})'.format(token), 'Type', 'KYC', 'Description'])
+            ['Account', 'Balance ({})'.format(token),  'Balance(BTC)', 'Balance ({})'.format(FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
         rows_to_insert = cbalances.getEntriesWithToken(token)
 
         self.setRowCount(len(rows_to_insert))
@@ -309,14 +309,25 @@ class TokenBalancesLayout(QTableWidget):
             item = QTableWidgetItem()
             item.setData(0, row[2])
             self.setItem(numrow, 1, item)
+            # Balance (BTC)
+            balance_in_btc = prices.toBTC(row[1], row[2])
+            item = QTableWidgetItem()
+            item.setData(0, balance_in_btc)
+            self.setItem(numrow, 2, item)
+            # Balance (Fiat)
+            balance_in_fiat = prices.btcToFiat(
+                balance_in_btc, currency=FIAT_CURRENCY)
+            item = QTableWidgetItem()
+            item.setData(0, balance_in_fiat)
+            self.setItem(numrow, 3, item)
             # Type
             item = self.formatTypeItem(QTableWidgetItem(str(row[3])))
-            self.setItem(numrow, 2, item)
+            self.setItem(numrow, 4, item)
             # KYC
             item = self.formatKYCItem(QTableWidgetItem(str(row[4])))
-            self.setItem(numrow, 3, item)
+            self.setItem(numrow, 5, item)
             # Description
-            self.setItem(numrow, 4, QTableWidgetItem(str(row[5])))
+            self.setItem(numrow, 6, QTableWidgetItem(str(row[5])))
 
         self.resizeColumnsToContents()
         self.setSortingEnabled(True)
@@ -325,9 +336,9 @@ class TokenBalancesLayout(QTableWidget):
         """Only shows database entries where account=account"""
         self.setSortingEnabled(False)
         self.clear()
-        self.setColumnCount(5)
+        self.setColumnCount(7)
         self.setHorizontalHeaderLabels(
-            ['Token', 'Balance', 'Type', 'KYC', 'Description'])
+            ['Token', 'Balance', 'Balance(BTC)', 'Balance({})'.format(FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
 
         rows_to_insert = cbalances.getEntriesWithAccount(account)
         self.setRowCount(len(rows_to_insert))
@@ -338,14 +349,25 @@ class TokenBalancesLayout(QTableWidget):
             item = QTableWidgetItem()
             item.setData(0, row[2])
             self.setItem(numrow, 1, item)
+            # Balance (BTC)
+            balance_in_btc = prices.toBTC(row[1], row[2])
+            item = QTableWidgetItem()
+            item.setData(0, balance_in_btc)
+            self.setItem(numrow, 2, item)
+            # Balance (Fiat)
+            balance_in_fiat = prices.btcToFiat(
+                balance_in_btc, currency=FIAT_CURRENCY)
+            item = QTableWidgetItem()
+            item.setData(0, balance_in_fiat)
+            self.setItem(numrow, 3, item)
             # Type
             item = self.formatTypeItem(QTableWidgetItem(str(row[3])))
-            self.setItem(numrow, 2, item)
+            self.setItem(numrow, 4, item)
             # KYC
             item = self.formatKYCItem(QTableWidgetItem(str(row[4])))
-            self.setItem(numrow, 3, item)
+            self.setItem(numrow, 5, item)
             # Description
-            self.setItem(numrow, 4, QTableWidgetItem(str(row[5])))
+            self.setItem(numrow, 6, QTableWidgetItem(str(row[5])))
 
         self.resizeColumnsToContents()
         self.setSortingEnabled(True)
