@@ -28,13 +28,19 @@ class TabCryptoToolBar(QToolBar):
             self.updateAccountsActionClick)
         self.addAction(self.update_all_accounts_action)
 
-        self.update_all_accounts_dialog = UpdateAllAccountsDialog()
-
     def addAccountActionClick(self):
         self.addaccount_dialog.setVisible(True)
 
     def updateAccountsActionClick(self):
-        self.update_all_accounts_dialog.setVisible(True)
+        try:
+            self.update_all_accounts_dialog = UpdateAllAccountsDialog()
+            self.update_all_accounts_action.setStatusTip(
+                "Update all current cryptocurrency accounts with new balances")
+            self.update_all_accounts_dialog.setVisible(True)
+        except IndexError:
+            # No cryptocurrency accounts yet
+            self.update_all_accounts_action.setStatusTip(
+                "No accounts yet. Add and account first")
 
 
 class AddAccountDialog(QDialog):

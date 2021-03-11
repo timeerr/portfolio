@@ -1,8 +1,11 @@
+__pycache__/
+*/__pycache__
 oldtabaccounts.py
 gui/database/
 gui/assetgen
 gui/resources/account-icons
 gui/prices
 *.db
+*.pyc
 
 
