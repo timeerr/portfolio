@@ -1,0 +1,4 @@
+https://pynative.com/python-sqlite-date-and-datetime/
+https://stackabuse.com/a-sqlite-tutorial-with-python/
+https://www.sqlitetutorial.net/sqlite-python/creating-database/
+https://www.sqlitetutorial.net/sqlite-python/create-tables/

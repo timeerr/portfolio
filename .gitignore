@@ -1,0 +1,8 @@
+oldtabaccounts.py
+gui/database/
+gui/assetgen
+gui/resources/account-icons
+gui/prices
+*.db
+
+

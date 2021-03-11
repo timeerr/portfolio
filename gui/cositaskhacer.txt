@@ -1,0 +1,50 @@
+SIGUIENTE PASO
+
+
+accion en toolbar para crear una pestaña igual a TabCrypto, pero en la que 
+los precios son los equivalentes a los de una fecha determinada. Con una maquina del tiempo
+
+otra accion que compare el ROI que has tenido desde cierta fecha versus haber cambiado
+en esa misma fecha todos los tokens que habían a BTC
+
+Para la Toolbar:
+A a izq, boton para añadir un token/cuenta a mano
+Otro botón para abrir un dialog que digamos repase todas las cuentas y puedas cambiar sus saldos, y añadir nuevas, esto
+serviría para actualizar el mes muy facil
+A la drch , una accion con un logo de "refrescando" para pulsarla y que se actualicen los datos de la api
+
+despues:
+  - portfolio graficos y demas
+  - ajustar resultado con saldo
+
+
+
+
+BUGS IMPORTANTES:
+- Al editar el nombre de una cuenta, no se ha tenido en cuenta que hay que renombrar el icono para que no cree uno nuevo
+y posiblemente vincular el pixmap a este nuevo nombre
+Tambien hay que cambiar todos los nombramientos a esa cuenta vieja en la database
+
+- Arreglar tema righttable(algun error en el loop debe de haber al mostrar las transacciones al principio)
+
+- Cuando se inserta un resultado, no se refleja en la righttable hasta el reinicio
+
+- Cuando se importa un archivo, por alguna razon el QMessageBox para avisar de que ya está hecho rompe la pantalla un poco
+Se podria cambiar por un QDialog o algo asi, que funciona bien
+
+MEJORAS
+- Import dialogs que con excel la tabla sea editable
+- Tema mayusculas y minusculas a la hora de importar?
+
+
+LARGO PLAZO:
+
+- Ahora que hay una tabla de historial de balances, que tiene un link entre el campo account con el campo account de balances,
+ quizas seria buena idea que al borrar una cuenta en la GUI, no se borre de la db, para evitar fallos, sino que simplemente se marque como obsoleta
+ en una nueva columna de balances, de tal manera que siga existiendo pero ya no salga mas en la GUI
+
+- Meter un botón de analíticas en la tab accounts que despliegue una ventana con un montón de gráficos y analíticas sobre la cuenta (equidad, drawdown, etc.)
+
+- Avisar en el dialog de editaccount que no se puede cambiar el balance, y redirigir a hace un ajuste o algo así
+
+- en TabCrypto, cuando se pincha sobre una cuenta o un token de la tabla de la derecha, que lo seleccione globalmente 
