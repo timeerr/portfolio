@@ -13,19 +13,19 @@ class AddAccountDialog(QDialog):
     def __init__(self, *agrs, **kwargs):
         super().__init__(*agrs, **kwargs)
 
-        self.setWindowTitle("Add Account")
+        self.setWindowTitle(self.tr("Add Account"))
         self.layout = QVBoxLayout()
         self.formlayout = QFormLayout()
 
         # Account Name
-        self.name = QLabel("Account Name")
+        self.name = QLabel(self.tr("Account Name"))
         self.name_edit = QLineEdit()
 
         self.formlayout.setWidget(0, self.formlayout.LabelRole, self.name)
         self.formlayout.setWidget(0, self.formlayout.FieldRole, self.name_edit)
 
         # Starting Amount
-        self.startingamount = QLabel("Starting Amount")
+        self.startingamount = QLabel(self.tr("Starting Amount"))
         self.startingamount_edit = QDoubleSpinBox()
         self.startingamount_edit.setValue(0)
         self.startingamount_edit.setMaximum(10000000000)
@@ -37,7 +37,7 @@ class AddAccountDialog(QDialog):
                                   self.startingamount_edit)
 
         # Functionality
-        self.create_bttn = QPushButton("Create")
+        self.create_bttn = QPushButton(self.tr("Create"))
         self.create_bttn.clicked.connect(self.createAccount)
 
         self.layout.addLayout(self.formlayout)
@@ -64,7 +64,7 @@ class EditAccountDialog(QDialog):
     def __init__(self, *agrs, **kwargs):
         super().__init__(*agrs, **kwargs)
 
-        self.setWindowTitle("Edit Account")
+        self.setWindowTitle(self.tr("Edit Account"))
         self.layout = QVBoxLayout()
 
         # Account selection
@@ -74,14 +74,14 @@ class EditAccountDialog(QDialog):
 
         # Edit account form
         self.layout_form = QFormLayout()
-        self.name_change_label = QLabel("New Name")
+        self.name_change_label = QLabel(self.tr("New Name"))
         self.name_change_field = QLineEdit()
         self.layout_form.setWidget(
             0, self.layout_form.LabelRole, self.name_change_label)
         self.layout_form.setWidget(
             0, self.layout_form.FieldRole, self.name_change_field)
 
-        self.balance_change_label = QLabel("Balance")
+        self.balance_change_label = QLabel(self.tr("Balance"))
         self.balance_change_field = QLineEdit()
         self.balance_change_field.setReadOnly(True)
         self.layout_form.setWidget(
@@ -90,7 +90,7 @@ class EditAccountDialog(QDialog):
             1, self.layout_form.FieldRole, self.balance_change_field)  # We'll tell the user that any account balance change should be done differently
 
         # Save changes button
-        self.save_changes_bttn = QPushButton("Save Changes")
+        self.save_changes_bttn = QPushButton(self.tr("Save Changes"))
         self.save_changes_bttn.clicked.connect(self.saveChanges)
 
         self.layout.addWidget(self.account_selection_combobox)
@@ -136,12 +136,12 @@ class RemoveAccountDialog(QDialog):
         """ A simple dialog to select between the current account on the db and remove one of them """
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Remove Account")
+        self.setWindowTitle(self.tr("Remove Account"))
         self.layout = QVBoxLayout()
         self.formlayout = QFormLayout()
 
         # Account Name
-        self.name = QLabel("Account Name")
+        self.name = QLabel(self.tr("Account Name"))
         self.name_select = QComboBox()
         for acc in balances.getAllAccounts():
             self.name_select.addItem(acc[0])
@@ -151,7 +151,7 @@ class RemoveAccountDialog(QDialog):
             0, self.formlayout.FieldRole, self.name_select)
 
         # Functionality
-        self.remove_bttn = QPushButton("Remove")
+        self.remove_bttn = QPushButton(self.tr("Remove"))
         self.remove_account_warning = RemoveAccountWarning(self)
         self.remove_bttn.clicked.connect(self.showWarning)
 
@@ -177,7 +177,8 @@ class RemoveAccountWarning(QDialog):
         pxmp = QPixmap(os.path.join("resources", "warning.svg")
                        ).scaledToHeight(40)
         self.icon.setPixmap(pxmp)
-        self.warningtext = QLabel("Are you sure? \nThis cannot be undone")
+        self.warningtext = QLabel(
+            self.tr("Are you sure? \nThis cannot be undone"))
 
         self.warning_lyt_top.addWidget(self.icon)
         self.warning_lyt_top.addWidget(self.warningtext)
@@ -196,7 +197,8 @@ class RemoveAccountWarning(QDialog):
 
     def setSelectedAccount(self, selected_account):
         self.selected_account = selected_account
-        self.warning_bttn.setText("Yes, remove {}".format(selected_account))
+        self.warning_bttn.setText(
+            self.tr("Yes, remove {}".format(selected_account)))
 
     def removeAccount(self):
         # Remove from Database
@@ -207,7 +209,7 @@ class RemoveAccountWarning(QDialog):
 
         self.warning_lyt.addWidget(
             QLabel("Done. Restart required for changes to take effect"))
-        close_bttn = QPushButton("Close App")
+        close_bttn = QPushButton(self.tr("Close App"))
 
         self.warning_lyt.addWidget(close_bttn)
         close_bttn.clicked.connect(lambda: self.parent().parent().parent(

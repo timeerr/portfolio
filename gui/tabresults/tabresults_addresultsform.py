@@ -16,18 +16,18 @@ class AddResultsForm(QVBoxLayout):
         super().__init__()
 
         # Title
-        self.title = QLabel("Add Results")
+        self.title = QLabel(self.tr("Add Results"))
         self.title.setFont(TitleFont())
         self.title.setAlignment(Qt.AlignCenter)
 
         # First line: Date
-        self.label1 = QLabel("Date")
+        self.label1 = QLabel(self.tr("Date"))
         self.label1.setMinimumWidth(60)
         self.label1.setMaximumWidth(60)
         self.date_edit = QDateEdit(datetime.now())
         self.date_edit.setDisplayFormat("dd/MM/yyyy")
         self.date_edit.setCalendarPopup(True)
-        self.label1_checkbox = QPushButton("Today")
+        self.label1_checkbox = QPushButton(self.tr("Today"))
         self.label1_checkbox.setMaximumWidth(50)
         self.label1_checkbox.clicked.connect(self.setToday)
 
@@ -37,7 +37,7 @@ class AddResultsForm(QVBoxLayout):
         self.line1.addWidget(self.label1_checkbox)
 
         # Second Line: Account
-        self.label2 = QLabel("Account")
+        self.label2 = QLabel(self.tr("Account"))
         self.label2.setMaximumWidth(70)
         self.account_select = AccountSelectResults()
         currentaccounts = [a[0] for a in balances.getAllAccounts()]
@@ -48,7 +48,7 @@ class AddResultsForm(QVBoxLayout):
         self.line2.addWidget(self.account_select, Qt.AlignLeft)
 
         # Third Line: Amount
-        self.label3 = QLabel("Amount")
+        self.label3 = QLabel(self.tr("Amount"))
         self.label3.setMaximumWidth(70)
         self.amount_select = QSpinBox()
         self.amount_select.setSuffix(" €")
@@ -66,7 +66,7 @@ class AddResultsForm(QVBoxLayout):
         # Buttons
         self.button_layout = QHBoxLayout()
 
-        self.insert_button = QPushButton("Insert")
+        self.insert_button = QPushButton(self.tr("Insert"))
         self.insert_button.setMaximumWidth(50)
         self.button_layout.setAlignment(
             Qt.AlignHCenter | Qt.AlignTop)  # Centering it
@@ -76,7 +76,7 @@ class AddResultsForm(QVBoxLayout):
         self.button_layout.addWidget(
             self.insert_button, Qt.AlignVCenter)
 
-        self.import_button = QPushButton("Import from")
+        self.import_button = QPushButton(self.tr("Import from"))
         self.import_button.setMaximumWidth(50)
         self.import_button.clicked.connect(
             lambda: self.importdialog.setVisible(True))

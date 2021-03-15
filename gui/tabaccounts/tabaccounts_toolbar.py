@@ -16,9 +16,9 @@ class AccountsToolBar(QToolBar):
         super().__init__(*args, **kwargs)
 
         # Add Account Action
-        self.addaccount_action = QAction("Add Account", self)
+        self.addaccount_action = QAction(self.tr("Add Account"), self)
         self.addaccount_action.setStatusTip(
-            "Create an account and add it on the database")
+            self.tr("Create an account and add it on the database"))
         self.addaccount_action.triggered.connect(self.addAccountActionClick)
         self.addAction(self.addaccount_action)
 
@@ -26,17 +26,18 @@ class AccountsToolBar(QToolBar):
         self.add_account_dialog.setVisible(False)
 
         # Edit Account Action
-        self.editaccount_action = QAction("Edit Account", self)
-        self.editaccount_action.setStatusTip("Change account balance/info")
+        self.editaccount_action = QAction(self.tr("Edit Account"), self)
+        self.editaccount_action.setStatusTip(
+            self.tr("Change account balance/info"))
         self.editaccount_action.triggered.connect(self.editAccountActionClick)
         self.addAction(self.editaccount_action)
 
         self.edit_account_dialog = EditAccountDialog()
 
         # Remove Account Action
-        self.removeaccount_action = QAction("Remove Account", self)
+        self.removeaccount_action = QAction(self.tr("Remove Account"), self)
         self.removeaccount_action.setStatusTip(
-            "Delete account from the database")
+            self.tr("Delete account from the database"))
         self.removeaccount_action.triggered.connect(
             self.removeAccountActionClick)
         self.addAction(self.removeaccount_action)

@@ -36,6 +36,54 @@ def getBalancesFromLastDay():
         return(cursor.fetchall())
 
 
+def getBalancesByDay():
+    """ Returns a dictionary with the total btc balance of all accounts by each day """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_balances = "SELECT date, balance_btc FROM cbalancehistory"
+
+        cursor.execute(get_all_balances)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance = entry[1]
+            if date in balances_by_date.keys():
+                balances_by_date[date] += balance
+            else:
+                balances_by_date[date] = balance
+
+        return balances_by_date
+
+
+def getBalancesWithToken(token):
+    """Returns all entries where a token is involved"""
+    token = token.upper()
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_balances_with_token = "SELECT date,balance_btc FROM cbalancehistory WHERE token = '{}'".format(
+            token)
+
+        cursor.execute(get_balances_with_token)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance = entry[1]
+            if date in balances_by_date.keys():
+                balances_by_date[date] += balance
+            else:
+                balances_by_date[date] = balance
+
+        return balances_by_date
+
+
 def addTodaysBalances():
     """ Reads balances from balances table, and updates the balancehistory table accordingly"""
     conn = createConnection()

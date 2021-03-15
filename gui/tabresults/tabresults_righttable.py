@@ -19,7 +19,8 @@ class RightTable(QTableWidget):
 
         self.verticalHeader().hide()
         self.setSortingEnabled(True)
-        self.setHorizontalHeaderLabels(["id", "Date", "Account", "Amount"])
+        self.setHorizontalHeaderLabels(
+            ["id", self.tr("Date"), self.tr("Account"), self.tr("Amount")])
         """
         XK NO FUNCIONA?
         """
@@ -69,14 +70,16 @@ class RightTable(QTableWidget):
                     # Change format to display date better
                     d = datetime.fromtimestamp(d).strftime("%d-%m-%Y")
                 # Since we skipped the first item, ncol has to be one less
-                self.setItem(nrow, ncol, QTableWidgetItem(str(d)))
+                item = QTableWidgetItem()
+                item.setData(0, d)
+                self.setItem(nrow, ncol, item)
 
     def clearData(self):
         self.clear()
 
     def showMenu(self, event):
         menu = QMenu()
-        remove_action = menu.addAction("Remove Line")
+        remove_action = menu.addAction(self.tr("Remove Line"))
 
         action = menu.exec_(QCursor.pos())
 

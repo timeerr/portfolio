@@ -18,7 +18,7 @@ class ResultsQueryForm(QFormLayout):
         super().__init__()
 
         # First line: Start Date
-        self.label1 = QLabel("Start Date")
+        self.label1 = QLabel(self.tr("Start Date"))
         self.start_date_edit = QDateEdit(datetime.now())
         self.start_date_edit.setDisplayFormat("dd/MM/yyyy")
         self.start_date_edit.setCalendarPopup(True)
@@ -29,7 +29,7 @@ class ResultsQueryForm(QFormLayout):
         self.setWidget(0, self.FieldRole, self.start_date_edit)
 
         # Second line: End Date
-        self.label2 = QLabel("End Date")
+        self.label2 = QLabel(self.tr("End Date"))
         self.end_date_edit = QDateEdit(datetime.now())
         self.end_date_edit.setDisplayFormat("dd/MM/yyyy")
         self.end_date_edit.setCalendarPopup(True)
@@ -40,7 +40,7 @@ class ResultsQueryForm(QFormLayout):
         self.setWidget(1, self.FieldRole, self.end_date_edit)
 
         # Third line: Account selection
-        self.label3 = QLabel("Account")
+        self.label3 = QLabel(self.tr("Account"))
         self.account_select = AccountSelectResults(is_query=True)
         currentaccounts = [a[0] for a in balances.getAllAccounts()]
         self.account_select.addItems(currentaccounts)

@@ -25,7 +25,7 @@ class RightTable(QTableWidget):
 
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(
-            ["id", "Date", "Sender Account", "Amount", "Receiver Account", "Type"])
+            ["id", self.tr("Date"), self.tr("Sender Account"), self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type")])
 
     def resetData(self):
         self.clear()
@@ -64,16 +64,16 @@ class RightTable(QTableWidget):
                 if ncol == 5:
                     # Change format to display deposit/withdrawal better
                     if d == 1:
-                        d = "Deposit"
+                        d = self.tr("Deposit")
                     elif d == -1:
-                        d = "Withdrawal"
+                        d = self.tr("Withdrawal")
                     else:
-                        d = "Transfer"
+                        d = self.tr("Transfer")
                 self.setItem(nrow, ncol, QTableWidgetItem(str(d)))
 
     def showMenu(self, event):
         menu = QMenu()
-        remove_action = menu.addAction("Remove Line")
+        remove_action = menu.addAction(self.tr("Remove Line"))
 
         action = menu.exec_(QCursor.pos())
 
@@ -87,8 +87,8 @@ class RightTable(QTableWidget):
     def removeSelection(self):
         indexes_on_table, indexes_on_db = self.getSelectionIndexes()
 
-        print("Removing rows with ids on db : ", indexes_on_db,
-              "\n & ids on table: ", indexes_on_table)
+        print(self.tr("Removing rows with ids on db : "), indexes_on_db,
+              self.tr("\n & ids on table: "), indexes_on_table)
 
         for i, idb in zip(indexes_on_table, indexes_on_db):
             transactions.deleteTransaction(idb)

@@ -23,7 +23,7 @@ class TabAccounts(QWidget):
         self.updateDataAccounts()
 
         # -------UI--------
-        self.setWindowTitle("Accounts")
+        self.setWindowTitle(self.tr("Accounts"))
         self.mainlayout = QVBoxLayout()
         self.mainlayout.setContentsMargins(QMargins(0, 0, 0, 0))
 
@@ -51,7 +51,9 @@ class TabAccounts(QWidget):
 
     def updateDataAccounts(self):
         self.data_accounts = []
+        print(balances.getAllAccounts())
         for acc in balances.getAllAccounts():
+            print(acc[0])
             self.data_accounts.append(Account(acc[0], acc[1]))
 
     def refreshBalances(self):

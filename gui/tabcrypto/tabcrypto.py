@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout, QTableWidget, QTableWidgetItem, QAbstractItemView, QDialog, QDoubleSpinBox
-from PyQt5.QtCore import Qt
-from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice
+from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout, QTableWidget, QTableWidgetItem, QAbstractItemView, QDialog, QDoubleSpinBox, QSplitter
+from PyQt5.QtCore import Qt, QPointF, QDate, QDateTime
+from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QFont, QPixmap, QIcon
 
-from cdbhandler import cbalances
+from cdbhandler import cbalances, chistoricalbalances
 from fonts import TitleFont, TokenBalanceFont
 from prices import prices
 from tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
@@ -13,6 +13,7 @@ from tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
 import requests
 import json
 import os
+from datetime import datetime
 
 FIAT_CURRENCY = "EUR"
 DATABASE_TOKENS = cbalances.getAllTokens()
@@ -40,7 +41,6 @@ class TabCrypto(QWidget):
         # UI
         self.mainlayout = QVBoxLayout()
         self.upperlayout = QHBoxLayout()
-        self.lowerlayout = QHBoxLayout()
 
         # Token Description
         self.description = DescriptionLayout(self)
@@ -53,11 +53,24 @@ class TabCrypto(QWidget):
         # Data entries
         self.toolbar = TabCryptoToolBar(self)
 
+        # Charts
+        self.chart_lyt = QSplitter(self)
+        self.chart_lyt.setHandleWidth(2)
         # Pie Charts
         self.accountpiechart = AccountPieChart(self)
         self.tokenpiechart = TokenPieChart(self)
-        self.lowerlayout.addWidget(self.tokenpiechart)
-        self.lowerlayout.addWidget(self.accountpiechart)
+        self.piecharts_lyt = QHBoxLayout()
+        self.piecharts_lyt.addWidget(self.tokenpiechart)
+        self.piecharts_lyt.addWidget(self.accountpiechart)
+        self.piecharts_wgt = QWidget()
+        self.piecharts_wgt.setLayout(self.piecharts_lyt)
+
+        self.chart_lyt.addWidget(self.piecharts_wgt)
+
+        # Line Charts
+        self.balancehistorychart = BalanceHistoryChartView(
+            chistoricalbalances.getBalancesByDay())
+        self.chart_lyt.addWidget(self.balancehistorychart)
 
         # Functionality
         # When the select_mode button is clicked, we swith between modes
@@ -71,11 +84,12 @@ class TabCrypto(QWidget):
 
         self.mainlayout.addWidget(self.toolbar)
         self.mainlayout.addLayout(self.upperlayout)
-        self.mainlayout.addLayout(self.lowerlayout)
+        self.mainlayout.addWidget(self.chart_lyt)
         self.setLayout(self.mainlayout)
 
         # Initialize with "All"
         self.selectionChanged("All")
+        self.chart_lyt.setSizes([300, 100])
 
     def selectionChanged(self, selection):
         if self.description.mode == 0:
@@ -85,6 +99,8 @@ class TabCrypto(QWidget):
             self.description.allMode()
             self.accountpiechart.allMode()
             self.tokenpiechart.allMode()
+            self.balancehistorychart.setupChartWithData(
+                chistoricalbalances.getBalancesByDay())
 
         elif self.description.mode == 1:
             # Token mode
@@ -93,6 +109,8 @@ class TabCrypto(QWidget):
             self.accountpiechart.updateWithToken(selection)
             self.tokenpiechart.selectSlice(selection)
             self.description.tokenChanged(selection)
+            self.balancehistorychart.setupChartWithData(
+                chistoricalbalances.getBalancesWithToken(selection))
 
         elif self.description.mode == 2:
             print("Account changed to ", selection)
@@ -141,7 +159,7 @@ class DescriptionLayout(QWidget):
         self.select_token_or_account = QComboBox()
         self.select_token_or_account.addItem("All")
         #   Button to update coinlist info file
-        self.updatedata = QPushButton("Update Prices")
+        self.updatedata = QPushButton(self.tr("Update Prices"))
         self.updatedata.setMaximumWidth(100)
         self.updatedata.clicked.connect(
             self.updateDataFiles)
@@ -157,7 +175,7 @@ class DescriptionLayout(QWidget):
         self.select_token_or_account_lyt.addWidget(self.updatedata)
 
         # Token/Accout Name Label
-        self.token_or_account_name = QLabel("All Coins")
+        self.token_or_account_name = QLabel(self.tr("All Coins"))
         self.token_or_account_name.setAlignment(
             Qt.AlignBottom | Qt.AlignHCenter)
         self.token_or_account_name.setFont(TitleFont())
@@ -197,7 +215,7 @@ class DescriptionLayout(QWidget):
 
     def allMode(self):
         # If 'All' is selected, we show the full balance of all tokens in all accounts
-        self.token_or_account_name.setText("All Coins")
+        self.token_or_account_name.setText(self.tr("All Coins"))
         totalbalancebtc, totalbalancefiat = 0, 0
         DATABASE_TOKENS = cbalances.getAllTokens()
         for t in DATABASE_TOKENS:
@@ -266,13 +284,13 @@ class DescriptionLayout(QWidget):
     def updateDataFiles(self):
         """Calls coingecko's API and writes btcfiat.json, coinlist.json, coinprices.json"""
         self.parent().parent().parent().parent().parent(
-        ).statusbar.showMessage("Updating data...")
+        ).statusbar.showMessage(self.tr("Updating data..."))
         DATABASE_TOKENS = cbalances.getAllTokens()
         prices.updateCoingeckoPrices()
         prices.updateCoinListFile()
         prices.updateBTCToFiat()
         self.parent().parent().parent().parent().parent(
-        ).statusbar.showMessage("Data Updated!")
+        ).statusbar.showMessage(self.tr("Data Updated!"))
 
 
 class TokenBalancesLayout(QTableWidget):
@@ -457,6 +475,7 @@ class AccountPieChart(QChartView):
         self.setChart(self.chart)
         self.setRenderHint(QPainter.Antialiasing)
         self.setStyleSheet("border: 0px")
+        # self.setMinimumWidth(300)
 
     def updateWithToken(self, token):
         """ Updates series with all accounts that have a certain token """
@@ -477,8 +496,10 @@ class AccountPieChart(QChartView):
         for d in data:
             account = d[0]
             balance = d[1]
+            print(account, balance)
             self.series.append(account, balance)
         self.showSliceLabels()
+        self.hideLittleSlices()
 
     def showSliceLabels(self):
         for slice in self.series.slices():
@@ -489,9 +510,11 @@ class AccountPieChart(QChartView):
             slice.setLabelColor(QColor('white'))
             slice.setLabelVisible(True)
 
+        self.hideLittleSlices()
+
     def selectSlice(self, account):
         for slice in self.series.slices():
-            if slice.label().split(' ')[0] == account:
+            if account in slice.label():
                 # Explode slice
                 slice.setExploded(True)
                 font = QFont()
@@ -505,6 +528,16 @@ class AccountPieChart(QChartView):
                 # slice.setLabelPosition(QPieSlice.LabelInsideTangential)
                 slice.setLabelPosition(QPieSlice.LabelInsideNormal)
 
+        self.hideLittleSlices(selected=account)
+
+    def hideLittleSlices(self, selected=''):
+        for slice in self.series.slices():
+            if slice.angleSpan() < 5 and slice.label().split(' ')[0] != selected:
+                # Slice too little to show, and it's not selected
+                slice.setLabelVisible(False)
+            else:
+                slice.setLabelVisible(True)
+
 
 class TokenPieChart(QChartView):
 
@@ -514,7 +547,8 @@ class TokenPieChart(QChartView):
         self.series = QPieSeries()
 
         self.chart = QChart()
-        self.chart.setTheme(QChart.ChartThemeBrownSand)
+        # self.chart.setTheme(QChart.ChartThemeBrownSand)
+        self.chart.setTheme(QChart.ChartThemeQt)
         self.chart.legend().hide()
         self.chart.addSeries(self.series)
         self.chart.createDefaultAxes()
@@ -525,12 +559,11 @@ class TokenPieChart(QChartView):
         self.chart.setTitleBrush(QBrush(QColor('white')))
 
         self.chart.legend().setAlignment(Qt.AlignBottom)
-        # chart.legend().setLabelColor(QColor('white'))
 
         self.setChart(self.chart)
         self.setRenderHint(QPainter.Antialiasing)
         self.setStyleSheet('border: 0px')
-        self.setMinimumWidth(300)
+        # self.setMinimumWidth(300)
 
     def updateWithAccount(self, account):
         """Changes the series so that only tokens from a certain account are shown"""
@@ -555,15 +588,17 @@ class TokenPieChart(QChartView):
             total_in_btc = prices.toBTC(token, amount)
             self.series.append(token, total_in_btc)
         self.showSliceLabels()
+        self.hideLittleSlices()
 
     def showSliceLabels(self):
         for slice in self.series.slices():
             slice.setLabel("{} {}% ({})".format(
-                slice.label(), int(100*slice.percentage()), str(slice.value()) + " BTC"))
+                slice.label(), int(100*slice.percentage()), str(round(slice.value(), 4)) + " BTC"))
             slice.setLabelPosition(QPieSlice.LabelInsideNormal)
             # slice.setLabelPosition(QPieSlice.LabelOutside)
-            slice.setLabelColor(QColor('white'))
             slice.setLabelVisible(True)
+
+        self.hideLittleSlices()
 
     def selectSlice(self, account):
         for slice in self.series.slices():
@@ -572,11 +607,74 @@ class TokenPieChart(QChartView):
                 slice.setExploded(True)
                 font = QFont()
                 font.setBold(True)
+                font.setWeight(QFont.ExtraBold)
                 font.setUnderline(True)
                 slice.setLabelFont(font)
+                slice.setLabelColor(QColor("white"))
                 slice.setLabelPosition(QPieSlice.LabelOutside)
             else:
                 slice.setExploded(False)
                 slice.setLabelFont(QFont())
-                # slice.setLabelPosition(QPieSlice.LabelInsideTangential)
+                # # slice.setLabelPosition(QPieSlice.LabelInsideTangential)
+                font = QFont()
+                slice.setLabelColor(QColor("#3f3f39"))
+                slice.setLabelFont(font)
                 slice.setLabelPosition(QPieSlice.LabelInsideNormal)
+
+        self.hideLittleSlices(selected=account)
+
+    def hideLittleSlices(self, selected=''):
+        for slice in self.series.slices():
+            if slice.angleSpan() < 5 and slice.label().split(' ')[0] != selected:
+                # Slice too little to show, and it's not selected
+                slice.setLabelVisible(False)
+            else:
+                slice.setLabelVisible(True)
+
+
+class BalanceHistoryChartView(QChartView):
+    def __init__(self, data, *args,  **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.chart = QChart()
+        self.setupChartWithData(data)
+
+    def setupChartWithData(self, data):
+        self.chart = QChart()
+
+        self.chart.setTheme(QChart.ChartThemeDark)
+        self.chart.setAnimationOptions(QChart.SeriesAnimations)
+        self.chart.setBackgroundBrush(QBrush(QColor('#19232d')))
+#         self.chart.setTitle("")
+#         self.chart.setTitleBrush(QBrush(QColor('white')))
+
+        # Axis X (Dates)
+        self.x = QDateTimeAxis()
+        self.x.setTickCount(11)
+        self.x.setLabelsAngle(70)
+        self.x.setFormat("dd-MM-yy")
+        self.x.setTitleText(self.tr('Date'))
+
+        # Axis Y (Balances)
+        self.y = QValueAxis()
+        self.y.setMax(max(data.values())*1.5)
+
+        self.chart.addAxis(self.y, Qt.AlignLeft)
+        self.chart.addAxis(self.x, Qt.AlignBottom)
+
+        self.btcseries = QLineSeries()
+        for date in data:
+            balance = data[date]
+            date = datetime.fromtimestamp(int(float(date)))
+            dateQ = QDateTime(date)
+            #self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance)
+            self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance)
+
+        self.btcseries.setName("BTC")
+        self.chart.addSeries(self.btcseries)
+        self.btcseries.attachAxis(self.x)
+        self.btcseries.attachAxis(self.y)
+
+        self.setChart(self.chart)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setStyleSheet("border: 0px")

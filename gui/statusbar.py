@@ -9,7 +9,7 @@ class StatusBar(QStatusBar):
     def __init__(self):
         super().__init__()
 
-        self.showMessage("Bienvenido", 1000)
+        self.showMessage(self.tr("Bienvenido"), 1000)
 
         # self.getLastSP500Close()
 

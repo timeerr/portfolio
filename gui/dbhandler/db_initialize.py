@@ -58,5 +58,7 @@ def create_tables(path_to_db):
     conn.close()
 
 
+if 'database' not in os.listdir():
+    os.mkdir('database')
 path_to_db = os.path.join('database', 'portfolio.db')
 create_tables(path_to_db)

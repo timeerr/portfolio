@@ -21,7 +21,7 @@ class TabTransactions(QSplitter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Transactions")
+        self.setWindowTitle(self.tr("Transactions"))
         self.setHandleWidth(2)
         # self.setWindowIcon(QIcon(os.path.join("icons", "FSA_circular.png")))
 
@@ -69,7 +69,7 @@ class TabTransactions(QSplitter):
         self.righttable.changeData(
             newdata)  # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
         self.parent().parent().parent().parent().statusBar().showMessage(
-            "".join(["New transaction added: ", current_query[0].strftime("%d/%m/%Y"), current_query[1].strftime("%d/%m/%Y"), current_query[2], current_query[3]]))
+            "".join([self.tr("New transaction added: "), current_query[0].strftime("%d/%m/%Y"), current_query[1].strftime("%d/%m/%Y"), current_query[2], current_query[3]]))
 
     def printCurrentAccount(self):
         print(self.form.getCurrentAccount(), self.form.getCurrentQuery())

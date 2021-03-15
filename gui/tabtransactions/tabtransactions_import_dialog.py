@@ -24,7 +24,7 @@ class SelectTypeDialog(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Select File Type")
+        self.setWindowTitle(self.tr("Select File Type"))
         self.layout = QVBoxLayout()
 
         # CSV Button and Dialog
@@ -57,13 +57,14 @@ class CSVImportDialog(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Import transactions from CSV")
+        self.setWindowTitle(self.tr("Import transactions from CSV"))
 
         # UI
         self.layout = QVBoxLayout()
 
         # File Selection field
-        self.file_selection = FileSelection("Drag or click to select csv file")
+        self.file_selection = FileSelection(
+            self.tr("Drag or click to select csv file"))
         self.file_selection.fileselectedsignal.selected.connect(
             lambda url: self.updateWithFile(url))
 
@@ -79,13 +80,13 @@ class CSVImportDialog(QDialog):
         self.parse_date_lyt = QVBoxLayout()
         self.date_parse_options = QComboBox()
         self.date_parse_options.addItems(DATE_FORMATS)
-        self.date_parse_label = QLabel("Date Format")
+        self.date_parse_label = QLabel(self.tr("Date Format"))
         self.parse_date_lyt.addWidget(self.date_parse_label)
         self.parse_date_lyt.addWidget(self.date_parse_options)
         self.data_manip_bttns_lyt.addLayout(self.parse_date_lyt)
 
         self.date_column_lyt = QVBoxLayout()
-        self.date_column_select_label = QLabel("Date Column")
+        self.date_column_select_label = QLabel(self.tr("Date Column"))
         self.date_column_select = QComboBox()
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -98,7 +99,7 @@ class CSVImportDialog(QDialog):
         # Select which column correspond to the sender accounts
         self.senderaccount_column_lyt = QVBoxLayout()
         self.senderaccount_column_select_label = QLabel(
-            "Sender Account Column")
+            self.tr("Sender Account Column"))
         self.senderaccount_column_select = QComboBox()
         self.senderaccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -113,7 +114,7 @@ class CSVImportDialog(QDialog):
         # Select which column correspond to the receiver accounts
         self.receiveraccount_column_lyt = QVBoxLayout()
         self.receiveraccount_column_select_label = QLabel(
-            "Receiver Account Column")
+            self.tr("Receiver Account Column"))
         self.receiveraccount_column_select = QComboBox()
         self.receiveraccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -128,7 +129,7 @@ class CSVImportDialog(QDialog):
 
         # Select which column correspond to the amounts
         self.amount_column_lyt = QVBoxLayout()
-        self.amount_column_select_label = QLabel("Amount Column")
+        self.amount_column_select_label = QLabel(self.tr("Amount Column"))
         self.amount_column_select = QComboBox()
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -138,19 +139,19 @@ class CSVImportDialog(QDialog):
         self.amount_column_lyt.addWidget(self.amount_column_select)
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)
 
-        self.headers_hide = QPushButton("Skip Headers")
+        self.headers_hide = QPushButton(self.tr("Skip Headers"))
         self.headers_hide.setCheckable(True)
         self.headers_hide.setMaximumHeight(55)
         self.data_manip_bttns_lyt.addWidget(self.headers_hide)
 
         # Distinguish between caps
-        self.caps_matter = QPushButton("Distinguish Caps")
+        self.caps_matter = QPushButton(self.tr("Distinguish Caps"))
         self.caps_matter.setCheckable(True)
         self.caps_matter.setMaximumHeight(55)
         self.data_manip_bttns_lyt.addWidget(self.caps_matter)
 
         # Save results button
-        self.save_results = QPushButton("Save Results")
+        self.save_results = QPushButton(self.tr("Save Results"))
         self.save_results.clicked.connect(self.saveResults)
 
         self.layout.addWidget(self.file_selection)
@@ -191,9 +192,10 @@ class CSVImportDialog(QDialog):
             icon = QPixmap(os.path.join(
                 'resources', 'warning.svg')).scaledToHeight(40)
             self.error.setIconPixmap(icon)
-            self.error.setText("File Invalid")
-            self.error.setInformativeText("File must be in csv format")
-            self.error.setWindowTitle("File Invalid")
+            self.error.setText(self.tr("File Invalid"))
+            self.error.setInformativeText(
+                self.tr("File must be in csv format"))
+            self.error.setWindowTitle(self.tr("File Invalid"))
             self.error.exec_()
 
     def saveResults(self):
@@ -216,10 +218,24 @@ class CSVImportDialog(QDialog):
                 rownum, date_column).text(), dateformat)
             senderaccount = self.table.item(
                 rownum, senderaccount_column).text()
+            for letter in senderaccount:
+                formatted = ""
+                if letter == '-':
+                    formatted += '/'
+                else:
+                    formatted += letter
+            senderaccount = formatted
             if self.caps_matter.isChecked() == False:
                 senderaccount = senderaccount.upper()
             receiveraccount = self.table.item(
                 rownum, receiveraccount_column).text()
+            for letter in receiveraccount:
+                formatted = ""
+                if letter == '-':
+                    formatted += '/'
+                else:
+                    formatted += letter
+            receiveraccount = formatted
             if self.caps_matter.isChecked() == False:
                 receiveraccount = receiveraccount.upper()
             amount = self.table.item(rownum, amount_column).text()
@@ -240,9 +256,9 @@ class CSVImportDialog(QDialog):
         icon = QPixmap(os.path.join(
             'resources', 'tick.svg')).scaledToHeight(40)
         done.setIconPixmap(icon)
-        done.setText("Results Succesfully Added")
-        done.setInformativeText("Restart App required")
-        done.setWindowTitle("Done")
+        done.setText(self.tr("Results Succesfully Added"))
+        done.setInformativeText(self.tr("Restart App required"))
+        done.setWindowTitle(self.tr("Done"))
         done.exec_()
         self.close()
 
@@ -287,14 +303,14 @@ class ExcelImportDialog(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Import transactions from Excel")
+        self.setWindowTitle(self.tr("Import transactions from Excel"))
 
         # UI
         self.layout = QVBoxLayout()
 
         # File Selection field
         self.file_selection = FileSelection(
-            "Drag or click to select xlsx/xlsxm file")
+            self.tr("Drag or click to select xlsx/xlsxm file"))
         self.file_selection.fileselectedsignal.selected.connect(
             lambda url: self.updateWithFile(url))
 
@@ -315,13 +331,13 @@ class ExcelImportDialog(QDialog):
         self.parse_date_lyt = QVBoxLayout()
         self.date_parse_options = QComboBox()
         self.date_parse_options.addItems(DATE_FORMATS)
-        self.date_parse_label = QLabel("Date Format")
+        self.date_parse_label = QLabel(self.tr("Date Format"))
         self.parse_date_lyt.addWidget(self.date_parse_label)
         self.parse_date_lyt.addWidget(self.date_parse_options)
         self.data_manip_bttns_lyt.addLayout(self.parse_date_lyt)
 
         self.date_column_lyt = QVBoxLayout()
-        self.date_column_select_label = QLabel("Date Column")
+        self.date_column_select_label = QLabel(self.tr("Date Column"))
         self.date_column_select = QComboBox()
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -334,7 +350,7 @@ class ExcelImportDialog(QDialog):
         # Select which column correspond to the sender accounts
         self.senderaccount_column_lyt = QVBoxLayout()
         self.senderaccount_column_select_label = QLabel(
-            "Sender Account Column")
+            self.tr("Sender Account Column"))
         self.senderaccount_column_select = QComboBox()
         self.senderaccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -349,7 +365,7 @@ class ExcelImportDialog(QDialog):
         # Select which column correspond to the sender accounts
         self.receiveraccount_column_lyt = QVBoxLayout()
         self.receiveraccount_column_select_label = QLabel(
-            "Receiver Account Column")
+            self.tr("Receiver Account Column"))
         self.receiveraccount_column_select = QComboBox()
         self.receiveraccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -362,7 +378,7 @@ class ExcelImportDialog(QDialog):
         self.data_manip_bttns_lyt.addLayout(self.receiveraccount_column_lyt)
 
         self.amount_column_lyt = QVBoxLayout()
-        self.amount_column_select_label = QLabel("Amount Column")
+        self.amount_column_select_label = QLabel(self.tr("Amount Column"))
         self.amount_column_select = QComboBox()
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
@@ -373,13 +389,13 @@ class ExcelImportDialog(QDialog):
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)
 
         # Distinguish between caps
-        self.caps_matter = QPushButton("Distinguish Caps")
+        self.caps_matter = QPushButton(self.tr("Distinguish Caps"))
         self.caps_matter.setCheckable(True)
         self.caps_matter.setMaximumHeight(55)
         self.data_manip_bttns_lyt.addWidget(self.caps_matter)
 
         # Save results button
-        self.save_results = QPushButton("Save Results")
+        self.save_results = QPushButton(self.tr("Save Results"))
         self.save_results.clicked.connect(self.saveResults)
 
         self.layout.addWidget(self.file_selection)
@@ -408,9 +424,9 @@ class ExcelImportDialog(QDialog):
             icon = QPixmap(os.path.join(
                 'resources', 'warning.svg')).scaledToHeight(40)
             error.setIconPixmap(icon)
-            error.setText("File Invalid")
-            error.setInformativeText("File must be in csv format")
-            error.setWindowTitle("File Invalid")
+            error.setText(self.tr("File Invalid"))
+            error.setInformativeText(self.tr("File must be in csv format"))
+            error.setWindowTitle(self.tr("File Invalid"))
             error.exec_()
 
     def updateWithFileAndSheet(self, url, sheet):
@@ -490,9 +506,9 @@ class ExcelImportDialog(QDialog):
         icon = QPixmap(os.path.join(
             'resources', 'tick.svg')).scaledToHeight(40)
         done.setIconPixmap(icon)
-        done.setText("Results Succesfully Added")
-        done.setInformativeText("Restart App required")
-        done.setWindowTitle("Done")
+        done.setText(self.tr("Results Succesfully Added"))
+        done.setInformativeText(self.tr("Restart App required"))
+        done.setWindowTitle(self.tr("Done"))
         done.exec_()
         self.close()
 
@@ -605,12 +621,12 @@ class BadDateError(QDialog):
         pxmp = QPixmap(os.path.join("resources", "warning.svg")
                        ).scaledToHeight(40)
         self.icon.setPixmap(pxmp)
-        self.warningtext = QLabel("Date format does not match data")
+        self.warningtext = QLabel(self.tr("Date format does not match data"))
 
         self.warning_lyt_top.addWidget(self.icon)
         self.warning_lyt_top.addWidget(self.warningtext)
 
-        self.closebttn = QPushButton("Close")
+        self.closebttn = QPushButton(self.tr("Close"))
         self.closebttn.clicked.connect(lambda: self.close())
 
         self.warning_lyt.addLayout(self.warning_lyt_top)

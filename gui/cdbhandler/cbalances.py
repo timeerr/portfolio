@@ -194,10 +194,10 @@ def getAllAccountsWithAmount():
             account = r[0]
             token = r[1]
             amount = r[2]
-            amount_btc = prices.toBTC(token, amount)
+            amount_btc = float(prices.toBTC(token, amount))
             if account in result_dict.keys():
                 # We add the amount to the account
-                result_dict[account] = amount_btc
+                result_dict[account] += amount_btc
             else:
                 result_dict[account] = amount_btc
 

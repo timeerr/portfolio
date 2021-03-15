@@ -1,11 +1,17 @@
 SIGUIENTE PASO
 
 
+
+cambiar custom prices
+
 accion en toolbar para crear una pestaña igual a TabCrypto, pero en la que 
 los precios son los equivalentes a los de una fecha determinada. Con una maquina del tiempo
 
 otra accion que compare el ROI que has tenido desde cierta fecha versus haber cambiado
 en esa misma fecha todos los tokens que habían a BTC
+
+Hacer una especie de importacion con un dialog en el que poner una fecha, y todas las cuentas y saldos de cada token
+junto con el precio/btc y precio/fiat (aunk FIAT_CURRENCY es variable y podria dar problemas)
 
 Para la Toolbar:
 A a izq, boton para añadir un token/cuenta a mano

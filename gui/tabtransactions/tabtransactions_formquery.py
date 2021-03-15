@@ -19,7 +19,7 @@ class TransactionsQueryForm(QFormLayout):
         super().__init__(*args, **kwargs)
 
         # First line: Start Date
-        self.label1 = QLabel("Start Date")
+        self.label1 = QLabel(self.tr("Start Date"))
         self.start_date_edit = QDateEdit(datetime.now())
         self.start_date_edit.setDisplayFormat("dd/MM/yyyy")
         self.start_date_edit.setCalendarPopup(True)
@@ -30,7 +30,7 @@ class TransactionsQueryForm(QFormLayout):
         self.setWidget(0, self.FieldRole, self.start_date_edit)
 
         # Second line: End Date
-        self.label2 = QLabel("End Date")
+        self.label2 = QLabel(self.tr("End Date"))
         self.end_date_edit = QDateEdit(datetime.now())
         self.end_date_edit.setDisplayFormat("dd/MM/yyyy")
         self.end_date_edit.setCalendarPopup(True)
@@ -41,7 +41,7 @@ class TransactionsQueryForm(QFormLayout):
         self.setWidget(1, self.FieldRole, self.end_date_edit)
 
         # Third line: Sender Account selection
-        self.label3 = QLabel("Sender Account")
+        self.label3 = QLabel(self.tr("Sender Account"))
         self.senderaccount_select = QComboBox()
         self.senderaccount_select.addItem("All", BoldFont())
         self.senderaccount_select.setEditable(True)
@@ -54,7 +54,7 @@ class TransactionsQueryForm(QFormLayout):
         self.setWidget(2, self.FieldRole, self.senderaccount_select)
 
         # Fourth line: Receiver Account selection
-        self.label4 = QLabel("Receiver Account")
+        self.label4 = QLabel(self.tr("Receiver Account"))
         self.receiveraccount_select = QComboBox()
         self.receiveraccount_select.addItem("All", BoldFont())
         self.receiveraccount_select.setEditable(True)

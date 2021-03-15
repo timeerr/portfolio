@@ -15,8 +15,8 @@ from tabaccounts.account import Account
 
 class AccountsLayout(QScrollArea):
 
-    def __init__(self, accounts):
-        super().__init__()
+    def __init__(self, accounts, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # This ScrollArea has one Widget with one Layout that stores rows with each account info
         self.widget = QWidget()
@@ -41,13 +41,13 @@ class AccountsLayout(QScrollArea):
 
     def setHeaders(self):
         # "Name" Header
-        name_header = HeaderLabel("Name")
+        name_header = HeaderLabel(self.tr("Name"))
 
         # "Balance" Header
-        balance_header = HeaderLabel("Balance (EUR)")
+        balance_header = HeaderLabel(self.tr("Balance (EUR)"))
 
         # "Cost Basis" Header
-        costbasis_header = HeaderLabel("Cost Basis")
+        costbasis_header = HeaderLabel(self.tr("Cost Basis"))
 
         self.layout.addWidget(name_header, 0, 1)
         self.layout.addWidget(balance_header, 0, 2)
@@ -73,7 +73,8 @@ class AccountsLayout(QScrollArea):
         accbalance.setObjectName(str(account.account_name))
         # So that we can find this balance label later by the account name
         # Getting the balance of the account from the db
-        balance = balances.getAccount(account.account_name)[1]
+        balance = balances.getAccount(account.account_name)
+        balance = balance[1]
         accbalance.setText(str(balance) + " EUR")
         accbalance.setFont(AccountBalanceTextFont())
 
@@ -145,7 +146,7 @@ class AccountIcon(QLabel):
 
     def showMenu(self, event):
         menu = QMenu()
-        change_icon_action = menu.addAction("Change Icon")
+        change_icon_action = menu.addAction(self.tr("Change Icon"))
 
         action = menu.exec_(QCursor.pos())
 
@@ -172,19 +173,19 @@ class ChangeIconDialog(QDialog):
         self.changed = Communicate()
 
         # UI
-        self.setWindowTitle("Change Account  Icon")
+        self.setWindowTitle(self.tr("Change Account  Icon"))
         self.setFixedSize(250, 180)
         self.setAcceptDrops(True)
 
         self.dialog_layout = QVBoxLayout()
-        self.dialog_label = QLabel("Drag new icon here")
+        self.dialog_label = QLabel(self.tr("Drag new icon here"))
         self.dialog_label.setCursor(QCursor(Qt.PointingHandCursor))
         self.dialog_label.setStyleSheet(
             "border: 2px grey; border-style: dashed; font-style: italic")
         self.dialog_label.setAlignment(Qt.AlignCenter)
 
         # Button to write icon changes
-        self.change_pushbutton = QPushButton("Change")
+        self.change_pushbutton = QPushButton(self.tr("Change"))
         self.change_pushbutton.clicked.connect(self.changeIcon)
 
         self.dialog_layout.addWidget(self.dialog_label)
@@ -208,7 +209,7 @@ class ChangeIconDialog(QDialog):
         if self.imgpath != None:
             os.remove(self.account_icon_path)
             shutil.copyfile(self.imgpath, self.account_icon_path)
-            self.change_pushbutton.setText("Changed!")
+            self.change_pushbutton.setText(self.tr("Changed!"))
             # Emits signal to outside so that icon can be refreshed
             self.changed.iconchanged.emit()
             self.close()
@@ -216,7 +217,7 @@ class ChangeIconDialog(QDialog):
         else:
             if self.errorlabel != None:
                 self.errorlabel.setParent(None)
-            self.errorlabel = QLabel("No image selected")
+            self.errorlabel = QLabel(self.tr("No image selected"))
             self.errorlabel.setAlignment(Qt.AlignCenter)
             self.dialog_layout.addWidget(self.errorlabel)
 
@@ -239,7 +240,7 @@ class ChangeIconDialog(QDialog):
                     self.errorlabel.setParent(None)
                 self.errorlabel = None
         else:
-            self.errorlabel = QLabel("Has to be an image")
+            self.errorlabel = QLabel(self.tr("Has to be an image"))
             self.errorlabel.setAlignment(Qt.AlignCenter)
             self.dialog_layout.addWidget(self.errorlabel)
 

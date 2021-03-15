@@ -3,7 +3,7 @@
 import os
 from datetime import datetime
 from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QHBoxLayout
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
@@ -21,7 +21,7 @@ class TabResults(QSplitter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Results")
+        self.setWindowTitle(self.tr("Results"))
         self.setHandleWidth(2)
         # self.setWindowIcon(QIcon(os.path.join("icons", "FSA_circular.png")))
 
@@ -71,7 +71,7 @@ class TabResults(QSplitter):
         self.righttable.changeData(
             newdata)  # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
         self.parent().parent().parent().parent().statusBar().showMessage(
-            "".join(["Updated: ", str(ac), ' ', str(sd), str(ed)]), 5000)
+            "".join([self.tr("Updated: "), str(ac), ' ', str(sd), str(ed)]), 5000)
 
     def printCurrentAccount(self):
         print(self.form.getCurrentAccount(), self.form.getCurrentQuery())
