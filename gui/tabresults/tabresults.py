@@ -8,12 +8,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 
-from fonts import TitleFont, SubtitleFont
-from tabresults.tabresults_formquery import ResultsQueryForm
-from tabresults.tabresults_leftlayout import LeftLayout
-from tabresults.tabresults_righttable import RightTable
+from gui.resources.fonts import TitleFont, SubtitleFont
+from .tabresults_formquery import ResultsQueryForm
+from .tabresults_leftlayout import LeftLayout
+from .tabresults_righttable import RightTable
 
-from dbhandler import results
+from gui.dbhandler import results
 
 
 class TabResults(QSplitter):

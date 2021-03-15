@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout
 from PyQt5.QtCore import pyqtSignal, QObject, QMargins, Qt
 from PyQt5.QtGui import QFont
 
-from cdbhandler import cbalances
-from prices import prices
+from gui.cdbhandler import cbalances
+from gui.prices import prices
 
 
 class TabCryptoToolBar(QToolBar):

@@ -5,10 +5,10 @@ from PyQt5.QtCore import Qt, QPointF, QDate, QDateTime
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis
 from PyQt5.QtGui import QPainter, QPen, QBrush, QColor, QFont, QPixmap, QIcon
 
-from cdbhandler import cbalances, chistoricalbalances
-from fonts import TitleFont, TokenBalanceFont
-from prices import prices
-from tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
+from gui.cdbhandler import cbalances, chistoricalbalances
+from gui.resources.fonts import TitleFont, TokenBalanceFont
+from gui.prices import prices
+from .tabcrypto_toolbar import TabCryptoToolBar
 
 import requests
 import json
@@ -24,7 +24,8 @@ DATABASE_ACCOUNTS = cbalances.getAllAccounts()
 if 'coingeckoids.json' not in os.listdir('prices'):
     prices.updateCoinListFile()
 if 'coinprices.json' not in os.listdir('prices'):
-    open('coinprices.json', 'w').close()
+    with open(os.path.join('prices', 'coinprices.json'), 'w') as f:
+        json.dump({}, f)
     for token in DATABASE_TOKENS:
         prices.addTokenPrice(token, 'coingecko', 0)
 if 'btctofiat.json' not in os.listdir('prices'):
@@ -251,7 +252,7 @@ class DescriptionLayout(QWidget):
         self.token_or_account_balance.setText(
             str(tokenbalance)+' '+tokensymbol)
         self.token_or_account_balance.show()
-        tokenbalancebtc = prices.toBTC(tokensymbol, tokenbalance)
+        tokenbalancebtc = round(prices.toBTC(tokensymbol, tokenbalance), 8)
         self.token_or_account_balance_btc.setText(str(tokenbalancebtc)+" BTC")
         if tokensymbol in ["BTC", "btc"]:
             self.token_or_account_balance_btc.setText("")
@@ -275,6 +276,8 @@ class DescriptionLayout(QWidget):
             total_in_btc += amount_btc
         total_in_fiat = prices.btcToFiat(
             total_in_btc, currency=FIAT_CURRENCY)
+        total_in_btc = round(total_in_btc, 8)
+        total_in_fiat = int(round(total_in_fiat, 0))
 
         self.token_or_account_balance.hide()  # Not useful here
         self.token_or_account_balance_btc.setText(str(total_in_btc) + " BTC")
@@ -637,7 +640,6 @@ class BalanceHistoryChartView(QChartView):
         super().__init__(*args, **kwargs)
 
         self.chart = QChart()
-        self.setupChartWithData(data)
 
     def setupChartWithData(self, data):
         self.chart = QChart()
@@ -657,7 +659,8 @@ class BalanceHistoryChartView(QChartView):
 
         # Axis Y (Balances)
         self.y = QValueAxis()
-        self.y.setMax(max(data.values())*1.5)
+        if data != {}:
+            self.y.setMax(max(data.values())*1.5)
 
         self.chart.addAxis(self.y, Qt.AlignLeft)
         self.chart.addAxis(self.x, Qt.AlignBottom)

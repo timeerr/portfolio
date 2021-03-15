@@ -1,17 +1,17 @@
 # /usr/bin/python3
 
-from dbhandler import balances
+from gui.dbhandler import balances
 import os
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QScrollArea, QToolBar
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QMargins, QSize, Qt
 
-from assetgen.accounticongen import get_png_account
-from fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
-from tabaccounts.tabaccounts_toolbar import AccountsToolBar
-from tabaccounts.tabaccounts_layout import AccountsLayout
-from tabaccounts.account import Account
+from gui.assetgen.accounticongen import get_png_account
+from gui.resources.fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
+from .tabaccounts_toolbar import AccountsToolBar
+from .tabaccounts_layout import AccountsLayout
+from .account import Account
 
 
 class TabAccounts(QWidget):

@@ -6,10 +6,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 
-from tabresults.tabresults import TabResults
-from tabaccounts.tabaccounts import TabAccounts
-from tabtransactions.tabtransactions import TabTransactions
-from tabcrypto.tabcrypto import TabCrypto
+from gui.tabresults.tabresults import TabResults
+from gui.tabaccounts.tabaccounts import TabAccounts
+from gui.tabtransactions.tabtransactions import TabTransactions
+from gui.tabcrypto.tabcrypto import TabCrypto
 
 
 class MainWidget(QWidget):

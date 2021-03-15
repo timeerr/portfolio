@@ -8,12 +8,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt, QMargins
 
-from fonts import TitleFont, SubtitleFont
-from tabtransactions.tabtransactions_formquery import TransactionsQueryForm
-from tabtransactions.tabtransactions_leftlayout import LeftLayout
-from tabtransactions.tabtransactions_righttable import RightTable
+from gui.resources.fonts import TitleFont, SubtitleFont
+from .tabtransactions_formquery import TransactionsQueryForm
+from .tabtransactions_leftlayout import LeftLayout
+from .tabtransactions_righttable import RightTable
 
-from dbhandler import transactions
+from gui.dbhandler import transactions
 
 
 class TabTransactions(QSplitter):

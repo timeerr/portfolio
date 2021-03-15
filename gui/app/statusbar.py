@@ -1,7 +1,7 @@
 # /usr/bin/python3
 
 from PyQt5.QtWidgets import QStatusBar, QLabel
-import pandas_datareader as pdr
+
 
 
 class StatusBar(QStatusBar):

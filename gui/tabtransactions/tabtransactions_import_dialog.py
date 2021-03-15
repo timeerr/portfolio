@@ -9,7 +9,7 @@ import csv
 import pandas as pd
 from datetime import datetime
 
-from dbhandler import transactions
+from gui.dbhandler import transactions
 
 DATE_FORMATS = ["UNIX", "DD/MM/YYYY",  "DD-MM-YYY",
                 "MM/DD/YYYY", "MM-DD-YYYY", "YYYY-MM-DD",

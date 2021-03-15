@@ -7,5 +7,7 @@ gui/resources/account-icons
 gui/prices
 *.db
 *.pyc
+*.ts
+
 
 

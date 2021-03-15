@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import QLineEdit, QDateEdit, QVBoxLayout, QLabel, QFormLayo
 from PyQt5.QtCore import Qt, QMargins
 from datetime import datetime
 
-from fonts import TitleFont, BoldFont
-from tabtransactions.tabtransactions_import_dialog import SelectTypeDialog
-from tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog
-from dbhandler import transactions, balances
+from gui.resources.fonts import TitleFont, BoldFont
+from gui.dbhandler import transactions, balances
+from .tabtransactions_import_dialog import SelectTypeDialog
+from gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog
 
 
 class AddTransactionsForm(QVBoxLayout):

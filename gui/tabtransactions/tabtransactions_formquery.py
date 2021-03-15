@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from datetime import datetime
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QDateEdit, QComboBox, QFormLayout
 from PyQt5.QtGui import *
@@ -7,10 +9,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtChart import QChart
 
-from fonts import BoldFont
-
-from datetime import datetime
-from dbhandler import db_initialize, transactions
+from gui.resources.fonts import BoldFont
+from gui.dbhandler import db_initialize, transactions
 
 
 class TransactionsQueryForm(QFormLayout):

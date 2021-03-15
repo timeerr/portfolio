@@ -8,9 +8,9 @@ import os
 import shutil
 import time
 
-from fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
-from dbhandler import balances, costbasis
-from tabaccounts.account import Account
+from gui.resources.fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
+from gui.dbhandler import balances, costbasis
+from .account import Account
 
 
 class AccountsLayout(QScrollArea):

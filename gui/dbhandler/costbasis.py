@@ -2,7 +2,7 @@
 
 import sqlite3
 from datetime import datetime
-from dbhandler import transactions
+from . import transactions
 import os
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')

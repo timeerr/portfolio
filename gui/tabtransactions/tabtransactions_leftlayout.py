@@ -3,9 +3,9 @@
 from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QMargins, QDate, QDateTime
 
-from fonts import TitleFont, SubtitleFont, DateButtonFont, UpdateButtonFont
-from tabtransactions.tabtransactions_formquery import TransactionsQueryForm
-from tabtransactions.tabtransactions_addtransactionsform import AddTransactionsForm
+from gui.resources.fonts import TitleFont, SubtitleFont, DateButtonFont, UpdateButtonFont
+from .tabtransactions_formquery import TransactionsQueryForm
+from .tabtransactions_addtransactionsform import AddTransactionsForm
 
 
 class LeftLayout(QVBoxLayout):

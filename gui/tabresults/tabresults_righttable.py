@@ -5,7 +5,7 @@ from PyQt5.QtGui import QMouseEvent, QCursor
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from datetime import datetime
 
-from dbhandler import results
+from gui.dbhandler import results
 
 
 class RightTable(QTableWidget):

@@ -4,8 +4,8 @@ from datetime import datetime
 import sqlite3
 import os
 
-from cdbhandler import cbalances
-from prices import prices
+from . import cbalances
+from gui.prices import prices
 
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')
 

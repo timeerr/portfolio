@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlite3
 import os
 
-from dbhandler import balances
+from . import balances
 
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')

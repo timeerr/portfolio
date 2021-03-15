@@ -5,7 +5,11 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 import os
 
-from dbhandler import balances
+from gui.dbhandler import balances
+
+if 'resources' not in os.listdir():
+    os.mkdir('resources')
+    os.mkdir(os.path.join('resources', 'account-icons'))
 
 
 class AddAccountDialog(QDialog):

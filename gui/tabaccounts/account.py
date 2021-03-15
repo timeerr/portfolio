@@ -1,6 +1,6 @@
 # /usr/bin/python3
 import os
-from assetgen.accounticongen import get_png_account
+from gui.assetgen.accounticongen import get_png_account
 
 
 class Account:

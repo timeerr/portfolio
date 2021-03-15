@@ -3,7 +3,7 @@
 from datetime import datetime
 import sqlite3
 import os
-from prices import prices
+from gui.prices import prices
 
 
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')

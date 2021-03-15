@@ -6,10 +6,10 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 
-from fonts import BoldFont
+from gui.resources.fonts import BoldFont
 
 from datetime import datetime
-from dbhandler import balances
+from gui.dbhandler import balances
 
 
 class ResultsQueryForm(QFormLayout):

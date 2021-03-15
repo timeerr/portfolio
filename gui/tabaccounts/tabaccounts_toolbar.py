@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPixmap
 import os
 import time
 
-from tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
+from .tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
 
 
 class AccountsToolBar(QToolBar):

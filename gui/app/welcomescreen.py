@@ -7,7 +7,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 
-from fonts import TitleFont
+from gui.resources.fonts import TitleFont
 
 
 class WelcomeWidget(QWidget):

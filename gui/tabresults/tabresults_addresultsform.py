@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import QLineEdit, QDateEdit, QVBoxLayout, QLabel, QFormLayo
 from PyQt5.QtCore import Qt, QMargins
 from datetime import datetime
 
-from tabresults.tabresults_formquery import AccountSelectResults
-from fonts import TitleFont
-from tabresults.tabresults_import_dialog import SelectTypeDialog
-from dbhandler import balances, results
+from .tabresults_formquery import AccountSelectResults
+from gui.resources.fonts import TitleFont
+from .tabresults_import_dialog import SelectTypeDialog
+from gui.dbhandler import balances, results
 
 
 class AddResultsForm(QVBoxLayout):
