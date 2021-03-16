@@ -1,4 +1,7 @@
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+"""
+Handles all the input and output operations that use the chistoricalbalances table from portfolio.db
+"""
 
 from datetime import datetime
 import sqlite3
@@ -32,7 +35,7 @@ def getBalancesFromLastDay():
 
         cursor.execute(get_balances_from_last_day_query)
 
-        return(cursor.fetchall())
+        return cursor.fetchall()
 
 
 def addTodaysBalances():

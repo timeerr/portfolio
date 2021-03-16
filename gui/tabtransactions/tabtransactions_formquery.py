@@ -1,16 +1,14 @@
 #!/usr/bin/python3
+"""
+Form to get transactions form the database
+"""
 
 from datetime import datetime
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QDateEdit, QComboBox, QFormLayout
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtCore import Qt
-from PyQt5.QtChart import QChart
+from PyQt5.QtWidgets import QLabel, QDateEdit, QComboBox, QFormLayout
 
 from gui.resources.fonts import BoldFont
-from gui.dbhandler import db_initialize, transactions
+from gui.dbhandler import transactions
 
 
 class TransactionsQueryForm(QFormLayout):
@@ -67,22 +65,31 @@ class TransactionsQueryForm(QFormLayout):
         self.setWidget(3, self.FieldRole, self.receiveraccount_select)
 
     def getCurrentQuery(self):
-        # Returns tuple with the start date, end date and current sender and receiver accounts of the query form
+        """
+        Returns tuple with the start date, end date and
+        current sender and receiver accounts of the query form
+        """
         startdate = datetime.strptime(
-            self.start_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
+            self.start_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")
         enddate = datetime.strptime(
-            self.end_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
+            self.end_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")
         senderaccount = self.senderaccount_select.currentText()
         receiveraccount = self.receiveraccount_select.currentText()
 
         return (startdate, enddate, senderaccount, receiveraccount)
 
     def checkDates_startdate(self):
+        """
+        Making sure that the start date is not bigger than the end date
+        """
         if self.end_date_edit.dateTime() < self.start_date_edit.dateTime():
             # set end date same as start date
             self.end_date_edit.setDate(self.start_date_edit.date())
 
     def checkDates_enddate(self):
+        """
+        Making sure that the start date is not bigger than the end date
+        """
         if self.start_date_edit.dateTime() > self.end_date_edit.dateTime():
             # viceversa
             self.start_date_edit.setDate(self.end_date_edit.date())

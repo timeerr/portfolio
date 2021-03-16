@@ -1,21 +1,20 @@
 #!/usr/bin/python3
-
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QComboBox, QDateEdit, QFormLayout
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtCore import Qt
-
-from gui.resources.fonts import BoldFont
+"""
+Form to add results on database
+"""
 
 from datetime import datetime
+
+from PyQt5.QtWidgets import QLabel, QComboBox, QDateEdit, QFormLayout
+
 from gui.dbhandler import balances
+from gui.resources.fonts import BoldFont
 
 
 class ResultsQueryForm(QFormLayout):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # First line: Start Date
         self.label1 = QLabel(self.tr("Start Date"))
@@ -46,31 +45,39 @@ class ResultsQueryForm(QFormLayout):
         self.account_select.addItems(currentaccounts)
         # Initializing a new attr, that we will use on parents to get current selected account
         self.currentaccount = self.account_select.currentText()
-        # If current account is changed, we get the signal and process it
-        self.account_select.currentIndexChanged.connect(self.getCurrentAccount)
 
         self.setWidget(2, self.LabelRole, self.label3)
         self.setWidget(2, self.FieldRole, self.account_select)
 
-    def getCurrentAccount(self):
-        return self.account_select.currentText()
-
     def getCurrentQuery(self):
-        # Returns tuple with the start date, end date and current account of the query form
-        return (self.start_date_edit.dateTime(), self.end_date_edit.dateTime(), self.account_select.currentText())
+        """
+        Returns tuple with the start date, end date and current account of the query form
+        """
+        return (self.start_date_edit.dateTime(), self.end_date_edit.dateTime(),
+                self.account_select.currentText())
 
     def checkDates_startdate(self):
+        """
+        Making sure that the start date is not bigger than the end date
+        """
         if self.end_date_edit.dateTime() < self.start_date_edit.dateTime():
             # set end date same as start date
             self.end_date_edit.setDate(self.start_date_edit.date())
 
     def checkDates_enddate(self):
+        """
+        Making sure that the start date is not bigger than the end date
+        """
         if self.start_date_edit.dateTime() > self.end_date_edit.dateTime():
             # viceversa
             self.start_date_edit.setDate(self.end_date_edit.date())
 
 
 class AccountSelectResults(QComboBox):
+    """
+    ComboBox to select between all current accounts
+    """
+
     def __init__(self, is_query=False):
         super().__init__()
 

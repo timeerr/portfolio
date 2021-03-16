@@ -1,6 +1,8 @@
+"""
+Handles all the input and output operations that use the cbalances table from cportfolio.db
+"""
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
 
-from datetime import datetime
 import sqlite3
 import os
 from gui.prices import prices
@@ -9,7 +11,8 @@ from gui.prices import prices
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')
 
 
-def createConnection(path_to_db=PATH_TO_DB):
+def create_connection(path_to_db=PATH_TO_DB):
+    """Connects to the database on a certain path, returning the connection"""
     conn = None
 
     try:
@@ -21,7 +24,7 @@ def createConnection(path_to_db=PATH_TO_DB):
 
 
 def addAccount(account, token, amount, _type, kyc, description):
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -46,7 +49,7 @@ def addAccount(account, token, amount, _type, kyc, description):
 
 
 def deleteAccount(account_name, token_name):
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -59,17 +62,17 @@ def deleteAccount(account_name, token_name):
 
 
 def editAccount(account_name, new_account_name=None, new_token_name=None):
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
 
-        if new_account_name != None:
+        if new_account_name is not None:
             edit_account_query = """UPDATE cbalances SET account = '{}' WHERE account = '{}' """.format(
                 new_account_name, account_name)
             cursor.execute(edit_account_query)
 
-        if new_token_name != None:
+        if new_token_name is not None:
             edit_token_query = """UPDATE cbalances SET token = '{}' WHERE token = '{}' """.format(
                 new_token_name, account_name)
             cursor.execute(edit_token_query)
@@ -79,7 +82,7 @@ def editAccount(account_name, new_account_name=None, new_token_name=None):
 
 def getEntriesWithAccount(account):
     """Returns all tokens from an account"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -90,12 +93,12 @@ def getEntriesWithAccount(account):
         cursor.execute(get_account_query)
 
         result = cursor.fetchall()
-        return (result)
+        return result
 
 
 def getEntriesWithToken(token):
     """Returns all rows where a token is involved"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -106,12 +109,12 @@ def getEntriesWithToken(token):
         cursor.execute(get_token_query)
 
         result = cursor.fetchall()
-        return (result)
+        return result
 
 
 def getTotalTokenBalance(token):
     """Sums all token balances from all accounts"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -126,12 +129,12 @@ def getTotalTokenBalance(token):
         for r in result:
             totaltokenbalance += r[0]
 
-        return (totaltokenbalance)
+        return totaltokenbalance
 
 
 def getAllTokens():
     """Returns a list with all tokens"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -152,7 +155,7 @@ def getAllTokens():
 
 def getAllTokensWithAmount():
     """Returns a dict with each full token balance from each token"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -171,7 +174,7 @@ def getAllTokensWithAmount():
             else:
                 result_dict[token] = amount
 
-        for r in result_dict.keys():
+        for r in result_dict:
             final_result.append((r, result_dict[r]))
 
         return final_result
@@ -179,7 +182,7 @@ def getAllTokensWithAmount():
 
 def getAllAccountsWithAmount():
     """ Returns a dict with each full account balance """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -201,14 +204,14 @@ def getAllAccountsWithAmount():
             else:
                 result_dict[account] = amount_btc
 
-        for r in result_dict.keys():
+        for r in result_dict:
             final_result.append((r, result_dict[r]))
 
         return final_result
 
 
 def getAccountWithToken(account, token):
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -221,12 +224,12 @@ def getAccountWithToken(account, token):
         result = cursor.fetchall()
         if result == []:
             return None
-        return (result[0])
+        return result[0]
 
 
 def getAllEntries():
     """Returns all entries on cbalances"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -235,12 +238,12 @@ def getAllEntries():
 
         cursor.execute(get_all_accounts_query)
 
-        return(cursor.fetchall())
+        return cursor.fetchall()
 
 
 def getAllAccounts():
     """Returns a listwith all accounts on cbalances"""
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -262,7 +265,7 @@ def getAllAccounts():
 
 def updateBalance(account, token, newbalance):
     """ Changes balance for a specific account with a specific token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -276,7 +279,7 @@ def updateBalance(account, token, newbalance):
 
 def updateType(account, token, newtype):
     """ Changes type for a specific account with a specific token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -290,7 +293,7 @@ def updateType(account, token, newtype):
 
 def updateKYC(account, token, newkyc):
     """ Changes kyc for a specific account with a specific token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -304,7 +307,7 @@ def updateKYC(account, token, newkyc):
 
 def updateDescription(account, token, newdescription):
     """ Changes description for a specific account with a specific token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -318,7 +321,7 @@ def updateDescription(account, token, newdescription):
 
 def getType(account, token):
     """ Returns the type of the account with a certain token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -333,7 +336,7 @@ def getType(account, token):
 
 def getKYC(account, token):
     """ Returns the kyc of the account with a certain token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -348,7 +351,7 @@ def getKYC(account, token):
 
 def getDescription(account, token):
     """ Returns the description of the account with a certain token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -363,7 +366,7 @@ def getDescription(account, token):
 
 def getBalance(account, token):
     """ Returns the balance of the account with a certain token """
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()

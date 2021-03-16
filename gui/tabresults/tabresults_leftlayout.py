@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QWidget
-from PyQt5.QtCore import Qt, QMargins, QDate, QDateTime
+from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QHBoxLayout
+from PyQt5.QtCore import Qt, QMargins, QDate
 
 from gui.resources.fonts import TitleFont, SubtitleFont, DateButtonFont, UpdateButtonFont
 from .tabresults_formquery import ResultsQueryForm
@@ -9,6 +9,10 @@ from .tabresults_addresultsform import AddResultsForm
 
 
 class LeftLayout(QVBoxLayout):
+    """
+    Layout containing forms to interact with the table on the right 
+    layout of tabresults
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,7 +63,8 @@ class LeftLayout(QVBoxLayout):
         self.update_query_pushbutton.setFont(UpdateButtonFont())
         self.update_query_pushbutton.setMinimumHeight(30)
         self.update_query_pushbutton.setMaximumWidth(75)
-        # Wrap the pushbutton inside a layout, that gets inserted into our main leftlayout, so that we can center it properly
+        # Wrap the pushbutton inside a layout,
+        # that gets inserted into our main leftlayout, so that we can center it properly
         self.update_query_pushbutton_layout = QVBoxLayout()
         self.update_query_pushbutton_layout.addWidget(
             self.update_query_pushbutton, Qt.AlignVCenter)
@@ -84,7 +89,8 @@ class LeftLayout(QVBoxLayout):
     def set_currentweek(self):
         dayofweek = QDate.currentDate().dayOfWeek()
 
-        # We will have to substract this number of days to the current date, and set that date on the startdate slot
+        # We will have to substract this number of days to the current date,
+        # and set that date on the startdate slot
         days_to_prev_monday = -(dayofweek+6)
 
         self.form.start_date_edit.setDate(
@@ -92,6 +98,7 @@ class LeftLayout(QVBoxLayout):
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
 
     def set_mtd(self):
+        """Month to Date"""
         days_to_first_day_of_month = -(QDate.currentDate().day()-1)
 
         self.form.start_date_edit.setDate(
@@ -99,6 +106,7 @@ class LeftLayout(QVBoxLayout):
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
 
     def set_ytd(self):
+        """Year to Date"""
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().year(), 1, 1))
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))

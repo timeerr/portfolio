@@ -1,19 +1,13 @@
 #!/usr/bin/python3
 
-import os
 from datetime import datetime
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QHBoxLayout
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtCore import Qt
 
-from gui.resources.fonts import TitleFont, SubtitleFont
-from .tabresults_formquery import ResultsQueryForm
-from .tabresults_leftlayout import LeftLayout
-from .tabresults_righttable import RightTable
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
+from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import results
+from .tabresults_leftlayout import LeftLayout
+from .tabresults_righttable import RightTable
 
 
 class TabResults(QSplitter):
@@ -38,7 +32,8 @@ class TabResults(QSplitter):
 
         # ------Left Layout Widgets------
         # Functionality between layouts
-        #   Adding a link between the left layout pushbutton and the right layout data that is displayer
+        #   Adding a link between the left layout pushbutton
+        #   and the right layout data that is displayer
         self.leftlayout.update_query_pushbutton.clicked.connect(
             self.updateRightLayout)
         self.leftlayout.add_results_form.insert_button.clicked.connect(
@@ -57,7 +52,7 @@ class TabResults(QSplitter):
         self.insertWidget(0, self.leftlayout_widget)
         self.insertWidget(1, self.rightlayout_widget)
 
-    def updateRightLayout(self, calltype):
+    def updateRightLayout(self):
         sd = datetime.strptime(
             self.leftlayout.currentquery[0].toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
         ed = datetime.strptime(
@@ -69,9 +64,7 @@ class TabResults(QSplitter):
 
         self.righttable.changeData(newdata)
         self.righttable.changeData(
-            newdata)  # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
+            newdata)
+        """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
         self.parent().parent().parent().parent().statusBar().showMessage(
             "".join([self.tr("Updated: "), str(ac), ' ', str(sd), str(ed)]), 5000)
-
-    def printCurrentAccount(self):
-        print(self.form.getCurrentAccount(), self.form.getCurrentQuery())

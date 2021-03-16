@@ -1,19 +1,11 @@
 #!/usr/bin/python3
 
-import os
-from datetime import datetime
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QHBoxLayout, QLabel
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
-from gui.resources.fonts import TitleFont, SubtitleFont
-from .tabtransactions_formquery import TransactionsQueryForm
+from gui.dbhandler import transactions
 from .tabtransactions_leftlayout import LeftLayout
 from .tabtransactions_righttable import RightTable
-
-from gui.dbhandler import transactions
 
 
 class TabTransactions(QSplitter):
@@ -58,18 +50,19 @@ class TabTransactions(QSplitter):
         self.insertWidget(1, self.rightlayout_widget)
 
     def updateRightLayout(self):
+
         # Getting current form state
-
         current_query = self.leftlayout.form.getCurrentQuery()
-
         newdata = transactions.getTransactions_fromQuery(
             start_date=current_query[0], end_date=current_query[1], senderaccount=current_query[2], receiveraccount=current_query[3])
 
+        # Changing with new data
         self.righttable.changeData(newdata)
         self.righttable.changeData(
-            newdata)  # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
-        self.parent().parent().parent().parent().statusBar().showMessage(
-            "".join([self.tr("New transaction added: "), current_query[0].strftime("%d/%m/%Y"), current_query[1].strftime("%d/%m/%Y"), current_query[2], current_query[3]]))
+            newdata)
+        # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
 
-    def printCurrentAccount(self):
-        print(self.form.getCurrentAccount(), self.form.getCurrentQuery())
+        # Show message on status bar with the new transaction info
+        self.parent().parent().parent().parent().statusBar().showMessage(
+            "".join([self.tr("New transaction added: "), current_query[0].strftime("%d/%m/%Y"),
+                     current_query[1].strftime("%d/%m/%Y"), current_query[2], current_query[3]]))

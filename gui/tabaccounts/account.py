@@ -1,4 +1,8 @@
 # /usr/bin/python3
+"""
+Object that contains data about a new account.
+"""
+
 import os
 from gui.assetgen.accounticongen import get_png_account
 
@@ -31,4 +35,4 @@ class Account:
             get_png_account(self.account_name, self.iconpath)
 
     def __repr__(self):
-        return (self.account_name + ' ' + str(self.amount))
+        return self.account_name + ' ' + str(self.amount)

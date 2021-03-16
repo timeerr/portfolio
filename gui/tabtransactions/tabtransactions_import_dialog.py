@@ -1,13 +1,19 @@
 #!/usr/bin/python3
+"""
+Dialog to import transactions form a variety of spreadsheet files
+Once imported, the transactions are added to the database
+"""
 
-from PyQt5.QtWidgets import QWidget, QDialog, QHBoxLayout, QVBoxLayout, QTableWidget, QLabel, QFileDialog, QMessageBox, QTableWidgetItem, QComboBox, QPushButton, QCheckBox, QTableView
-from PyQt5.QtCore import Qt, QObject, pyqtSignal, QAbstractTableModel
-from PyQt5.QtGui import QCursor, QIcon, QPixmap
 
 import os
 import csv
-import pandas as pd
 from datetime import datetime
+import pandas as pd
+
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QTableWidgetItem, QComboBox, QPushButton, QTableView
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QTableWidget, QLabel
+from PyQt5.QtCore import Qt, QObject, pyqtSignal, QAbstractTableModel
+from PyQt5.QtGui import QCursor, QPixmap
 
 from gui.dbhandler import transactions
 
@@ -44,10 +50,16 @@ class SelectTypeDialog(QDialog):
         self.setLayout(self.layout)
 
     def csvSelected(self):
+        """
+        Displaying the CSVImportDialog
+        """
         self.csvimportdialog.show()
         self.close()
 
     def xlsxSelected(self):
+        """
+        Displaying the ExcelImportDialog
+        """
         self.xlsximportdialog.show()
         self.close()
 
@@ -91,7 +103,7 @@ class CSVImportDialog(QDialog):
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.date_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.date_column_lyt.addWidget(self.date_column_select_label)
         self.date_column_lyt.addWidget(self.date_column_select)
         self.data_manip_bttns_lyt.addLayout(self.date_column_lyt)
@@ -104,7 +116,7 @@ class CSVImportDialog(QDialog):
         self.senderaccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.senderaccount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.senderaccount_column_lyt.addWidget(
             self.senderaccount_column_select_label)
         self.senderaccount_column_lyt.addWidget(
@@ -119,7 +131,7 @@ class CSVImportDialog(QDialog):
         self.receiveraccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.receiveraccount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.receiveraccount_column_lyt.addWidget(
             self.receiveraccount_column_select_label)
         self.receiveraccount_column_lyt.addWidget(
@@ -134,7 +146,7 @@ class CSVImportDialog(QDialog):
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.amount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.amount_column_lyt.addWidget(self.amount_column_select_label)
         self.amount_column_lyt.addWidget(self.amount_column_select)
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)
@@ -199,7 +211,9 @@ class CSVImportDialog(QDialog):
             self.error.exec_()
 
     def saveResults(self):
-        # Parse TableWidget and add results on db
+        """
+        Parse TableWidget and add results on db
+        """
         dateformat = self.date_parse_options.currentText()
 
         date_column = int(self.date_column_select.currentText())-1
@@ -211,7 +225,7 @@ class CSVImportDialog(QDialog):
         transactionslist = []
         for rownum in range(self.table.rowCount()):
 
-            if rownum == 0 and self.headers_hide.isChecked() == True:
+            if rownum == 0 and self.headers_hide.isChecked() is True:
                 # Skipping first row
                 continue
             date = self.parseDate(self.table.item(
@@ -225,7 +239,7 @@ class CSVImportDialog(QDialog):
                 else:
                     formatted += letter
             senderaccount = formatted
-            if self.caps_matter.isChecked() == False:
+            if self.caps_matter.isChecked() is False:
                 senderaccount = senderaccount.upper()
             receiveraccount = self.table.item(
                 rownum, receiveraccount_column).text()
@@ -236,7 +250,7 @@ class CSVImportDialog(QDialog):
                 else:
                     formatted += letter
             receiveraccount = formatted
-            if self.caps_matter.isChecked() == False:
+            if self.caps_matter.isChecked() is False:
                 receiveraccount = receiveraccount.upper()
             amount = self.table.item(rownum, amount_column).text()
 
@@ -263,7 +277,9 @@ class CSVImportDialog(QDialog):
         self.close()
 
     def parseDate(self, date, dateformat):
-        # Converts date string into datetime object according to the dateformat specification
+        """
+        Converts date string into datetime object according to the dateformat specification
+        """
         try:
             if dateformat == "UNIX":
                 result = datetime.fromtimestamp(int(date))
@@ -312,7 +328,7 @@ class ExcelImportDialog(QDialog):
         self.file_selection = FileSelection(
             self.tr("Drag or click to select xlsx/xlsxm file"))
         self.file_selection.fileselectedsignal.selected.connect(
-            lambda url: self.updateWithFile(url))
+            self.updateWithFile)
 
         # Sheet selection (for xlsx files)
         self.sheetselection = QComboBox()
@@ -342,7 +358,7 @@ class ExcelImportDialog(QDialog):
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.date_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.date_column_lyt.addWidget(self.date_column_select_label)
         self.date_column_lyt.addWidget(self.date_column_select)
         self.data_manip_bttns_lyt.addLayout(self.date_column_lyt)
@@ -355,7 +371,7 @@ class ExcelImportDialog(QDialog):
         self.senderaccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.senderaccount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.senderaccount_column_lyt.addWidget(
             self.senderaccount_column_select_label)
         self.senderaccount_column_lyt.addWidget(
@@ -370,7 +386,7 @@ class ExcelImportDialog(QDialog):
         self.receiveraccount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.receiveraccount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.receiveraccount_column_lyt.addWidget(
             self.receiveraccount_column_select_label)
         self.receiveraccount_column_lyt.addWidget(
@@ -383,7 +399,7 @@ class ExcelImportDialog(QDialog):
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.amount_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i))
+            self.table.selectColumn)
         self.amount_column_lyt.addWidget(self.amount_column_select_label)
         self.amount_column_lyt.addWidget(self.amount_column_select)
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)
@@ -471,7 +487,7 @@ class ExcelImportDialog(QDialog):
                     else:
                         new_senderaccount += l
                 senderaccount = new_senderaccount
-            if self.caps_matter.isChecked() == False:
+            if self.caps_matter.isChecked() is False:
                 senderaccount = senderaccount.upper()
             # Receiver Account
             receiveraccount = self.table.model().index(
@@ -484,7 +500,7 @@ class ExcelImportDialog(QDialog):
                     else:
                         new_receiveraccount += l
                 receiveraccount = new_receiveraccount
-            if self.caps_matter.isChecked() == False:
+            if self.caps_matter.isChecked() is False:
                 receiveraccount = receiveraccount.upper()
             # Amount
             amount = self.table.model().index(rownum, amount_column).data()
@@ -583,10 +599,13 @@ class FileSelection(QLabel):
         self.filedialog = QFileDialog()
         self.filedialog.show()
         self.filedialog.fileSelected.connect(
-            lambda url: self.fileselectedsignal.selected.emit(url))
+            self.fileselectedsignal.selected.emit)
 
 
 class PandasModel(QAbstractTableModel):
+    """
+    Table model to properly show a pandas dataframe
+    """
 
     def __init__(self, data):
         QAbstractTableModel.__init__(self)

@@ -1,14 +1,18 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QAbstractItemView, QMenu, QHeaderView
-from PyQt5.QtGui import QMouseEvent, QCursor
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from datetime import datetime
+
+from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QAbstractItemView, QMenu
+from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from gui.dbhandler import results
 
 
 class RightTable(QTableWidget):
+    """
+    Table dynamically showing results
+    """
 
     def __init__(self, data):
         super().__init__()
@@ -21,9 +25,7 @@ class RightTable(QTableWidget):
         self.setSortingEnabled(True)
         self.setHorizontalHeaderLabels(
             ["id", self.tr("Date"), self.tr("Account"), self.tr("Amount")])
-        """
-        XK NO FUNCIONA?
-        """
+        """XK NO FUNCIONA?"""
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)  # Not editable
 
         self.data = data
@@ -35,6 +37,10 @@ class RightTable(QTableWidget):
         self.setHorizontalHeaderLabels(['id', 'Date', 'Account', 'Amount'])
 
     def resetData(self):
+        """
+        Resets table, getting all transactions from database,
+        and showing them
+        """
         self.clear()
         results_all = results.getResult_all()
 
@@ -61,7 +67,7 @@ class RightTable(QTableWidget):
             self.setRowCount(0)
 
     def setData(self, newdata=None):
-        if newdata != None:
+        if newdata is not None:
             self.data = newdata
 
         for nrow, row in enumerate(self.data):
@@ -85,7 +91,8 @@ class RightTable(QTableWidget):
 
         if action == remove_action:
             self.removeSelection()
-            # Emit custom removed line signal, so that we can call the accounts tab to be updated from the outside
+            # Emit custom removed line signal,
+            # so that we can call the accounts tab to be updated from the outside
             self.rl.lineRemoved.emit()
             self.repaint()
             """BUG CONOCIDO: POR ALGUNA RAZON AL BORRAR UNA SELECCIÓN MÚLTIPLE NO SE TERMINAN DE BORRAR TODAS LAS FILAS DE LA TABLA"""

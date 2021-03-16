@@ -1,19 +1,23 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import QLineEdit, QDateEdit, QVBoxLayout, QLabel, QFormLayout, QPushButton, QHBoxLayout, QVBoxLayout, QComboBox, QDoubleSpinBox, QSpinBox
-from PyQt5.QtCore import Qt, QMargins
 from datetime import datetime
 
-from .tabresults_formquery import AccountSelectResults
-from gui.resources.fonts import TitleFont
-from .tabresults_import_dialog import SelectTypeDialog
+from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QSpinBox
+from PyQt5.QtCore import Qt, QMargins
+
 from gui.dbhandler import balances, results
+from gui.resources.fonts import TitleFont
+from .tabresults_formquery import AccountSelectResults
+from .tabresults_import_dialog import SelectTypeDialog
 
 
 class AddResultsForm(QVBoxLayout):
+    """
+    Form with several entries to add a result on the database
+    """
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         # Title
         self.title = QLabel(self.tr("Add Results"))
@@ -92,11 +96,14 @@ class AddResultsForm(QVBoxLayout):
         self.date_edit.setDate(datetime.now())
 
     def insertResult(self):
-        self.current_date = datetime(
+        """
+        Insert current form state as a result on the database
+        """
+        current_date = datetime(
             self.date_edit.date().year(), self.date_edit.date(
             ).month(), self.date_edit.date().day()).timestamp()
-        self.current_account = self.account_select.currentText()
-        self.current_amount = self.amount_select.text()[:-2]
+        current_account = self.account_select.currentText()
+        current_amount = self.amount_select.text()[:-2]
 
-        results.addResult(self.current_date, self.current_account,
-                          self.current_amount)
+        results.addResult(current_date, current_account,
+                          current_amount)

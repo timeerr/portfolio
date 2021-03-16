@@ -1,51 +1,51 @@
 #!/usr/bin/python3
 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QBoxLayout, QVBoxLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 
 from gui.resources.fonts import TitleFont
 
 
 class WelcomeWidget(QWidget):
+    """
+    First window that gets displayed.
+    Here the user can add/remove portfolios, and select which one they want to access.
+    Once one is selected, it closes.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        welcomelayout = QVBoxLayout()
+        self.layout = QVBoxLayout()
 
         # -----High container------
-        high_container = QWidget()
-        high_container_layout = QVBoxLayout()
-        high_container_layout.setAlignment(Qt.AlignBottom)
+        self.high_container = QWidget()
+        self.high_container_layout = QVBoxLayout()
+        self.high_container_layout.setAlignment(Qt.AlignBottom)
 
-        label = QLabel(self.tr("Welcome"))
-        label.setAlignment(Qt.AlignCenter)
-        label.setFont(TitleFont())
+        self.label = QLabel(self.tr("Welcome"))
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setFont(TitleFont())
+        self.high_container_layout.addWidget(self.label)
 
-        high_container_layout.addWidget(label)
-
-        label2 = QLabel("Portfolio")
+        self.label2 = QLabel("Portfolio")
+        self.label2.setAlignment(Qt.AlignHCenter)
         font = QFont()
         font.setItalic(True)
-        label2.setFont(font)
-        label2.setAlignment(Qt.AlignHCenter)
+        self.label2.setFont(font)
 
-        high_container_layout.addWidget(label2)
-        high_container.setLayout(high_container_layout)
-
-        welcomelayout.addWidget(high_container)
+        self.high_container_layout.addWidget(self.label2)
+        self.high_container.setLayout(self.high_container_layout)
+        self.layout.addWidget(self.high_container)
 
         # -------Low container-------
-        low_container_layout = QVBoxLayout()
-        pushbutton = QPushButton(self.tr("Continue"))
-        pushbutton.setStyleSheet("font: bold; font-size:20px")
-        low_container_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
-        low_container_layout.addWidget(pushbutton)
+        self.low_container_layout = QVBoxLayout()
+        self.continue_bttn = QPushButton(self.tr("Continue"))
+        self.continue_bttn.setStyleSheet("font: bold; font-size:20px")
+        self.low_container_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+        self.low_container_layout.addWidget(self.continue_bttn)
+        self.layout.addLayout(self.low_container_layout)
 
-        welcomelayout.addLayout(low_container_layout)
-
-        self.setLayout(welcomelayout)
+        self.setLayout(self.layout)

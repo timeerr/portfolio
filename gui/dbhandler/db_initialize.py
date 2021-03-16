@@ -1,4 +1,7 @@
 #! /usr/bin/python3
+"""
+This module creates the table that holds all info about trading/investing accounts
+"""
 
 import sqlite3
 import os

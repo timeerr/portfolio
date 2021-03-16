@@ -1,7 +1,11 @@
 #!/usr/bin/python3
+"""
+The Toolbar from Tabcrypto, with all of its actions and functionality.
+"""
 
-from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame
-from PyQt5.QtCore import pyqtSignal, QObject, QMargins, Qt
+from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame
+from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QFont
 
 from gui.cdbhandler import cbalances
@@ -9,6 +13,7 @@ from gui.prices import prices
 
 
 class TabCryptoToolBar(QToolBar):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -18,8 +23,6 @@ class TabCryptoToolBar(QToolBar):
             self.tr("Add cryptocurrency account"))
         self.addaccount_action.triggered.connect(self.addAccountActionClick)
         self.addAction(self.addaccount_action)
-
-        self.addaccount_dialog = AddAccountDialog()
 
         # Update all accounts action
         self.update_all_accounts_action = QAction(
@@ -39,28 +42,38 @@ class TabCryptoToolBar(QToolBar):
             self.updateCustomPricesActionClick)
         self.addAction(self.update_custom_prices_action)
 
+        # Pre-computed dialogs
+        self.addaccount_dialog = AddAccountDialog(self)
+
     def addAccountActionClick(self):
         self.addaccount_dialog.setVisible(True)
 
     def updateAccountsActionClick(self):
-        # Tries to display a Dialog where the user can change all accounts balances, and data
+        """
+        Tries to display a Dialog where the user can change all accounts balances, and data
+        """
         try:
-            self.update_all_accounts_dialog = UpdateAllAccountsDialog()
-            self.update_all_accounts_dialog.setVisible(True)
+            update_all_accounts_dialog = UpdateAllAccountsDialog(self)
+            update_all_accounts_dialog.setVisible(True)
         except IndexError:
             # No cryptocurrency accounts yet
             self.update_all_accounts_action.setStatusTip(
                 self.tr("No accounts yet. Add and account first"))
 
     def updateCustomPricesActionClick(self):
-        # Tries to display a Dialog where the user can change the price for tokens that get don't get their price from external sources
-        self.update_custom_prices = UpdateCustomPricesDialog()
-        self.update_custom_prices.show()
+        """
+        Tries to display a Dialog where the user can change the price of
+        tokens that don't get their price from external sources
+        """
+        update_custom_prices = UpdateCustomPricesDialog(self)
+        update_custom_prices.show()
 
 
 class AddAccountDialog(QDialog):
-    def __init__(self, *agrs, **kwargs):
-        super().__init__(*agrs, **kwargs)
+    """ Dialog to add a new account on the database """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.setWindowTitle(self.tr("Add Cryptocurrency Account"))
         self.layout = QVBoxLayout()
@@ -126,12 +139,13 @@ class AddAccountDialog(QDialog):
 
     def createAccount(self):
         """Creates account with form info, and adds it to database"""
-        # First, we need to check if the account's token is new. In that case, we need to ask the user on how to get info avout the token itself
+        # First, we need to check if the account's token is new.
+        # In that case, we need to ask the user on how to get info avout the token itself
         token = self.token_edit.text().upper()
-        if prices.tokenInPrices(token.lower()) == False:
+        if prices.tokenInPrices(token.lower()) is False:
             # We display a dialog
-            self.new_token_dialog = NewTokenDialog(token)
-            self.new_token_dialog.exec_()
+            new_token_dialog = NewTokenDialog(token, self)
+            new_token_dialog.exec_()
 
         account = self.name_edit.text()
         amount = self.startingbalance_edit.value()
@@ -145,6 +159,11 @@ class AddAccountDialog(QDialog):
 
 
 class NewTokenDialog(QDialog):
+    """
+    When an account with an unknown token is added,
+    the token has to be added to our prices first.
+    """
+
     def __init__(self, tokenname, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -155,7 +174,8 @@ class NewTokenDialog(QDialog):
 
         # New Token Description
         self.description = QLabel(
-            self.tokenname + self.tr(" has to be added \nSelect Method to obtain new its price data"))
+            self.tokenname + self.tr(" has to be added \n\
+                                     Select Method to obtain new its price data"))
         self.layout.addWidget(self.description)
 
         # Method to obtain new token price data
@@ -179,7 +199,9 @@ class NewTokenDialog(QDialog):
         self.handleMethodChanged('Coingecko')
 
     def addTokenPrice(self):
-        # Writes new token info on prices folder
+        """
+        Writes new token info on prices folder
+        """
         token = self.tokenname
 
         method = self.method.currentText()
@@ -191,7 +213,6 @@ class NewTokenDialog(QDialog):
         price = float(self.currentprice.text().split(" ")[0])
 
         prices.addTokenPrice(token, method, price)
-
         self.close()
 
     def handleMethodChanged(self, method):
@@ -406,13 +427,22 @@ class UpdateAllAccountsDialog(QDialog):
         cbalances.updateDescription(accname, tokenname, self.descr.text())
 
     def changeEntry(self, change):
+        """
+        Switches between accounts on the database
+        displaying the next or previous one.
+
+        self.current_accentry is used to store the position of the
+        account that is currently selected
+        """
         if change == 1:
+            # Switch to next account
             self.current_accentry += 1
             if self.current_accentry == len(self.accentries):
                 # Reset to 0
                 self.current_accentry = 0
 
         elif change == -1:
+            # Switch to prev account
             self.current_accentry -= 1
             if self.current_accentry == -1:
                 # Reset to last
@@ -439,6 +469,12 @@ class UpdateAllAccountsDialog(QDialog):
         self.setDiff()
 
     def setDiff(self):
+        """
+        Displays the difference between the current balance of an account
+        and the new one that the user is proposing.
+
+        Just for informational purposes.
+        """
         diff = str(round(self.newbalance.value() -
                          float(self.prevbalance.text()), 8))
         if float(diff) > 0:
@@ -447,6 +483,11 @@ class UpdateAllAccountsDialog(QDialog):
 
 
 class UpdateCustomPricesDialog(QDialog):
+    """
+    Since certain token obtain their prices from user input, and not externally,
+    this dialog will let the user change those prices whenever they want.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -478,7 +519,8 @@ class UpdateCustomPricesDialog(QDialog):
 
         # Content
         for token in self.tokenswithcustomprices:
-            # Too keep track of al these rows later, we'll store each tokenname and tokennewprice on a list
+            # Too keep track of al these rows later,
+            # we'll store each tokenname and tokennewprice on a list
             self.row_lyts_list = []
 
             # A row for each tokens
@@ -521,4 +563,5 @@ class UpdateCustomPricesDialog(QDialog):
 
 
 class UpdateTabCryptoSignal(QObject):
+    """ Signal to indicate when the TabCrypto has to be refreshed/repainted"""
     updated = pyqtSignal()

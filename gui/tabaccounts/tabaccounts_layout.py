@@ -1,12 +1,15 @@
 # /usr/bin/python3
-
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QMenu, QDialog, QFrame, QPushButton, QFileDialog
-from PyQt5.QtGui import QPixmap, QCursor, QFont
-from PyQt5.QtCore import Qt, QMargins, pyqtSignal, QSize, QObject
+"""
+Main layout of TabAccount.
+Here all accounts are displayed, with their respective info.
+"""
 
 import os
 import shutil
-import time
+
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QMenu, QDialog, QPushButton, QFileDialog
+from PyQt5.QtGui import QPixmap, QCursor
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from gui.resources.fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
 from gui.dbhandler import balances, costbasis
@@ -98,17 +101,9 @@ class AccountsLayout(QScrollArea):
         self.rowwidgets[account.account_name]['costbasis'] = acccostbasis
         self.rowwidgets[account.account_name]['icon'] = icon
 
-    def refreshIcon(self, account_name):
-        self.rowwidgets[account_name]['icon'].refreshIcon()
-
-    def forceRefresh(self):
-        rng = [i+1 for i in range(self.layout.rowCount())]
-        del rng[-1]
-        for i in rng:
-            self.layout.itemAtPosition(i, 0).widget().refreshIcon()
-
 
 class HeaderLabel(QLabel):
+    """A header indicating what a column is about"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -121,8 +116,10 @@ class HeaderLabel(QLabel):
 
 
 class AccountIcon(QLabel):
+    """Displays an account's current associated icon"""
+
     def __init__(self, account_icon_path, row_maxheight, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         # UI
         self.setObjectName("icon")
@@ -149,22 +146,22 @@ class AccountIcon(QLabel):
         change_icon_action = menu.addAction(self.tr("Change Icon"))
 
         action = menu.exec_(QCursor.pos())
-
         if action == change_icon_action:
             self.showChangeIconDialog(self.row_maxheight)
 
     def showChangeIconDialog(self, row_maxheight):
-        self.dialog = ChangeIconDialog(row_maxheight, self.account_icon_path)
-        self.dialog.changed.iconchanged.connect(
+        dialog = ChangeIconDialog(
+            row_maxheight, self.account_icon_path, self)
+        dialog.changed.iconchanged.connect(
             self.refreshIcon)  # Custom Signal
 
-        self.dialog.show()
+        dialog.show()
 
 
 class ChangeIconDialog(QDialog):
 
-    def __init__(self, row_maxheight, account_icon_path):
-        super().__init__()
+    def __init__(self, row_maxheight, account_icon_path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # Data
         self.row_maxheight = row_maxheight
@@ -201,12 +198,12 @@ class ChangeIconDialog(QDialog):
             event.ignore()
 
     def dropEvent(self, event):
+        """File has been droped. We'll try to change the icon"""
         url = (event.mimeData().urls())[0].path()
-
         self.changeLabelToIcon(url)
 
     def changeIcon(self):
-        if self.imgpath != None:
+        if self.imgpath is not None:
             os.remove(self.account_icon_path)
             shutil.copyfile(self.imgpath, self.account_icon_path)
             self.change_pushbutton.setText(self.tr("Changed!"))
@@ -215,19 +212,24 @@ class ChangeIconDialog(QDialog):
             self.close()
 
         else:
-            if self.errorlabel != None:
+            if self.errorlabel is not None:
                 self.errorlabel.setParent(None)
             self.errorlabel = QLabel(self.tr("No image selected"))
             self.errorlabel.setAlignment(Qt.AlignCenter)
             self.dialog_layout.addWidget(self.errorlabel)
 
     def mousePressEvent(self, event):
-        self.filedialog = QFileDialog()
-        self.filedialog.show()
-        self.filedialog.fileSelected.connect(
-            lambda url: self.changeLabelToIcon(url))
+        """Display a dialog to select the new icon"""
+        filedialog = QFileDialog(self)
+        filedialog.show()
+        filedialog.fileSelected.connect(
+            self.changeLabelToIcon)
 
     def changeLabelToIcon(self, url):
+        """
+        Changes the dialog layout to the image that has been selected.
+        If it is not an image, it changes the dialog layout to an error message.
+        """
 
         if url.split('.')[-1] in ['png', 'jpg', 'svg', 'jpeg']:
             # If the file is an image, we display it
@@ -236,7 +238,7 @@ class ChangeIconDialog(QDialog):
                 self.imgpath = url
                 self.dialog_label.setPixmap(pixmap)
 
-                if self.errorlabel != None:
+                if self.errorlabel is not None:
                     self.errorlabel.setParent(None)
                 self.errorlabel = None
         else:

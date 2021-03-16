@@ -1,5 +1,7 @@
-
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+"""
+Handles all the input and output operations that use the results table from portfolio.db
+"""
 
 import sqlite3
 import os
@@ -39,7 +41,7 @@ def addResult(date, account, amount):
 
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table, taking the new result into consideration
+        # Finally, we update the previous balance on the balances table with the new result
         balances.updateBalances_withNewResult(account, amount)
 
 
@@ -49,7 +51,8 @@ def deleteResult(resultid):
     with conn:
         cursor = conn.cursor()
 
-        # First, we need to select the result so that we know the amount and the account involved, as we new to update the balances table aswell
+        # First, we need to select the result so that we know the amount and the account involved
+        # as we'll need to update the balances table aswell
         select_result_query = """SELECT account,amount FROM results WHERE id= %d""" % resultid
         result = cursor.execute(
             select_result_query).fetchall()
@@ -63,7 +66,8 @@ def deleteResult(resultid):
 
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table, taking the removal of the result into consideration
+        # Finally, we update the previous balance on the balances table
+        # taking the removal of the result into consideration
         balances.updateBalances_withNewResult(
             account_from_result, -amount_from_result)
 
@@ -85,11 +89,11 @@ def updateResult(resultid, newdate=None, newaccount=None, newamount=None):
         currentamount = r[0][3]
 
         # Now we check which new data has to be updated. If it does not, it stays the same
-        if newdate == None:
+        if newdate is None:
             newdate = currentdate
-        if newaccount == None:
+        if newaccount is None:
             newaccount = currentaccount
-        if newamount == None:
+        if newamount is None:
             newaccount = currentamount
 
         update_result_query = """UPDATE results
@@ -114,7 +118,6 @@ def getCurrentAccounts():
         get_account_query = """SELECT DISTINCT account FROM results"""
         cursor.execute(get_account_query)
 
-        # For some reason, when data is fetched, it returns a list where each account is a tuple, so we need to correct that
         accs = cursor.fetchall()
         result = []
 
@@ -135,12 +138,15 @@ def getResult_all():
         get_results_all = """SELECT * FROM results"""
 
         cursor.execute(get_results_all)
-        return (cursor.fetchall())
+        return cursor.fetchall()
 
 
-def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1), account="All"):
-    """ Executing query to return rows with each result that satisfies the start&end date, plus specific account """
-    # Dates get passed as datetimes
+def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),
+                         account="All"):
+    """
+    Executing query to return rows with certain start&end dates + account.
+    Dates get passed as datetimes
+    """
 
     conn = createConnection()
 
@@ -151,10 +157,10 @@ def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000
         account_query_addon = """ AND account = '{}'""".format(account)
 
         if start_date == end_date == None and account == "All":
-            return (cursor.execute("SELECT * FROM results").fetchall())
+            return cursor.execute("SELECT * FROM results").fetchall()
 
         if account != "All":
             get_results_query += account_query_addon
         cursor.execute(get_results_query)
 
-        return (cursor.fetchall())
+        return cursor.fetchall()

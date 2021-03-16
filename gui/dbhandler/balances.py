@@ -1,6 +1,8 @@
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+"""
+Handles all the input and output operations that use the balances table from portfolio.db
+"""
 
-from datetime import datetime
 import sqlite3
 import os
 
@@ -8,6 +10,7 @@ PATH_TO_DB = os.path.join('database', 'portfolio.db')
 
 
 def createConnection(path_to_db=PATH_TO_DB):
+    """Connects to the database on a certain path, returning the connection"""
     conn = None
 
     try:
@@ -68,11 +71,6 @@ def editAccount(account_name, new_account_name):
         conn.commit()
 
 
-def updateBalances():
-    """Reads all the results on the results tab, sums them, and updates all balances"""
-    pass
-
-
 def updateBalances_withNewResult(account, amount):
     """Adds the new result to the specific acccount involved, updating its balance"""
     conn = createConnection()
@@ -81,7 +79,7 @@ def updateBalances_withNewResult(account, amount):
         cursor = conn.cursor()
 
         currentbalance = getAccount(account)[1]
-        if type(amount) == str:
+        if isinstance(amount, str):
             if '.' in amount:
                 amount = int(round(float(amount[:-2]), 0))
             else:
@@ -112,7 +110,7 @@ def getAccount(account):
         result = cursor.fetchall()
         if result == []:
             return result
-        return (result[0])
+        return result[0]
 
 
 def getAllAccounts():
@@ -125,4 +123,4 @@ def getAllAccounts():
 
         cursor.execute(get_all_accounts_query)
 
-        return(cursor.fetchall())
+        return cursor.fetchall()

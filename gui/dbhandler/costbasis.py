@@ -1,9 +1,12 @@
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+"""
+Handles all the input and output operations that use the costbasis table from portfolio.db
+"""
 
 import sqlite3
-from datetime import datetime
-from . import transactions
 import os
+
+from . import transactions
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
 
@@ -50,8 +53,7 @@ def updateCostBasis():
         VALUES (?,?);"""
         current_accounts_in_table = getCurrentAccountsInTable()
 
-        for acc in accounts_costbasis.keys():
-            current_accounts_in_table
+        for acc in accounts_costbasis:
             if acc not in current_accounts_in_table:
                 # Adding new account data
                 cursor.execute(insert_account_query,
@@ -99,5 +101,4 @@ def getCostBasis(account):
         res = cursor.fetchall()
         if res == []:
             return 0
-        else:
-            return res[0][0]
+        return res[0][0]

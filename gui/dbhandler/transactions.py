@@ -1,5 +1,7 @@
-
 #!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+"""
+Handles all the input and output operations that use the transactions table from portfolio.db
+"""
 
 from datetime import datetime
 import sqlite3
@@ -40,9 +42,9 @@ def addTransaction(date, account_send, amount, account_receive, depositwithdrawa
         if depositwithdrawal not in [0, 1, -1]:
             raise TypeError(
                 "deposit/withdrawal must be 1/-1, respectively, or 0 if normal trnasfer")
-        if type(amount) == str:
+        if isinstance(amount, str):
             amount = int(float(amount))
-        elif type(amount) == float:
+        elif isinstance(amount, float):
             amount = int(round(amount, 0))
 
         # Finally, adding transaction on db
@@ -66,7 +68,9 @@ def deleteTransaction(transactionid):
     with conn:
         cursor = conn.cursor()
 
-        # First, we need to select the result so that we know the amount and the account involved, as we new to update the balances table aswell
+        # First, we need to select the result
+        # so that we know the amount and the account involved,
+        # as we new to update the balances table aswell
         select_transaction_query = """SELECT account_send, account_receive, amount FROM transactions WHERE id= %d""" % transactionid
         result = cursor.execute(
             select_transaction_query).fetchall()
@@ -81,15 +85,12 @@ def deleteTransaction(transactionid):
 
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table, taking the removal of the transaction into consideration
+        # Finally, we update the previous balance on the balances table,
+        # taking the removal of the transaction into consideration
         balances.updateBalances_withNewResult(
             account_send, amount_from_transaction)
         balances.updateBalances_withNewResult(
             account_receive, -amount_from_transaction)
-
-
-def adjustBalance(account, real_balance):
-    pass
 
 
 def getTransactions_All():
@@ -103,10 +104,11 @@ def getTransactions_All():
         get_transactions_all = """SELECT * FROM transactions"""
 
         cursor.execute(get_transactions_all)
-        return (cursor.fetchall())
+        return cursor.fetchall()
 
 
-def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1), senderaccount="All", receiveraccount="All"):
+def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),
+                              senderaccount="All", receiveraccount="All"):
     """ Executing query to return rows with each result that satisfies the args """
 
     conn = createConnection()
@@ -128,7 +130,7 @@ def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime
 
         cursor.execute(get_transactions_query)
 
-        return (cursor.fetchall())
+        return cursor.fetchall()
 
 
 def getAllSenderAccounts():
@@ -143,7 +145,7 @@ def getAllSenderAccounts():
 
         cursor.execute(get_all_senders_query)
 
-        return (cursor.fetchall())
+        return cursor.fetchall()
 
 
 def getAllReceiverAccounts():
@@ -158,4 +160,4 @@ def getAllReceiverAccounts():
 
         cursor.execute(get_all_receivers_query)
 
-        return (cursor.fetchall())
+        return cursor.fetchall()

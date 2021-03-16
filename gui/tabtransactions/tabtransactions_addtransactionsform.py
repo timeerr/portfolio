@@ -1,19 +1,20 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import QLineEdit, QDateEdit, QVBoxLayout, QLabel, QFormLayout, QPushButton, QHBoxLayout, QVBoxLayout, QComboBox, QDoubleSpinBox, QCheckBox, QButtonGroup
-from PyQt5.QtCore import Qt, QMargins
 from datetime import datetime
 
-from gui.resources.fonts import TitleFont, BoldFont
+from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QVBoxLayout, QComboBox, QDoubleSpinBox, QCheckBox, QButtonGroup
+from PyQt5.QtCore import Qt, QMargins
+
 from gui.dbhandler import transactions, balances
+from gui.resources.fonts import TitleFont
 from .tabtransactions_import_dialog import SelectTypeDialog
-from gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog
 
 
 class AddTransactionsForm(QVBoxLayout):
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         # Title
         self.title = QLabel(self.tr("Add Transaction"))
@@ -161,9 +162,13 @@ class AddTransactionsForm(QVBoxLayout):
 
         # Adding the transaction on db
         transactions.addTransaction(self.current_date, self.current_senderaccount,
-                                    self.current_amount, self.current_receiveraccount, self.currenttype)
+                                    self.current_amount, self.current_receiveraccount,
+                                    self.currenttype)
 
     def handlechecks(self, state):
+        """
+        Proper checkbox behavour
+        """
         # Checking if state is checked
         if state == Qt.Checked:
 
@@ -192,8 +197,10 @@ class AddTransactionsForm(QVBoxLayout):
         else:
             pass
 
-    def handleselections(self, text):
-        # Establishing certain retrictions
+    def handleselections(self):
+        """
+        Establishing certain retrictions
+        """
         if self.receiveraccount_select.currentText() == self.senderaccount_select.currentText():
             # We move the currentIndex, so that both accounts can't be the same
             self.senderaccount_select.setStyleSheet("color: red")
@@ -205,5 +212,6 @@ class AddTransactionsForm(QVBoxLayout):
             self.insert_button.show()
 
         # 'Cash' special cases
-        if self.senderaccount_select.currentText() != 'Cash' and self.receiveraccount_select.currentText() != 'Cash':
+        if self.senderaccount_select.currentText() != 'Cash' and \
+                self.receiveraccount_select.currentText() != 'Cash':
             self.transfer_checkbox.setChecked(True)
