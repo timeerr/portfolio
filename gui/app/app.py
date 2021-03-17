@@ -6,19 +6,19 @@ This module creates the essential configuration and initializes the main widget 
 import os
 import configparser
 
-
 from PyQt5.QtWidgets import QVBoxLayout, QDialog, QComboBox, QPushButton, QMainWindow
 
-from gui.cdbhandler import cdb_initialize  # Just to create the db
 from gui.cdbhandler import chistoricalbalances
-from gui.dbhandler import db_initialize  # Just to create the db
 from gui.dbhandler import historicalbalances, costbasis
+from gui import confighandler
 from .welcomescreen import WelcomeWidget
 from .statusbar import StatusBar
 from .mainwidget import MainWidget
 
 
-CONFIG_PATH = os.path.join('config.ini')
+CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
+CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
+    '~'), '.config', 'portfolio', 'config.ini')
 
 
 class MainWindow(QMainWindow):
@@ -27,20 +27,20 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle(self.tr("Portfolio"))
-        # self.showMaximized()
+        self.showMaximized()
         self.setGeometry(500, 300, 1000, 600)
 
         self.welcomewidget = WelcomeWidget(self)
-        self.welcomewidget.children()[2].clicked.connect(self.endWelcomeWidget)
-
-        self.statusbar = StatusBar()
-
+        self.welcomewidget.portfolioselected.selected.connect(
+            self.endWelcomeWidget)
+        # self.welcomewidget.continue_bttn.clicked.connect(self.endWelcomeWidget)
         self.setCentralWidget(self.welcomewidget)
-        # self.setCentralWidget(MainWidget())
 
     def endWelcomeWidget(self):
         """ When the user selects a portfolio, the welcomewidget closes """
         self.setCentralWidget(MainWidget(self))
+        self.welcomewidget.deleteLater()
+        self.statusbar = StatusBar()
         self.setStatusBar(self.statusbar)
 
     def closeEvent(self, event):
@@ -52,10 +52,11 @@ class MainWindow(QMainWindow):
         chistoricalbalances.addTodaysBalances()
 
 
-class LanguageSelection(QDialog):
+class PreferencesSelection(QDialog):
     """
     A dialog that shows the first time the app has ever been opened
-    It's purpose is to make the user select a language, that also could be changed later
+    It's purpose is to make the user select the initial preferences,
+    such as language, fiat currency
     """
 
     def __init__(self, *args, **kwargs):
@@ -70,24 +71,22 @@ class LanguageSelection(QDialog):
         self.language_selection.addItems(['EN', 'ES'])
         self.layout.addWidget(self.language_selection)
 
+        self.fiat_currency_selection = QComboBox()
+        self.fiat_currency_selection.addItems(
+            ['EUR', 'USD', 'JPY', 'CAD', 'AUD'])
+        self.layout.addWidget(self.fiat_currency_selection)
+
         self.select_bttn = QPushButton("Select Language")
-        self.select_bttn.clicked.connect(
-            lambda: self.changeLanguageConfig(self.language_selection.currentText()))
+        self.select_bttn.clicked.connect(self.setInitialPreferences)
         self.layout.addWidget(self.select_bttn)
 
         self.setLayout(self.layout)
 
-    def changeLanguageConfig(self, language):
-        """Storing the language selection on the config file"""
-        language = language.lower()
+    def setInitialPreferences(self):
+        """Storing the selection on the config file"""
+        language = self.language_selection.currentText().lower()
+        fiat_currency = self.fiat_currency_selection.currentText().lower()
 
-        config = configparser.ConfigParser()
-        config.read(CONFIG_PATH)
-
-        config.add_section('LANGUAGE')
-        config.set('LANGUAGE', 'language', language)
-
-        with open(CONFIG_PATH, 'w') as cf:
-            config.write(cf)
-
+        confighandler.set_language(language)
+        confighandler.set_fiat_currency(fiat_currency)
         self.close()

@@ -520,9 +520,9 @@ class FileSelection(QLabel):
         self.fileselectedsignal.selected.emit(url)
 
     def mousePressEvent(self, event):
-        filedialog = QFileDialog()
-        filedialog.show()
-        filedialog.fileSelected.connect(
+        self.filedialog = QFileDialog()
+        self.filedialog.show()
+        self.filedialog.fileSelected.connect(
             self.fileselectedsignal.selected.emit)
 
 

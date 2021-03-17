@@ -15,8 +15,8 @@ def createConnection(path_to_db=PATH_TO_DB):
 
     try:
         conn = sqlite3.connect(path_to_db)
-    except Error as e:
-        print(e)
+    except sqlite3.Operational as e:
+        print(e, path_to_db)
 
     return conn
 

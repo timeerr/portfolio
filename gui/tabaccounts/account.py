@@ -24,6 +24,10 @@ class Account:
             self.account_name = account_name
         self.amount = starting_amount
 
+        if 'resources' not in os.listdir():
+            os.mkdir('resources')
+        if 'account-icons' not in os.listdir('resources'):
+            os.mkdir(os.path.join('resources', 'account-icons'))
         self.iconpath = os.path.join(
             'resources', 'account-icons', self.account_name + '.png')
 

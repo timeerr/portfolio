@@ -7,6 +7,7 @@ history and more.
 
 import json
 import os
+import configparser
 from datetime import datetime
 
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout
@@ -20,22 +21,8 @@ from gui.resources.fonts import TitleFont, TokenBalanceFont
 from gui.prices import prices
 from .tabcrypto_toolbar import TabCryptoToolBar
 
-
-FIAT_CURRENCY = "EUR"
-DATABASE_TOKENS = cbalances.getAllTokens()
-DATABASE_ACCOUNTS = cbalances.getAllAccounts()
-
-
-# Checking if there is remote data avaliable
-if 'coingeckoids.json' not in os.listdir('prices'):
-    prices.updateCoinListFile()
-if 'coinprices.json' not in os.listdir('prices'):
-    with open(os.path.join('prices', 'coinprices.json'), 'w') as f:
-        json.dump({}, f)
-    for token in DATABASE_TOKENS:
-        prices.addTokenPrice(token, 'coingecko', 0)
-if 'btctofiat.json' not in os.listdir('prices'):
-    prices.updateBTCToFiat()
+CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
+    '~'), '.config', 'portfolio', 'config.ini')
 
 
 class TabCrypto(QWidget):
@@ -96,6 +83,21 @@ class TabCrypto(QWidget):
         # Initialize with "All"
         self.selectionChanged("All")
         self.chart_lyt.setSizes([300, 100])
+
+        # Data
+        DATABASE_TOKENS = cbalances.getAllTokens()
+
+        # Checking if there is remote data avaliable
+        prices.initialize_prices()
+        if 'coingeckoids.json' not in os.listdir('prices'):
+            prices.updateCoinListFile()
+        if 'coinprices.json' not in os.listdir('prices'):
+            with open(os.path.join('prices', 'coinprices.json'), 'w') as f:
+                json.dump({}, f)
+            for token in DATABASE_TOKENS:
+                prices.addTokenPrice(token, 'coingecko', 0)
+        if 'btctofiat.json' not in os.listdir('prices'):
+            prices.updateBTCToFiat()
 
     def selectionChanged(self, selection):
         """
@@ -228,10 +230,16 @@ class DescriptionLayout(QWidget):
         self.select_token_or_account.setCurrentText("All")
         self.mode = 0
 
+        # Selecting fiat currency
+        conf = configparser.ConfigParser()
+        conf.read(CONFIG_FILE_PATH)
+        self.FIAT_CURRENCY = conf['PREFERENCES']['fiat_currency']
+
     def allMode(self):
         """
         If 'All' is selected, we show the full balance of all tokens in all accounts
         """
+
         self.token_or_account_name.setText(self.tr("All Coins"))
         totalbalancebtc, totalbalancefiat = 0, 0
         DATABASE_TOKENS = cbalances.getAllTokens()
@@ -240,12 +248,12 @@ class DescriptionLayout(QWidget):
             tokenbalance_btc = prices.toBTC(t, tokenbalance)
             totalbalancebtc += tokenbalance_btc
             totalbalancefiat += prices.btcToFiat(
-                tokenbalance_btc, currency=FIAT_CURRENCY)
+                tokenbalance_btc, currency=self.FIAT_CURRENCY)
         self.token_or_account_balance.hide()
         self.token_or_account_balance_btc.setText(
             str(round(totalbalancebtc, 8))+" BTC")
         self.token_or_account_balance_fiat.setText(
-            str(round(totalbalancefiat, 2))+" " + FIAT_CURRENCY)
+            str(round(totalbalancefiat, 2))+" " + self.FIAT_CURRENCY)
 
     def tokenChanged(self, tokensymbol):
         """
@@ -279,7 +287,7 @@ class DescriptionLayout(QWidget):
             self.token_or_account_balance_btc.setText("")
         tokenbalancefiat = prices.btcToFiat(tokenbalancebtc)
         self.token_or_account_balance_fiat.setText(
-            str(tokenbalancefiat) + " {}".format(FIAT_CURRENCY.upper()))
+            str(tokenbalancefiat) + " {}".format(self.FIAT_CURRENCY.upper()))
 
     def accountChanged(self, accountname):
         """
@@ -298,14 +306,14 @@ class DescriptionLayout(QWidget):
             amount_btc = prices.toBTC(token, amount)
             total_in_btc += amount_btc
         total_in_fiat = prices.btcToFiat(
-            total_in_btc, currency=FIAT_CURRENCY)
+            total_in_btc, currency=self.FIAT_CURRENCY)
         total_in_btc = round(total_in_btc, 8)
         total_in_fiat = int(round(total_in_fiat, 0))
 
         self.token_or_account_balance.hide()  # Not useful here
         self.token_or_account_balance_btc.setText(str(total_in_btc) + " BTC")
         self.token_or_account_balance_fiat.setText(
-            str(total_in_fiat) + " " + FIAT_CURRENCY.upper())
+            str(total_in_fiat) + " " + self.FIAT_CURRENCY.upper())
 
     def updateDataFiles(self):
         """Calls coingecko's API and writes btcfiat.json, coinlist.json, coinprices.json"""
@@ -339,6 +347,11 @@ class TokenBalancesLayout(QTableWidget):
         self.setMinimumWidth(600)
         self.verticalHeader().hide()
 
+        # Selecting fiat currency
+        conf = configparser.ConfigParser()
+        conf.read(CONFIG_FILE_PATH)
+        self.FIAT_CURRENCY = conf['PREFERENCES']['fiat_currency']
+
     def updateWithToken(self, token):
         """Only shows database entries where token=token"""
         self.setSortingEnabled(False)
@@ -346,7 +359,7 @@ class TokenBalancesLayout(QTableWidget):
         self.setColumnCount(7)
         self.setHorizontalHeaderLabels(
             ['Account', 'Balance ({})'.format(token),
-             'Balance(BTC)', 'Balance ({})'.format(FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
+             'Balance(BTC)', 'Balance ({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
         rows_to_insert = cbalances.getEntriesWithToken(token)
 
         self.setRowCount(len(rows_to_insert))
@@ -364,7 +377,7 @@ class TokenBalancesLayout(QTableWidget):
             self.setItem(numrow, 2, item)
             # Balance (Fiat)
             balance_in_fiat = prices.btcToFiat(
-                balance_in_btc, currency=FIAT_CURRENCY)
+                balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
             self.setItem(numrow, 3, item)
@@ -387,7 +400,7 @@ class TokenBalancesLayout(QTableWidget):
         self.setColumnCount(7)
         self.setHorizontalHeaderLabels(
             ['Token', 'Balance', 'Balance(BTC)',
-             'Balance({})'.format(FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
+             'Balance({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
 
         rows_to_insert = cbalances.getEntriesWithAccount(account)
         self.setRowCount(len(rows_to_insert))
@@ -405,15 +418,15 @@ class TokenBalancesLayout(QTableWidget):
             self.setItem(numrow, 2, item)
             # Balance (Fiat)
             balance_in_fiat = prices.btcToFiat(
-                balance_in_btc, currency=FIAT_CURRENCY)
+                balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
             self.setItem(numrow, 3, item)
             # Type
-            item = self.formatTypeItem(QTableWidgetItem(str(row[3])))
+            item = formatTypeItem(QTableWidgetItem(str(row[3])))
             self.setItem(numrow, 4, item)
             # KYC
-            item = self.formatKYCItem(QTableWidgetItem(str(row[4])))
+            item = formatKYCItem(QTableWidgetItem(str(row[4])))
             self.setItem(numrow, 5, item)
             # Description
             self.setItem(numrow, 6, QTableWidgetItem(str(row[5])))
@@ -431,7 +444,7 @@ class TokenBalancesLayout(QTableWidget):
         self.setColumnCount(8)
         self.setHorizontalHeaderLabels(
             ['Account', 'Token', 'Balance', 'Balance(BTC)',
-             'Balance({})'.format(FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
+             'Balance({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
         rows_to_insert = cbalances.getAllEntries()
 
         self.setRowCount(len(rows_to_insert))
@@ -451,7 +464,7 @@ class TokenBalancesLayout(QTableWidget):
             self.setItem(numrow, 3, item)
             # Balance (Fiat)
             balance_in_fiat = prices.btcToFiat(
-                balance_in_btc, currency=FIAT_CURRENCY)
+                balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
             self.setItem(numrow, 4, item)

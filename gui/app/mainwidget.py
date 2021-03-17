@@ -14,7 +14,9 @@ class MainWidget(QWidget):
     It will handle all functionalities between tabs aswell.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,  *args, **kwargs):
+        import os
+        print("hooooo", os.path.abspath(os.getcwd()))
         super().__init__(*args, **kwargs)
 
         self.tabwidget = QTabWidget(self)

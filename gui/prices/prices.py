@@ -4,13 +4,15 @@ import requests
 import json
 import os
 
-
-if 'prices' not in os.listdir():
-    os.mkdir('prices')
 coingeckoids_path = os.path.join('prices', 'coingeckoids.json')
 coinprices_path = os.path.join('prices', 'coinprices.json')
 btctofiat_path = os.path.join('prices', 'btctofiat.json')
 customprices_path = os.path.join('prices', 'customprices.json')
+
+
+def initialize_prices():
+    if 'prices' not in os.listdir():
+        os.mkdir('prices')
 
 
 def updateCoinListFile():
