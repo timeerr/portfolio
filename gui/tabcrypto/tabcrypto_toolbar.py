@@ -3,7 +3,7 @@
 The Toolbar from Tabcrypto, with all of its actions and functionality.
 """
 
-from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt5.QtWidgets import QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QFont
@@ -42,6 +42,15 @@ class TabCryptoToolBar(QToolBar):
             self.updateCustomPricesActionClick)
         self.addAction(self.update_custom_prices_action)
 
+        # Update Coingecko Prices
+        self.update_coingecko_prices_action = QAction(
+            self.tr("Update Coingecko Prices"), self)
+        self.update_coingecko_prices_action.setStatusTip(self.tr(
+            "Update manually all tokens that get their price form external sources"))
+        self.update_coingecko_prices_action.triggered.connect(
+            self.updateCoingeckoPricesActionClick)
+        self.addAction(self.update_coingecko_prices_action)
+
         # Pre-computed dialogs
         self.addaccount_dialog = AddAccountDialog(self)
 
@@ -65,7 +74,15 @@ class TabCryptoToolBar(QToolBar):
         Tries to display a Dialog where the user can change the price of
         tokens that don't get their price from external sources
         """
-        update_custom_prices = UpdateCustomPricesDialog(self)
+        update_custom_prices = UpdateCustomPricesDialog('custom', self)
+        update_custom_prices.show()
+
+    def updateCoingeckoPricesActionClick(self):
+        """
+        Tries to display a Dialog where the user can change the price of
+        tokens that get their price from external sources
+        """
+        update_custom_prices = UpdateCustomPricesDialog('coingecko', self)
         update_custom_prices.show()
 
 
@@ -141,7 +158,7 @@ class AddAccountDialog(QDialog):
         """Creates account with form info, and adds it to database"""
         # First, we need to check if the account's token is new.
         # In that case, we need to ask the user on how to get info avout the token itself
-        token = self.token_edit.text().upper()
+        token = self.token_edit.text().lower()
         if prices.tokenInPrices(token.lower()) is False:
             # We display a dialog
             new_token_dialog = NewTokenDialog(token, self)
@@ -184,6 +201,13 @@ class NewTokenDialog(QDialog):
         self.method.currentTextChanged.connect(self.handleMethodChanged)
         self.layout.addWidget(self.method)
 
+        # Since there could be multiple tokens with the same symbol,
+        # the user will have to select one of them from their id
+        self.select_token_by_id = QComboBox()
+        self.select_token_by_id.hide()
+        self.layout.addWidget(self.select_token_by_id)
+
+        # Displaying the current price for the new token
         self.currentprice = QLineEdit("")
         self.layout.addWidget(self.currentprice)
         self.currentprice.hide()
@@ -210,23 +234,28 @@ class NewTokenDialog(QDialog):
         elif method == 'Custom Price':
             method = 'custom'
 
+        _id = self.select_token_by_id.currentText()
+
         price = float(self.currentprice.text().split(" ")[0])
 
-        prices.addTokenPrice(token, method, price)
+        prices.addTokenPrice(token, method, _id, price)
         self.close()
 
     def handleMethodChanged(self, method):
         """ Depending on the method, we display different things """
 
         if method == 'Coingecko':
-            # We add a simple label displaying the current price, to see if it's okay
+            # Checking if there are multiple tokens for a certain symbol
+            for tokenid in prices.symbolToId_CoinGeckoList(self.tokenname):
+                self.select_token_by_id.addItem(tokenid)
+
+            self.select_token_by_id.currentTextChanged.connect(
+                self.handleIdSelected)
+            self.select_token_by_id.show()
+
             self.currentprice.setReadOnly(True)
-            self.currentprice.setText(self.tr("Getting coingecko's price"))
-            try:
-                price = prices.toBTCAPI(self.tokenname, 1)
-            except:
-                price = self.tr("Couldn't get price in BTC")
-            self.currentprice.setText(str(price) + " BTC")
+            self.currentprice.setText(
+                self.tr("Select Id above to get coingecko's price"))
 
         elif method == 'Custom Price':
             # We add a field to put the current price
@@ -234,6 +263,17 @@ class NewTokenDialog(QDialog):
             self.currentprice.setReadOnly(False)
 
         self.currentprice.show()
+
+    def handleIdSelected(self, _id):
+        """
+        When an id from the multiple options is selected,
+        we can finally get the token's price and display it
+        """
+        try:
+            price = prices.toBTCAPI(_id, 1)
+        except:
+            price = self.tr("Couldn't get price in BTC")
+        self.currentprice.setText(str(price) + " BTC")
 
 
 class UpdateAllAccountsDialog(QDialog):
@@ -488,14 +528,12 @@ class UpdateCustomPricesDialog(QDialog):
     this dialog will let the user change those prices whenever they want.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, method, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.setWindowTitle(self.tr("Update Custom Prices"))
-        self.layout = QVBoxLayout()
 
-        # All token with custom prices
-        self.tokenswithcustomprices = prices.getTokensWithCustomPrices()
+        self.layout = QVBoxLayout()
 
         # Headers
         self.headers_lyt = QHBoxLayout()
@@ -517,35 +555,30 @@ class UpdateCustomPricesDialog(QDialog):
 
         self.layout.addLayout(self.headers_lyt)
 
+        # All token with custom prices
+        method = method.lower()
+        if method == 'custom':
+            self.tokenswithprices = prices.getTokensWithCustomPrices()
+        if method == 'coingecko':
+            self.tokenswithprices = prices.getTokensWithCoingeckoPrices()
+
         # Content
-        for token in self.tokenswithcustomprices:
+        self.row_lyts_list = []
+        for token in self.tokenswithprices:
             # Too keep track of al these rows later,
             # we'll store each tokenname and tokennewprice on a list
-            self.row_lyts_list = []
 
-            # A row for each tokens
+            # A row for each token
             tokenname = token[0]
             tokenlastprice = token[1]
+            row_lyt = UpdateCustomPricesDialogRow(tokenname, tokenlastprice)
 
-            row_lyt = QHBoxLayout()
-            tokenname_wgt = QLabel(tokenname.upper())
-            tokenname_wgt.setFixedWidth(50)
-            row_lyt.addWidget(tokenname_wgt)
-            tokenlastprice_wdgt = QLineEdit(str(tokenlastprice))
-            tokenlastprice_wdgt.setReadOnly(True)
-            row_lyt.addWidget(tokenlastprice_wdgt)
-            tokennewprice_wgt = QDoubleSpinBox()
-            tokennewprice_wgt.setMinimum(0)
-            tokennewprice_wgt.setDecimals(8)
-            tokennewprice_wgt.setValue(tokenlastprice)
-            row_lyt.addWidget(tokennewprice_wgt)
-
-            self.row_lyts_list.append(
-                (tokenname_wgt, tokennewprice_wgt))  # For later changes
+            # For later changes
+            self.row_lyts_list.append(row_lyt)
             self.layout.addLayout(row_lyt)
 
         # Button for updating changes
-        self.updatechanges_bttn = QPushButton("Update Prices")
+        self.updatechanges_bttn = QPushButton(self.tr("Update Prices"))
         self.updatechanges_bttn.clicked.connect(self.updateChanges)
         self.layout.addWidget(self.updatechanges_bttn)
 
@@ -553,13 +586,96 @@ class UpdateCustomPricesDialog(QDialog):
 
     def updateChanges(self):
         """Updates custom prices on the prices json file"""
-        for token in self.row_lyts_list:
-            tokenname = token[0].text().lower()
-            tokennewprice = token[1].value()
-
-            prices.updateCustomPrice(tokenname, tokennewprice)
-
+        for row_lyt in self.row_lyts_list:
+            row_lyt.setCurrentPriceOnPrices()
         self.close()
+
+
+class UpdateCustomPricesDialogRow(QHBoxLayout):
+    """
+    A row that contains a tokens symbol, previous price,
+    new price and lets the user change the method for obtaining price data
+    """
+
+    def __init__(self, tokensymbol, tokenlastprice, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.tokensymbol = tokensymbol
+        self.setObjectName(tokensymbol)
+
+        self.tokenname_wgt = QLabel(tokensymbol.upper())
+        self.tokenname_wgt.setFixedWidth(50)
+        self.addWidget(self.tokenname_wgt)
+
+        self.tokenlastprice_wdgt = QLineEdit(str(tokenlastprice))
+        self.tokenlastprice_wdgt.setReadOnly(True)
+        self.addWidget(self.tokenlastprice_wdgt)
+
+        self.tokennewprice_wgt = QDoubleSpinBox()
+        self.tokennewprice_wgt.setMinimum(0)
+        self.tokennewprice_wgt.setDecimals(8)
+        self.tokennewprice_wgt.setValue(tokenlastprice)
+        self.addWidget(self.tokennewprice_wgt)
+
+        # If coingecko's method is selected and multiple tokens have the
+        # same symbol, selecting the desired one will be necessary
+        self.select_id_coingecko = QComboBox()
+        self.select_id_coingecko.currentTextChanged.connect(
+            self.setCoingeckoPrice)
+        self.select_id_coingecko.hide()
+        self.addWidget(self.select_id_coingecko)
+
+        self.changemethod = QComboBox()
+        self.changemethod.addItems(['Custom', 'Coingecko'])
+        self.changemethod.currentTextChanged.connect(self.changeTokenMethod)
+        current_method = prices.getTokenMethod(self.tokensymbol)
+        self.changemethod.setCurrentText(
+            current_method[0].upper()+current_method[1:])
+        self.addWidget(self.changemethod)
+
+    def changeTokenMethod(self, method):
+        """
+        Displays the row according to the new method
+        """
+        method = method.lower()
+
+        if method == 'custom':
+            self.tokennewprice_wgt.setValue(0)
+            self.select_id_coingecko.clear()
+            self.select_id_coingecko.hide()
+
+        elif method == 'coingecko':
+            # The user has to decide which token from coingecko
+            # corresponds to the symbol
+            ids_with_symbol = prices.symbolToId_CoinGeckoList(self.tokensymbol)
+            if ids_with_symbol == []:
+                # Symbol not in coingeckos list
+                self.changemethod.setCurrentText('Custom')
+                mssg_box = QMessageBox()
+                mssg_box.setText(
+                    "Symbol {} not in Coingecko's list. Update data or change to Custom".format(self.tokensymbol.upper()))
+                mssg_box.exec()
+            else:
+                for _id in ids_with_symbol:
+                    self.select_id_coingecko.addItem(_id)
+                self.select_id_coingecko.show()
+        else:
+            return
+
+    def setCoingeckoPrice(self, _id):
+        if self.changemethod.currentText().lower() == 'coingecko':
+            self.tokennewprice_wgt.setValue(prices.toBTCAPI(_id, 1))
+
+    def setCurrentPriceOnPrices(self):
+        """
+        Updates coinprices with the row info
+        """
+        tokensymbol = self.tokensymbol.lower()
+        method = self.changemethod.currentText().lower()
+        tokenid = self.select_id_coingecko.currentText()
+        price = self.tokennewprice_wgt.value()
+
+        prices.addTokenPrice(tokensymbol, method, tokenid, price)
 
 
 class UpdateTabCryptoSignal(QObject):

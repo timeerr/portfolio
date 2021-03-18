@@ -33,7 +33,8 @@ def main():
     selected_language = confighandler.get_language()
     if selected_language != 'en':
         translator = QTranslator()
-        translator.load("app_{}.qm".format(selected_language))
+        translator.load(os.path.join(os.path.expanduser(
+            '~'), '.config', 'portfolio', "app_{}.qm".format(selected_language)))
         app.installTranslator(translator)
 
     # ------- Style ---------

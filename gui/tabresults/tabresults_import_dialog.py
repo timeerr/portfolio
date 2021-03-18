@@ -81,7 +81,7 @@ class CSVImportDialog(QDialog):
 
         # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(10)
+        self.table.setColumnCount(100)
         self.table_lyt = QVBoxLayout()
         self.table_lyt.addWidget(self.table)
 
@@ -102,7 +102,7 @@ class CSVImportDialog(QDialog):
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.date_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: self.table.selectColumn(i))
         self.date_column_lyt.addWidget(self.date_column_select_label)
         self.date_column_lyt.addWidget(self.date_column_select)
         self.data_manip_bttns_lyt.addLayout(self.date_column_lyt)
@@ -113,7 +113,7 @@ class CSVImportDialog(QDialog):
         self.account_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.account_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: self.table.selectColumn(i))
         self.account_column_lyt.addWidget(self.account_column_select_label)
         self.account_column_lyt.addWidget(self.account_column_select)
         self.data_manip_bttns_lyt.addLayout(self.account_column_lyt)
@@ -124,7 +124,7 @@ class CSVImportDialog(QDialog):
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.amount_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: lambda i: self.table.selectColumn(i)(i))
         self.amount_column_lyt.addWidget(self.amount_column_select_label)
         self.amount_column_lyt.addWidget(self.amount_column_select)
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)
@@ -301,7 +301,7 @@ class ExcelImportDialog(QDialog):
 
         # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(10)
+        self.table.setColumnCount(100)
         self.table_lyt = QVBoxLayout()
         self.table_lyt.addWidget(self.table)
 
@@ -322,7 +322,7 @@ class ExcelImportDialog(QDialog):
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.date_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: self.table.selectColumn(i))
         self.date_column_lyt.addWidget(self.date_column_select_label)
         self.date_column_lyt.addWidget(self.date_column_select)
         self.data_manip_bttns_lyt.addLayout(self.date_column_lyt)
@@ -333,7 +333,7 @@ class ExcelImportDialog(QDialog):
         self.account_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.account_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: self.table.selectColumn(i))
         self.account_column_lyt.addWidget(self.account_column_select_label)
         self.account_column_lyt.addWidget(self.account_column_select)
         self.data_manip_bttns_lyt.addLayout(self.account_column_lyt)
@@ -344,7 +344,7 @@ class ExcelImportDialog(QDialog):
         self.amount_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.amount_column_select.currentIndexChanged.connect(
-            self.table.selectColumn)
+            lambda i: self.table.selectColumn(i))
         self.amount_column_lyt.addWidget(self.amount_column_select_label)
         self.amount_column_lyt.addWidget(self.amount_column_select)
         self.data_manip_bttns_lyt.addLayout(self.amount_column_lyt)

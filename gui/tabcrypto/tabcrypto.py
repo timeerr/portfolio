@@ -80,13 +80,9 @@ class TabCrypto(QWidget):
         self.mainlayout.addWidget(self.chart_lyt)
         self.setLayout(self.mainlayout)
 
-        # Initialize with "All"
-        self.selectionChanged("All")
-        self.chart_lyt.setSizes([300, 100])
+        # ---- Initialization ----
 
-        # Data
         DATABASE_TOKENS = cbalances.getAllTokens()
-
         # Checking if there is remote data avaliable
         prices.initialize_prices()
         if 'coingeckoids.json' not in os.listdir('prices'):
@@ -94,10 +90,19 @@ class TabCrypto(QWidget):
         if 'coinprices.json' not in os.listdir('prices'):
             with open(os.path.join('prices', 'coinprices.json'), 'w') as f:
                 json.dump({}, f)
-            for token in DATABASE_TOKENS:
-                prices.addTokenPrice(token, 'coingecko', 0)
         if 'btctofiat.json' not in os.listdir('prices'):
             prices.updateBTCToFiat()
+
+        # Checking that all the tokens from the database have prices
+        coinprices_tokens = prices.getAllTokens()
+        for token in DATABASE_TOKENS:
+            token = token.lower()
+            if token not in coinprices_tokens:
+                prices.addTokenPrice(token, 'custom', token, 0)
+
+        # Initialize with "All"
+        self.selectionChanged("All")
+        self.chart_lyt.setSizes([300, 100])
 
     def selectionChanged(self, selection):
         """
@@ -552,7 +557,6 @@ class AccountPieChart(QChartView):
         for d in data:
             account = d[0]
             balance = d[1]
-            print(account, balance)
             self.series.append(account, balance)
         self.showSliceLabels()
         self.hideLittleSlices()

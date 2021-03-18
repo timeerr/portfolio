@@ -2,6 +2,9 @@
 
 from setuptools import setup, find_packages
 
+
+print("gholaaa")
+
 setup(name='portoflio',
       version='0.0.1',
       description='Portfolio tracker',
@@ -14,7 +17,11 @@ setup(name='portoflio',
           'console_scripts': ['portfolio=gui.portfolio:main']
       },
       install_requires=[
-          'PyQt5',
-          'PyQtChart'
+          'PyQt5 == 5.13',
+          'PyQtChart == 5.13',
+          'QDarkStyle',
+          'pandas',
+          'cairosvg',
+          'openpyxl'
       ],
       zip_safe=False)
