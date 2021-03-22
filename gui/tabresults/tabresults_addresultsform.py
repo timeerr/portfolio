@@ -7,8 +7,8 @@ from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import balances, results
 from gui.resources.fonts import TitleFont
-from .tabresults_formquery import AccountSelectResults
-from .tabresults_import_dialog import SelectTypeDialog
+from gui.tabresults.tabresults_formquery import AccountSelectResults
+from gui.tabresults.tabresults_import_dialog import SelectTypeDialog
 
 
 class AddResultsForm(QVBoxLayout):

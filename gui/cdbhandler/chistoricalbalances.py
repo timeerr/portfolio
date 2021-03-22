@@ -8,7 +8,7 @@ import sqlite3
 import os
 
 from gui.prices import prices
-from . import cbalances
+from gui.cdbhandler import cbalances
 
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')
 

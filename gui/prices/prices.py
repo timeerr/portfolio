@@ -87,8 +87,16 @@ def updateCustomPrice(token, price_in_btc):
     with open(coinprices_path) as f:
         coinprices = json.load(f)
 
+    try:
+        previousid = coinprices[token]['id']
+    except KeyError:
+        # token didn't exist before
+        # we set the id the same as token
+        previousid = token
+
     coinprices[token]['method'] = 'custom'
     coinprices[token]['price'] = price_in_btc
+    coinprices[token]['id'] = previousid
     with open(coinprices_path, 'w', encoding='utf-8') as f:
         json.dump(coinprices, f, ensure_ascii=False, indent=4)
 

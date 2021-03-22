@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import transactions, balances
 from gui.resources.fonts import TitleFont
-from .tabtransactions_import_dialog import SelectTypeDialog
+from gui.tabtransactions.tabtransactions_import_dialog import SelectTypeDialog
 
 
 class AddTransactionsForm(QVBoxLayout):

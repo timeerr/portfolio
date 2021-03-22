@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import results
-from .tabresults_leftlayout import LeftLayout
-from .tabresults_righttable import RightTable
+from gui.tabresults.tabresults_leftlayout import LeftLayout
+from gui.tabresults.tabresults_righttable import RightTable
 
 
 class TabResults(QSplitter):

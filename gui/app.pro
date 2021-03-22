@@ -1,7 +1,7 @@
-SOURCES += app.py 
-SOURCES += mainwidget.py
-SOURCES += welcomescreen.py
-SOURCES += statusbar.py
+SOURCES += app/app.py 
+SOURCES += app/mainwidget.py
+SOURCES += app/welcomescreen.py
+SOURCES += app/statusbar.py
 
 SOURCES += tabaccounts/account.py
 SOURCES += tabaccounts/tabaccounts.py

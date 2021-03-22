@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt, QMargins, QDate
 
 from gui.resources.fonts import TitleFont, SubtitleFont, DateButtonFont, UpdateButtonFont
-from .tabresults_formquery import ResultsQueryForm
-from .tabresults_addresultsform import AddResultsForm
+from gui.tabresults.tabresults_formquery import ResultsQueryForm
+from gui.tabresults.tabresults_addresultsform import AddResultsForm
 
 
 class LeftLayout(QVBoxLayout):

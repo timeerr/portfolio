@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QVBoxLayout, QDialog, QComboBox, QPushButton, QMainW
 from gui.cdbhandler import chistoricalbalances
 from gui.dbhandler import historicalbalances, costbasis
 from gui import confighandler
-from .welcomescreen import WelcomeWidget
-from .statusbar import StatusBar
-from .mainwidget import MainWidget
+from gui.app.welcomescreen import WelcomeWidget
+from gui.app.statusbar import StatusBar
+from gui.app.mainwidget import MainWidget
 
 
 CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.config', 'portfolio')

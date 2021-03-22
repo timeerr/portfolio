@@ -9,9 +9,9 @@ from PyQt5.QtCore import QMargins, QSize, Qt
 
 from gui.assetgen.accounticongen import get_png_account
 from gui.resources.fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
-from .tabaccounts_toolbar import AccountsToolBar
-from .tabaccounts_layout import AccountsLayout
-from .account import Account
+from gui.tabaccounts.tabaccounts_toolbar import AccountsToolBar
+from gui.tabaccounts.tabaccounts_layout import AccountsLayout
+from gui.tabaccounts.account import Account
 
 
 class TabAccounts(QWidget):

@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTranslator
 
 from gui import confighandler
-from .app.app import MainWindow, PreferencesSelection
+from gui.app.app import MainWindow, PreferencesSelection
 
 
 def main():

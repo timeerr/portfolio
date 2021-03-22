@@ -7,9 +7,9 @@ import os
 
 from gui.dbhandler import balances
 
-if 'resources' not in os.listdir():
-    os.mkdir('resources')
-    os.mkdir(os.path.join('resources', 'account-icons'))
+
+RESOURCES_PATH = os.path.join(os.path.expanduser(
+    '~'), '.local', 'share', 'portfolio')
 
 
 class AddAccountDialog(QDialog):
@@ -178,7 +178,7 @@ class RemoveAccountWarning(QDialog):
         self.warning_lyt_top = QHBoxLayout()
 
         self.icon = QLabel()
-        pxmp = QPixmap(os.path.join("resources", "warning.svg")
+        pxmp = QPixmap(os.path.join(RESOURCES_PATH, "warning.svg")
                        ).scaledToHeight(40)
         self.icon.setPixmap(pxmp)
         self.warningtext = QLabel(

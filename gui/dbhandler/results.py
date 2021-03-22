@@ -6,7 +6,7 @@ Handles all the input and output operations that use the results table from port
 import sqlite3
 import os
 from datetime import datetime
-from . import balances
+from gui.dbhandler import balances
 
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')

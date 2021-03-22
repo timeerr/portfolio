@@ -6,7 +6,7 @@ Handles all the input and output operations that use the costbasis table from po
 import sqlite3
 import os
 
-from . import transactions
+from gui.dbhandler import transactions
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
 

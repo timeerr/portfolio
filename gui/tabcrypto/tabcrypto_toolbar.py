@@ -672,7 +672,10 @@ class UpdateCustomPricesDialogRow(QHBoxLayout):
         """
         tokensymbol = self.tokensymbol.lower()
         method = self.changemethod.currentText().lower()
-        tokenid = self.select_id_coingecko.currentText()
+        if method == 'custom':
+            tokenid = tokensymbol
+        else:
+            tokenid = self.select_id_coingecko.currentText()
         price = self.tokennewprice_wgt.value()
 
         prices.addTokenPrice(tokensymbol, method, tokenid, price)

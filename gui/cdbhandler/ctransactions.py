@@ -7,7 +7,7 @@ from datetime import datetime
 import sqlite3
 import os
 
-from . import cbalances
+from gui.cdbhandler import cbalances
 
 
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')

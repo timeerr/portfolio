@@ -6,6 +6,9 @@ Object that contains data about a new account.
 import os
 from gui.assetgen.accounticongen import get_png_account
 
+RESOURCES_PATH = os.path.join(os.path.expanduser(
+    '~'), '.local', 'share', 'portfolio')
+
 
 class Account:
 
@@ -24,12 +27,10 @@ class Account:
             self.account_name = account_name
         self.amount = starting_amount
 
-        if 'resources' not in os.listdir():
-            os.mkdir('resources')
-        if 'account-icons' not in os.listdir('resources'):
-            os.mkdir(os.path.join('resources', 'account-icons'))
+        if 'account-icons' not in os.listdir(RESOURCES_PATH):
+            os.mkdir(os.path.join(RESOURCES_PATH, 'account-icons'))
         self.iconpath = os.path.join(
-            'resources', 'account-icons', self.account_name + '.png')
+            RESOURCES_PATH, 'account-icons', self.account_name + '.png')
 
         if not os.path.isfile(self.iconpath):
             # Icon didn't exist before, so we generate a new one

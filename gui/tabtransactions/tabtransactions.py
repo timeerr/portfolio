@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import transactions
-from .tabtransactions_leftlayout import LeftLayout
-from .tabtransactions_righttable import RightTable
+from gui.tabtransactions.tabtransactions_leftlayout import LeftLayout
+from gui.tabtransactions.tabtransactions_righttable import RightTable
 
 
 class TabTransactions(QSplitter):

@@ -4,6 +4,10 @@ import os
 import configparser
 
 
+def getConfigPath():
+    return os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
+
+
 def initial_setup():
     if 'portfolio' not in os.listdir(os.path.join(os.path.expanduser('~'), '.config')):
         CONFIG_PATH = os.path.join(

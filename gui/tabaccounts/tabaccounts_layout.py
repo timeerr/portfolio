@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from gui.resources.fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
 from gui.dbhandler import balances, costbasis
-from .account import Account
+from gui.tabaccounts.account import Account
 
 
 class AccountsLayout(QScrollArea):

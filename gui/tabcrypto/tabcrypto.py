@@ -19,10 +19,12 @@ from PyQt5.QtGui import QPainter, QBrush, QColor, QFont, QPixmap, QIcon
 from gui.cdbhandler import cbalances, chistoricalbalances
 from gui.resources.fonts import TitleFont, TokenBalanceFont
 from gui.prices import prices
-from .tabcrypto_toolbar import TabCryptoToolBar
+from gui.tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
 
 CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
     '~'), '.config', 'portfolio', 'config.ini')
+RESOURCES_PATH = os.path.join(os.path.expanduser(
+    '~'), '.local', 'share', 'portfolio')
 
 
 class TabCrypto(QWidget):
@@ -189,7 +191,7 @@ class DescriptionLayout(QWidget):
         self.select_mode = QPushButton("All")
         self.select_mode.setMaximumWidth(150)
         self.select_mode.setIcon(
-            QIcon(QPixmap(os.path.join('resources', 'switch.svg'))))
+            QIcon(QPixmap(os.path.join(RESOURCES_PATH, 'switch.svg'))))
 
         self.select_token_or_account_lyt.addWidget(
             self.select_token_or_account)
