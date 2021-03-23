@@ -21,6 +21,7 @@ if 'portfolio' in os.listdir(os.path.join(os.path.expanduser('~'), '.local', 'sh
     shutil.rmtree(RESOURCES_PATH)
 
 shutil.copytree(os.path.join('gui', 'resources'), RESOURCES_PATH)
+print("Created resources folder on ", RESOURCES_PATH)
 for file in os.listdir(RESOURCES_PATH):
     if ".py" in file:
         os.remove(os.path.join(RESOURCES_PATH, file))
