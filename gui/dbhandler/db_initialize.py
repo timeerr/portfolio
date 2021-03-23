@@ -15,9 +15,19 @@ def create_tables(path_to_db):
         id integer PRIMARY KEY,
         date integer NOT NULL,
         account text NOT NULL,
-        amount integer NOT NULL
+        strategy text NOT NULL,
+        amount integer NOT NULL,
+        description text,
+        FOREIGN KEY (strategy)
+            REFERENCES strategies (strategy)
     )"""
     # Date is stored as UNIX time
+
+    strategies_table_query = """CREATE TABLE IF NOT EXISTS strategies(
+        strategy text PRIMARY KEY,
+        markettype text NOT NULL,
+        amount integer NOT NULL
+    )"""
 
     transactions_table_query = """CREATE TABLE IF NOT EXISTS transactions(
         id integer PRIMARY KEY,
@@ -25,7 +35,8 @@ def create_tables(path_to_db):
         account_send text NOT NULL,
         amount integer NOT NULL,
         account_receive text NOT NULL,
-        depositwithdrawal integer NOT NULL
+        depositwithdrawal integer NOT NULL,
+        description text
     )"""
 
     balances_table_query = """CREATE TABLE IF NOT EXISTS balances(
@@ -52,6 +63,7 @@ def create_tables(path_to_db):
 
     # Inserting tables
     cursor.execute(results_table_query)
+    cursor.execute(strategies_table_query)
     cursor.execute(transactions_table_query)
     cursor.execute(balances_table_query)
     cursor.execute(balancehistory_table_query)

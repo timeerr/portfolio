@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout, QVBoxLa
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QFont, QIcon
 
-from gui.dbhandler import balances, results
+from gui.dbhandler import balances, results, strategies
 from gui.resources.fonts import TitleFont
 from gui.tabresults.tabresults_formquery import AccountSelectResults
 from gui.tabresults.tabresults_import_dialog import SelectTypeDialog
@@ -32,8 +32,7 @@ class AddResultsForm(QVBoxLayout):
 
         # First line: Date
         self.label1 = QLabel(self.tr("Date"))
-        self.label1.setMinimumWidth(60)
-        self.label1.setMaximumWidth(60)
+        self.label1.setFixedWidth(80)
         self.date_edit = QDateEdit(datetime.now())
         self.date_edit.setDisplayFormat("dd/MM/yyyy")
         self.date_edit.setCalendarPopup(True)
@@ -48,8 +47,7 @@ class AddResultsForm(QVBoxLayout):
 
         # Second Line: Account
         self.label2 = QLabel(self.tr("Account"))
-        self.label2.setMinimumWidth(60)
-        self.label2.setMaximumWidth(60)
+        self.label2.setFixedWidth(80)
         self.account_select = AccountSelectResults()
         currentaccounts = [a[0] for a in balances.getAllAccounts()]
         self.account_select.addItems(currentaccounts)
@@ -58,10 +56,22 @@ class AddResultsForm(QVBoxLayout):
         self.line2.addWidget(self.label2)
         self.line2.addWidget(self.account_select, Qt.AlignLeft)
 
-        # Third Line: Amount
-        self.label3 = QLabel(self.tr("Amount"))
-        self.label3.setMinimumWidth(60)
-        self.label3.setMaximumWidth(60)
+        # Third Line: Strategy
+        self.label3 = QLabel(self.tr("Strategy"))
+        self.label3.setFixedWidth(80)
+        self.strategy_select = QComboBox()
+        self.strategy_select.setEditable(True)
+        self.strategy_select.setDuplicatesEnabled(False)
+        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        self.strategy_select.addItems(currentstrategies)
+
+        self.line3 = QHBoxLayout()
+        self.line3.addWidget(self.label3)
+        self.line3.addWidget(self.strategy_select, Qt.AlignLeft)
+
+        # Fourth Line: Amount
+        self.label4 = QLabel(self.tr("Amount"))
+        self.label4.setFixedWidth(80)
         self.amount_select = QSpinBox()
         self.amount_select.setSuffix(" €")
         self.amount_select.setMinimum(-2147483647)
@@ -70,10 +80,19 @@ class AddResultsForm(QVBoxLayout):
         self.adjust_by_new_balance = QPushButton(self.tr("Adjust"))
         self.adjust_by_new_balance.clicked.connect(self.showAdjustDialog)
 
-        self.line3 = QHBoxLayout()
-        self.line3.addWidget(self.label3)
-        self.line3.addWidget(self.amount_select, Qt.AlignLeft)
-        self.line3.addWidget(self.adjust_by_new_balance)
+        self.line4 = QHBoxLayout()
+        self.line4.addWidget(self.label4)
+        self.line4.addWidget(self.amount_select, Qt.AlignLeft)
+        self.line4.addWidget(self.adjust_by_new_balance)
+
+        # Fifth Line: Description
+        self.label5 = QLabel(self.tr("Description"))
+        self.label5.setFixedWidth(80)
+        self.description_select = QLineEdit()
+
+        self.line5 = QHBoxLayout()
+        self.line5.addWidget(self.label5)
+        self.line5.addWidget(self.description_select, Qt.AlignLeft)
 
         # Dialogs
         self.importdialog = SelectTypeDialog()
@@ -101,6 +120,8 @@ class AddResultsForm(QVBoxLayout):
         self.addLayout(self.line1)
         self.addLayout(self.line2)
         self.addLayout(self.line3)
+        self.addLayout(self.line4)
+        self.addLayout(self.line5)
         self.addLayout(self.button_layout)
 
     def setToday(self):
@@ -114,28 +135,31 @@ class AddResultsForm(QVBoxLayout):
             self.date_edit.date().year(), self.date_edit.date(
             ).month(), self.date_edit.date().day()).timestamp()
         current_account = self.account_select.currentText()
+        current_strategy = self.strategy_select.currentText()
         current_amount = self.amount_select.text()[:-2]
+        current_description = self.description_select.text()
 
         results.addResult(current_date, current_account,
-                          current_amount)
+                          current_strategy, current_amount, description=current_description)
+
+        # Resetting Account and Strategy QComboBoxes
+        self.account_select.clear()
+        self.strategy_select.clear()
+
+        currentaccounts = [a[0] for a in balances.getAllAccounts()]
+        self.account_select.addItems(currentaccounts)
+        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        self.strategy_select.addItems(currentstrategies)
 
     def showAdjustDialog(self):
         """
         Shows Dialog to add a result by new balance
         """
         currentdate = self.date_edit.text()
-        currentaccount = self.account_select.currentText().upper()
+        currentaccount = self.account_select.currentText()
         self.adjust_by_new_balance_dlg = AdjustResultNewBalanceDialog(
             currentdate, currentaccount)
         self.adjust_by_new_balance_dlg.show()
-
-    def setResultForm(self, date, account, amount):
-        """
-        Sets the form fields according as desired
-        """
-        self.date_edit.setDate(date)
-        self.account_select.setCurrentText(account)
-        self.amount_select.setValue(amount)
 
 
 class AdjustResultNewBalanceDialog(QDialog):
@@ -147,6 +171,7 @@ class AdjustResultNewBalanceDialog(QDialog):
     def __init__(self, date, account,  *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        print("Opening Adjust Balance Dialog from account {}".format(account))
         # Data
         previous_balance = balances.getAccountBalance(account)
         # UI
@@ -253,6 +278,31 @@ class AdjustResultNewBalanceDialog(QDialog):
         self.line5.addWidget(self.result)
         self.layout.addLayout(self.line5)
 
+        # Sixth Line: Strategy
+        self.label6 = QLabel(self.tr("Strategy"))
+        self.label6.setFixedWidth(60)
+        self.strategy_select = QComboBox()
+        self.strategy_select.setEditable(True)
+        self.strategy_select.setDuplicatesEnabled(False)
+        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        self.strategy_select.addItems(currentstrategies)
+
+        self.line6 = QHBoxLayout()
+        self.line6.addWidget(self.label6)
+        self.line6.addWidget(self.strategy_select)
+        self.layout.addLayout(self.line6)
+
+        # Seventh Line: Description
+        self.label7 = QLabel(self.tr("Description"))
+        self.label7.setFixedWidth(60)
+        self.description_select = QLineEdit()
+
+        self.line7 = QHBoxLayout()
+        self.line7.addWidget(self.label7)
+        self.line7.addWidget(self.description_select)
+
+        self.layout.addLayout(self.line7)
+
         # Add result button
         self.add_result_bttn = QPushButton("Add Result")
         self.add_result_bttn.clicked.connect(self.addResult)
@@ -287,10 +337,13 @@ class AdjustResultNewBalanceDialog(QDialog):
         """
         date = datetime.strptime(self.date.text(), "%d/%m/%Y").timestamp()
         account = self.account_select.currentText()
+        strategy = self.strategy_select.currentText()
+        description = self.description_select.text()
         amount = self.result.text().split(" ")[0]
 
         print("Added result: ", date, account, amount)
-        results.addResult(date, account, amount)
+        results.addResult(date, account, strategy,
+                          amount, description=description)
 
         # Set self.previous_balance with the new balance
         self.previous_balance.setText(str(self.new_balance.value()))

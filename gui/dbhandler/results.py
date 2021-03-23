@@ -1,4 +1,4 @@
-#!/usr/bin/python3 import sqlite3from sqlite3 import Error from datetime import datetime
+#!/usr/bin/python3
 """
 Handles all the input and output operations that use the results table from portfolio.db
 """
@@ -6,7 +6,7 @@ Handles all the input and output operations that use the results table from port
 import sqlite3
 import os
 from datetime import datetime
-from gui.dbhandler import balances
+from gui.dbhandler import balances, strategies
 
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
@@ -15,15 +15,12 @@ PATH_TO_DB = os.path.join('database', 'portfolio.db')
 def createConnection(path_to_db=PATH_TO_DB):
     conn = None
 
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except Error as e:
-        print(e)
+    conn = sqlite3.connect(path_to_db)
 
     return conn
 
 
-def addResult(date, account, amount):
+def addResult(date, account, strategy, amount, description=""):
     conn = createConnection()
 
     with conn:
@@ -31,18 +28,25 @@ def addResult(date, account, amount):
 
         account_exists = balances.getAccount(account)
         if account_exists == []:
-            # account does not exist
+            # Create new account
             balances.addAccount(account, 0)
+        strategy_exists = strategies.getStrategy(strategy)
+        if strategy_exists == []:
+            # Create new strategy
+            # Markettype defaults as "None"
+            strategies.addStrategy(strategy, 'None')
 
         add_result_query = """INSERT INTO 'results'
-            ('date','account','amount')
-            VALUES (?,?,?);"""
-        cursor.execute(add_result_query, (date, account, amount))
+            ('date','account', 'strategy', 'amount', 'description')
+            VALUES (?,?,?,?,?);"""
+        cursor.execute(add_result_query, (date, account,
+                                          strategy, amount, description))
 
         conn.commit()
 
         # Finally, we update the previous balance on the balances table with the new result
         balances.updateBalances_withNewResult(account, amount)
+        strategies.updateStrategies_withNewResult(strategy, amount)
 
 
 def deleteResult(resultid):
@@ -72,7 +76,7 @@ def deleteResult(resultid):
             account_from_result, -amount_from_result)
 
 
-def updateResult(resultid, newdate=None, newaccount=None, newamount=None):
+def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newamount=None):
     conn = createConnection()
 
     with conn:
@@ -86,13 +90,16 @@ def updateResult(resultid, newdate=None, newaccount=None, newamount=None):
 
         currentdate = r[0][1]
         currentaccount = r[0][2]
-        currentamount = r[0][3]
+        currentstrategy = r[0][3]
+        currentamount = r[0][4]
 
         # Now we check which new data has to be updated. If it does not, it stays the same
         if newdate is None:
             newdate = currentdate
         if newaccount is None:
             newaccount = currentaccount
+        if newstrategy is None:
+            newstrategy = currentstrategy
         if newamount is None:
             newaccount = currentamount
 
@@ -142,7 +149,7 @@ def getResult_all():
 
 
 def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),
-                         account="All"):
+                         strategy="All", account="All"):
     """
     Executing query to return rows with certain start&end dates + account.
     Dates get passed as datetimes
@@ -155,12 +162,15 @@ def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000
 
         get_results_query = f"SELECT * FROM results WHERE date>={start_date.timestamp()} AND date<={end_date.timestamp()}"
         account_query_addon = """ AND account = '{}'""".format(account)
+        strategy_query_addon = """ AND STRATEGY = '{}'""".format(strategy)
 
-        if start_date == end_date == None and account == "All":
+        if start_date == end_date == None and account == "All" and strategy == "All":
             return cursor.execute("SELECT * FROM results").fetchall()
 
         if account != "All":
             get_results_query += account_query_addon
+        if strategy != "All":
+            get_results_query += strategy_query_addon
         cursor.execute(get_results_query)
 
         return cursor.fetchall()

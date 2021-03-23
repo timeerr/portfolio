@@ -22,6 +22,67 @@ def createConnection(path_to_db=PATH_TO_DB):
     return conn
 
 
+def addCostBasis(new_account, starting_costbasis):
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        add_cb_query = """INSERT INTO 'costbasis'
+            ('account','amount')
+            VALUES (?,?);"""
+
+        try:
+            cursor.execute(add_cb_query,
+                           (new_account, starting_costbasis))
+            print("Added new account's '{}' costbasis on database".format(new_account))
+
+        except sqlite3.IntegrityError:
+            print("Account ", new_account, " cost basis already exists")
+            return "Already Exists"
+
+        conn.commit()
+
+        return cursor.lastrowid
+
+
+def editCostBasis(account_name, new_account_name):
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        edit_account_query = """UPDATE costbasis SET account = '{}' WHERE account = '{}' """.format(
+            new_account_name, account_name)
+        cursor.execute(edit_account_query)
+
+        conn.commit()
+
+
+def updateCostBasis_withNewTransaction(account, amount):
+    """Adds the new transaction to the specific account involved, updating its cost basis"""
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        currentbalance = getCostBasis(account)
+        if isinstance(amount, str):
+            if '.' in amount:
+                amount = int(round(float(amount[:-2]), 0))
+            else:
+                amount = int(amount)
+
+        update_cb_with_new_result_query = "UPDATE costbasis SET amount = {} WHERE account = '{}'".format(
+            currentbalance+amount, account)
+
+        try:
+            cursor.execute(update_cb_with_new_result_query)
+        except Error as e:
+            print(e)
+
+        conn.commit()
+
+
 def updateCostBasis():
     """Reads all transactions, and sums deposits and withdrawal to update each account's cost basis"""
 

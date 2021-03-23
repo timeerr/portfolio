@@ -6,6 +6,8 @@ Handles all the input and output operations that use the balances table from por
 import sqlite3
 import os
 
+from gui.dbhandler import costbasis
+
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
 
 
@@ -41,6 +43,9 @@ def addAccount(new_account, starting_amount):
             return "Already Exists"
 
         conn.commit()
+
+        # A new cost basis associated with this account has to be added
+        costbasis.addCostBasis(new_account, starting_amount)
 
         return cursor.lastrowid
 

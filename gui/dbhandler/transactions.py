@@ -7,7 +7,7 @@ from datetime import datetime
 import sqlite3
 import os
 
-from gui.dbhandler import balances
+from gui.dbhandler import balances, costbasis
 
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
@@ -56,10 +56,12 @@ def addTransaction(date, account_send, amount, account_receive, depositwithdrawa
                                                amount, account_receive, depositwithdrawal))
         conn.commit()
 
-    # Finally, we update the account balance on the balance table
+    # Finally, we update the account balance on the balance and costbasis tables
     # Sender account
     balances.updateBalances_withNewResult(account_send, -amount)
     balances.updateBalances_withNewResult(account_receive, amount)
+    costbasis.updateCostBasis_withNewTransaction(account_send, -amount)
+    costbasis.updateCostBasis_withNewTransaction(account_receive, amount)
 
 
 def deleteTransaction(transactionid):
@@ -85,12 +87,16 @@ def deleteTransaction(transactionid):
 
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table,
+        # Finally, we update the previous balance on the balances and cost basis tables,
         # taking the removal of the transaction into consideration
         balances.updateBalances_withNewResult(
             account_send, amount_from_transaction)
         balances.updateBalances_withNewResult(
             account_receive, -amount_from_transaction)
+        costbasis.updateCostBasis_withNewTransaction(
+            account_send, amount_from_transaction)
+        costbasis.updateCostBasis_withNewTransaction(
+            account_receive, - amount_from_transaction)
 
 
 def getTransactions_All():

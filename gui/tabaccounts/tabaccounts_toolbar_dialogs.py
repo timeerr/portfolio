@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 import os
 
-from gui.dbhandler import balances
+from gui.dbhandler import balances, costbasis
 
 
 RESOURCES_PATH = os.path.join(os.path.expanduser(
@@ -123,15 +123,15 @@ class EditAccountDialog(QDialog):
 
     def saveChanges(self):
         # Edit account on Database
-        balances.editAccount(
-            self.account_selection_combobox.currentText(), self.name_change_field.text())
+        accountname = self.account_selection_combobox.currentText()
+        new_accountname = self.name_change_field.text()
+        balances.editAccount(accountname, new_accountname)
+        costbasis.editCostBasis(accountname, new_accountname)
 
         self.customSignal.accountEdited.emit([
             self.account_selection_combobox.currentText(), self.name_change_field.text()])  # Triggered with name change info so that the account label can be changed from the outside
 
         self.close()
-
-        # GUI changes in tabaccounts.__init__
 
 
 class RemoveAccountDialog(QDialog):

@@ -361,7 +361,7 @@ class ExcelImportDialog(QDialog):
         self.date_column_select.addItems(
             [str(i) for i in range(1, self.table.columnCount()+1)])
         self.date_column_select.currentIndexChanged.connect(
-            lambda i: self.table.selectColumn(i)(i))
+            lambda i: self.table.selectColumn(i))
         self.date_column_lyt.addWidget(self.date_column_select_label)
         self.date_column_lyt.addWidget(self.date_column_select)
         self.data_manip_bttns_lyt.addLayout(self.date_column_lyt)

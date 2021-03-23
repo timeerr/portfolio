@@ -24,7 +24,7 @@ class RightTable(QTableWidget):
         self.verticalHeader().hide()
         self.setSortingEnabled(True)
         self.setHorizontalHeaderLabels(
-            ["id", self.tr("Date"), self.tr("Account"), self.tr("Amount")])
+            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount")])
         """XK NO FUNCIONA?"""
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)  # Not editable
 
@@ -34,16 +34,19 @@ class RightTable(QTableWidget):
             self.data = data
             self.setRowCount(len(self.data))
             self.setColumnCount(len(self.data[0]))
-        self.setHorizontalHeaderLabels(['id', 'Date', 'Account', 'Amount'])
+        self.setHorizontalHeaderLabels(
+            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
 
     def resetData(self):
         """
-        Resets table, getting all transactions from database,
+        Resets table, getting all results from database,
         and showing them
         """
         self.clear()
-        results_all = results.getResult_all()
+        self.setHorizontalHeaderLabels(
+            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
 
+        results_all = results.getResult_all()
         self.setRowCount(len(results_all))
         self.setColumnCount(len(results_all[0]))
 
@@ -52,18 +55,16 @@ class RightTable(QTableWidget):
     def changeData(self, new_data):
         """ Refreshes with new data """
         self.clear()
-        self.clearData()
-        self.data = new_data
+        self.setHorizontalHeaderLabels(
+            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
 
+        self.data = new_data
         if new_data != []:
             self.setData(newdata=new_data)
-
             self.setRowCount(len(self.data))
-
 #            self.updateGeometry()  # ?
 #            self.resizeColumnsToContents()
 #            self.resizeRowsToContents()
-
         else:
             self.setRowCount(0)
 
@@ -76,13 +77,9 @@ class RightTable(QTableWidget):
                 if ncol == 1:
                     # Change format to display date better
                     d = datetime.fromtimestamp(d).strftime("%d-%m-%Y")
-                # Since we skipped the first item, ncol has to be one less
                 item = QTableWidgetItem()
                 item.setData(0, d)
                 self.setItem(nrow, ncol, item)
-
-    def clearData(self):
-        self.clear()
 
     def showMenu(self, event):
         menu = QMenu()
@@ -109,7 +106,6 @@ class RightTable(QTableWidget):
             self.removeRow(i)
 
     def getSelectionIndexes(self):
-
         indexes, indexes_on_db = [], []
 
         for i in self.selectedIndexes():
