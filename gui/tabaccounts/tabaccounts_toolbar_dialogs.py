@@ -6,10 +6,10 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import os
 
 from gui.dbhandler import balances, costbasis
+from gui import confighandler
 
 
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 
 class AddAccountDialog(QDialog):

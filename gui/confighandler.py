@@ -2,21 +2,24 @@
 
 import os
 import configparser
+from appdirs import user_config_dir, user_data_dir
 
 
 def getConfigPath():
-    return os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
+    return user_config_dir('portfolio')
+
+
+def getUserDataPath():
+    return user_data_dir('portfolio')
 
 
 def initial_setup():
     if 'portfolio' not in os.listdir(os.path.join(os.path.expanduser('~'), '.config')):
-        CONFIG_PATH = os.path.join(
-            os.path.expanduser('~'), '.config', 'portfolio')
+        CONFIG_PATH = getConfigPath()
         os.mkdir(CONFIG_PATH)
 
-    CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
-    CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
-        '~'), '.config', 'portfolio', 'config.ini')
+    CONFIG_PATH = getConfigPath()
+    CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
 
     if 'config.ini' not in os.listdir(CONFIG_PATH):
         create_config_file(CONFIG_FILE_PATH)
@@ -24,6 +27,7 @@ def initial_setup():
 
 def create_config_file(path):
 
+    CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
     with open(CONFIG_FILE_PATH, 'w') as cf:
         config = configparser.ConfigParser()
 
@@ -38,9 +42,8 @@ def create_config_file(path):
         config.write(cf)
 
 
-CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
-CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
-    '~'), '.config', 'portfolio', 'config.ini')
+CONFIG_PATH = getConfigPath()
+CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
 
 
 def get_language():

@@ -7,7 +7,6 @@ history and more.
 
 import json
 import os
-import configparser
 from datetime import datetime
 
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout
@@ -20,11 +19,10 @@ from gui.cdbhandler import cbalances, chistoricalbalances
 from gui.resources.fonts import TitleFont, TokenBalanceFont
 from gui.prices import prices
 from gui.tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
+from gui import confighandler
 
-CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
-    '~'), '.config', 'portfolio', 'config.ini')
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+CONFIG_FILE_PATH = confighandler.getConfigPath()
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 
 class TabCrypto(QWidget):
@@ -137,6 +135,8 @@ class TabCrypto(QWidget):
             self.tokenpiechart.updateWithAccount(selection)
             self.accountpiechart.selectSlice(selection)
             self.description.accountChanged(selection)
+            self.balancehistorychart.setupChartWithData(
+                chistoricalbalances.getBalancesWithAccount(selection))
 
     def updateSelectMode(self):
         """ Switches between three states: all, token, or account selection """
@@ -238,9 +238,7 @@ class DescriptionLayout(QWidget):
         self.mode = 0
 
         # Selecting fiat currency
-        conf = configparser.ConfigParser()
-        conf.read(CONFIG_FILE_PATH)
-        self.FIAT_CURRENCY = conf['PREFERENCES']['fiat_currency']
+        self.FIAT_CURRENCY = confighandler.get_fiat_currency().upper()
 
     def allMode(self):
         """
@@ -355,9 +353,7 @@ class TokenBalancesLayout(QTableWidget):
         self.verticalHeader().hide()
 
         # Selecting fiat currency
-        conf = configparser.ConfigParser()
-        conf.read(CONFIG_FILE_PATH)
-        self.FIAT_CURRENCY = conf['PREFERENCES']['fiat_currency']
+        self.FIAT_CURRENCY = confighandler.get_fiat_currency().upper()
 
     def updateWithToken(self, token):
         """Only shows database entries where token=token"""

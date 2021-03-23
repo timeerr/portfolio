@@ -13,8 +13,7 @@ from gui.tabresults.tabresults_formquery import AccountSelectResults
 from gui.tabresults.tabresults_import_dialog import SelectTypeDialog
 from gui import confighandler
 
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 
 class AddResultsForm(QVBoxLayout):

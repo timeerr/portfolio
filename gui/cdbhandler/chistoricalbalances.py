@@ -87,6 +87,30 @@ def getBalancesWithToken(token):
         return balances_by_date
 
 
+def getBalancesWithAccount(account):
+    """Returns all entries where an account is involved"""
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_balances_with_account = "SELECT date,balance_btc FROM cbalancehistory WHERE account = '{}'".format(
+            account)
+
+        cursor.execute(get_balances_with_account)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance = entry[1]
+            if date in balances_by_date.keys():
+                balances_by_date[date] += balance
+            else:
+                balances_by_date[date] = balance
+
+        return balances_by_date
+
+
 def addTodaysBalances():
     """ Reads balances from balances table, and updates the balancehistory table accordingly"""
     conn = createConnection()

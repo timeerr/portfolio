@@ -15,9 +15,9 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal, QAbstractTableModel
 from PyQt5.QtGui import QCursor, QPixmap
 
 from gui.dbhandler import results
+from gui import confighandler
 
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 DATE_FORMATS = ["UNIX", "DD/MM/YYYY",  "DD-MM-YYY",
                 "MM/DD/YYYY", "MM-DD-YYYY", "YYYY-MM-DD",

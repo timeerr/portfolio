@@ -22,6 +22,7 @@ setup(name='portoflio',
           'QDarkStyle',
           'pandas',
           'cairosvg',
-          'openpyxl'
+          'openpyxl',
+          'appdirs'
       ],
       zip_safe=False)

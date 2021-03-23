@@ -4,10 +4,11 @@ Object that contains data about a new account.
 """
 
 import os
-from gui.assetgen.accounticongen import get_png_account
 
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+from gui.assetgen.accounticongen import get_png_account
+from gui import confighandler
+
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 
 class Account:

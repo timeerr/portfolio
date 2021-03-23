@@ -9,9 +9,9 @@ import os
 import time
 
 from gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
+from gui import confighandler
 
-RESOURCES_PATH = os.path.join(os.path.expanduser(
-    '~'), '.local', 'share', 'portfolio')
+RESOURCES_PATH = confighandler.getUserDataPath()
 
 
 class AccountsToolBar(QToolBar):
