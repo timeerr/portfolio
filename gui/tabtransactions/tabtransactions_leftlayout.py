@@ -10,7 +10,7 @@ from gui.tabtransactions.tabtransactions_addtransactionsform import AddTransacti
 
 class LeftLayout(QVBoxLayout):
     """
-    Layout containing forms to interact with the table on the right 
+    Layout containing forms to interact with the table on the right
     layout of tabtransactions
     """
 
@@ -50,6 +50,10 @@ class LeftLayout(QVBoxLayout):
         self.ytd_button.clicked.connect(self.set_ytd)
         self.date_shorcut_buttons_layout.addWidget(self.ytd_button)
 
+        self.all_button = QPushButton(self.tr("All"))
+        self.all_button.clicked.connect(self.set_all)
+        self.date_shorcut_buttons_layout.addWidget(self.all_button)
+
         self.addLayout(self.date_shorcut_buttons_layout)
 
         # Button
@@ -84,6 +88,7 @@ class LeftLayout(QVBoxLayout):
 
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().addDays(days_to_prev_monday)))
+        self.update_query_pushbutton.click()
 
     def set_mtd(self):
         """Month to Date"""
@@ -91,8 +96,15 @@ class LeftLayout(QVBoxLayout):
 
         self.form.start_date_edit.setDate(
             QDate.currentDate().addDays(days_to_first_day_of_month))
+        self.update_query_pushbutton.click()
 
     def set_ytd(self):
         """Year to Date"""
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().year(), 1, 1))
+        self.update_query_pushbutton.click()
+
+    def set_all(self):
+        self.form.start_date_edit.setDate(QDate(1900, 1, 1))
+        self.form.end_date_edit.setDate(QDate.currentDate())
+        self.update_query_pushbutton.click()

@@ -96,6 +96,7 @@ class LeftLayout(QVBoxLayout):
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().addDays(days_to_prev_monday)))
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
+        self.update_query_pushbutton.click()
 
     def set_mtd(self):
         """Month to Date"""
@@ -104,13 +105,16 @@ class LeftLayout(QVBoxLayout):
         self.form.start_date_edit.setDate(
             QDate.currentDate().addDays(days_to_first_day_of_month))
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
+        self.update_query_pushbutton.click()
 
     def set_ytd(self):
         """Year to Date"""
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().year(), 1, 1))
         self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
+        self.update_query_pushbutton.click()
 
     def set_all(self):
         self.form.start_date_edit.setDate(QDate(1900, 1, 1))
         self.form.end_date_edit.setDate(QDate.currentDate())
+        self.update_query_pushbutton.click()

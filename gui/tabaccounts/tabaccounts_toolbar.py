@@ -1,13 +1,17 @@
 # /usr/bin/python3
 
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QToolBar, QAction, QComboBox, QDialog, QFormLayout, QLineEdit, QLabel, QDoubleSpinBox, QVBoxLayout, QMessageBox, QHBoxLayout
+from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QToolBar, QAction, QComboBox, QDialog, QFormLayout, QSizePolicy
+from PyQt5.QtWidgets import QLineEdit, QLabel, QDoubleSpinBox, QVBoxLayout, QMessageBox, QHBoxLayout, QWidget
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 
 import os
 import time
 
 from gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
+
+RESOURCES_PATH = os.path.join(os.path.expanduser(
+    '~'), '.local', 'share', 'portfolio')
 
 
 class AccountsToolBar(QToolBar):
@@ -43,6 +47,21 @@ class AccountsToolBar(QToolBar):
         self.addAction(self.removeaccount_action)
 
         self.remove_account_dialog = RemoveAccountDialog(self)
+
+        # Spacer
+        empty = QWidget()
+        empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        empty.setStyleSheet('background-color : transparent')
+        self.addWidget(empty)
+        self.addSeparator()
+
+        # Refresh Action
+        self.refresh_action = QAction(self.tr("Refresh"), self)
+        self.refresh_action.setIcon(
+            QIcon(os.path.join(RESOURCES_PATH, 'refresh.png')))
+        self.refresh_action.setStatusTip(
+            self.tr("Refresh all accounts to reflect changes"))
+        self.addAction(self.refresh_action)
 
     def addAccountActionClick(self, event):
         "To add an accounts, a dialog will be displayed with a form"
