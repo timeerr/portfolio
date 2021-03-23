@@ -51,6 +51,7 @@ class RightTable(QTableWidget):
 
     def changeData(self, new_data):
         """ Refreshes with new data """
+        self.clear()
         self.clearData()
         self.data = new_data
 

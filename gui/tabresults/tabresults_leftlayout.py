@@ -10,7 +10,7 @@ from gui.tabresults.tabresults_addresultsform import AddResultsForm
 
 class LeftLayout(QVBoxLayout):
     """
-    Layout containing forms to interact with the table on the right 
+    Layout containing forms to interact with the table on the right
     layout of tabresults
     """
 
@@ -113,4 +113,4 @@ class LeftLayout(QVBoxLayout):
 
     def set_all(self):
         self.form.start_date_edit.setDate(QDate(1900, 1, 1))
-        self.form.end_date_edit.setDate(QDate(1900, 1, 1))
+        self.form.end_date_edit.setDate(QDate.currentDate())

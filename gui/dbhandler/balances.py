@@ -113,6 +113,20 @@ def getAccount(account):
         return result[0]
 
 
+def getAccountBalance(account):
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_account_query = "SELECT amount FROM balances WHERE account= '{}'".format(
+            account)
+
+        cursor.execute(get_account_query)
+
+        result = cursor.fetchall()
+        return result[0][0]
+
+
 def getAllAccounts():
     conn = createConnection()
 

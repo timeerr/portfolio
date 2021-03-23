@@ -17,6 +17,9 @@ from PyQt5.QtGui import QCursor, QPixmap
 
 from gui.dbhandler import transactions
 
+RESOURCES_PATH = os.path.join(os.path.expanduser(
+    '~'), '.local', 'share', 'portfolio')
+
 DATE_FORMATS = ["UNIX", "DD/MM/YYYY",  "DD-MM-YYY",
                 "MM/DD/YYYY", "MM-DD-YYYY", "YYYY-MM-DD",
                 "DD/MM/YYYY HH:MM:SS", "DD-MM-YYYY HH:MM:SS",
@@ -202,7 +205,7 @@ class CSVImportDialog(QDialog):
         else:
             self.error = QMessageBox(self)
             icon = QPixmap(os.path.join(
-                'resources', 'warning.svg')).scaledToHeight(40)
+                RESOURCES_PATH, 'warning.svg')).scaledToHeight(40)
             self.error.setIconPixmap(icon)
             self.error.setText(self.tr("File Invalid"))
             self.error.setInformativeText(
@@ -268,7 +271,7 @@ class CSVImportDialog(QDialog):
         # Done Message
         done = QMessageBox(self)
         icon = QPixmap(os.path.join(
-            'resources', 'tick.svg')).scaledToHeight(40)
+            RESOURCES_PATH, 'tick.svg')).scaledToHeight(40)
         done.setIconPixmap(icon)
         done.setText(self.tr("Results Succesfully Added"))
         done.setInformativeText(self.tr("Restart App required"))
@@ -438,7 +441,7 @@ class ExcelImportDialog(QDialog):
         else:
             error = QMessageBox(self)
             icon = QPixmap(os.path.join(
-                'resources', 'warning.svg')).scaledToHeight(40)
+                RESOURCES_PATH, 'warning.svg')).scaledToHeight(40)
             error.setIconPixmap(icon)
             error.setText(self.tr("File Invalid"))
             error.setInformativeText(
@@ -521,7 +524,7 @@ class ExcelImportDialog(QDialog):
         # Done Message
         done = QMessageBox(self)
         icon = QPixmap(os.path.join(
-            'resources', 'tick.svg')).scaledToHeight(40)
+            RESOURCES_PATH, 'tick.svg')).scaledToHeight(40)
         done.setIconPixmap(icon)
         done.setText(self.tr("Results Succesfully Added"))
         done.setInformativeText(self.tr("Restart App required"))
@@ -638,7 +641,7 @@ class BadDateError(QDialog):
         self.warning_lyt_top = QHBoxLayout()
 
         self.icon = QLabel()
-        pxmp = QPixmap(os.path.join("resources", "warning.svg")
+        pxmp = QPixmap(os.path.join(RESOURCES_PATH, "warning.svg")
                        ).scaledToHeight(40)
         self.icon.setPixmap(pxmp)
         self.warningtext = QLabel(self.tr("Date format does not match data"))
