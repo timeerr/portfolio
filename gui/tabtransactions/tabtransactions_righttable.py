@@ -53,11 +53,9 @@ class RightTable(QTableWidget):
         if new_data != []:
             self.setData(newdata=new_data)
             self.setRowCount(len(self.data))
-
 #            self.updateGeometry()  # ?
 #            self.resizeColumnsToContents()
 #            self.resizeRowsToContents()
-
         else:
             self.setRowCount(0)
 

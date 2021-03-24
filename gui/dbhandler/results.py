@@ -76,7 +76,15 @@ def deleteResult(resultid):
             account_from_result, -amount_from_result)
 
 
-def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newamount=None):
+def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newamount=None, newdescription=None):
+    """
+    Updates a result entry
+    Note that it does not update the balances or strategies, etc.
+    Meaning that if you change the result of an account,
+    the account balance of the balances table won't be updated here
+    """
+    resultid = int(resultid)
+
     conn = createConnection()
 
     with conn:
@@ -86,12 +94,12 @@ def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newa
         current_result_query = """ SELECT * FROM results WHERE id= %d """ % resultid
         cursor.execute(current_result_query)
         r = cursor.fetchall()  # Here we get the actual row. Now we have to disect it
-        print(cursor.fetchall())
 
         currentdate = r[0][1]
         currentaccount = r[0][2]
         currentstrategy = r[0][3]
         currentamount = r[0][4]
+        currentdescription = r[0][5]
 
         # Now we check which new data has to be updated. If it does not, it stays the same
         if newdate is None:
@@ -101,17 +109,21 @@ def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newa
         if newstrategy is None:
             newstrategy = currentstrategy
         if newamount is None:
-            newaccount = currentamount
+            newamount = currentamount
+        if newdescription is None:
+            newdescription = currentdescription
 
         update_result_query = """UPDATE results
             SET date = ? ,
                 account = ? ,
-                amount = ?
+                strategy = ?,
+                amount = ?,
+                description = ?
                 WHERE id = ?
         """
 
-        cursor.execute(update_result_query,
-                       (newdate, newaccount, newamount, resultid))
+        cursor.execute(update_result_query, (newdate, newaccount,
+                                             newstrategy, newamount, newdescription, resultid))
         conn.commit()
 
 
@@ -146,6 +158,81 @@ def getResult_all():
 
         cursor.execute(get_results_all)
         return cursor.fetchall()
+
+
+def getResultById(_id):
+    """
+    Returns the result with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_results_by_id_query = "SELECT * FROM results WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_results_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getResultDateById(_id):
+    """
+    Returns the result's date with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_results_date_by_id_query = "SELECT date FROM results WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_results_date_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getResultAccountById(_id):
+    """
+    Returns the result's account with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_results_account_by_id_query = "SELECT account FROM results WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_results_account_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getResultStrategyById(_id):
+    """
+    Returns the result's strategy with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_results_strategy_by_id_query = "SELECT strategy FROM results WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_results_strategy_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getResultAmountById(_id):
+    """
+    Returns the result's amount with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_results_amount_by_id_query = "SELECT amount FROM results WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_results_amount_by_id_query)
+        return cursor.fetchall()[0][0]
 
 
 def getResults_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),

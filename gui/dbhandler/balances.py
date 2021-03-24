@@ -92,6 +92,7 @@ def updateBalances_withNewResult(account, amount):
 
         update_balance_with_new_result_query = "UPDATE balances SET amount = {} WHERE account = '{}'".format(
             currentbalance+amount, account)
+        print(update_balance_with_new_result_query)
 
         try:
             cursor.execute(update_balance_with_new_result_query)

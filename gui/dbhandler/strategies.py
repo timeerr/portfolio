@@ -99,6 +99,7 @@ def updateStrategies_withNewResult(strategy, amount):
 
         update_strategy_with_new_result_query = "UPDATE strategies SET amount = {} WHERE strategy = '{}'".format(
             currentbalance+amount, strategy)
+        print(update_strategy_with_new_result_query)
 
         cursor.execute(update_strategy_with_new_result_query)
 

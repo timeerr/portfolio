@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 print("gholaaa")
 
-setup(name='portoflio',
+setup(name='portfolio',
       version='0.0.1',
       description='Portfolio tracker',
       url='https://github.com/timeerr/portfolio',
