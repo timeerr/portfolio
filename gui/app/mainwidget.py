@@ -20,6 +20,8 @@ class MainWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.tabwidget = QTabWidget(self)
+        # self.tabwidget.setDocumentMode(True)
+        self.tabwidget.setMovable(True)
 
         # Tab1 : Results
         self.tabresults = TabResults(self)
