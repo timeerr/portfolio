@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout
-from PyQt5.QtWidgets import QVBoxLayout, QComboBox, QDoubleSpinBox, QCheckBox, QButtonGroup
+from PyQt5.QtWidgets import QVBoxLayout, QComboBox, QSpinBox, QCheckBox, QButtonGroup
 from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import transactions, balances
@@ -72,10 +72,10 @@ class AddTransactionsForm(QVBoxLayout):
         self.label4 = QLabel(self.tr("Amount"))
         self.label4.setMinimumWidth(120)
         self.label4.setMaximumWidth(120)
-        self.amount_select = QDoubleSpinBox()
+        self.amount_select = QSpinBox()
         self.amount_select.setSuffix(" €")
         self.amount_select.setMinimum(0)
-        self.amount_select.setMaximum(1000000000000000)
+        self.amount_select.setMaximum(999999999)
         self.amount_select.setAccelerated(True)
 
         self.line4 = QHBoxLayout()
