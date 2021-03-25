@@ -12,9 +12,9 @@ def initialize():
     from gui import confighandler
     from appdirs import user_data_dir
     CONFIG_PATH = confighandler.getConfigPath()
-    for file in os.listdir("gui"):
+    for file in os.listdir():
         if ".qm" in file:
-            source = os.path.join("gui", file)
+            source = os.path.join(file)
             dest = os.path.join(CONFIG_PATH, file)
             shutil.copy(source, dest)
             print("Moved ", source, "translation to ", dest)
