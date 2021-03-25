@@ -32,7 +32,6 @@ class Account:
             os.mkdir(os.path.join(RESOURCES_PATH, 'account-icons'))
         self.iconpath = os.path.join(
             RESOURCES_PATH, 'account-icons', self.account_name + '.png')
-        print(self.iconpath)
 
         if not os.path.isfile(self.iconpath):
             # Icon didn't exist before, so we generate a new one

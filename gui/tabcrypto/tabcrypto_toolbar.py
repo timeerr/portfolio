@@ -164,15 +164,18 @@ class AddAccountDialog(QDialog):
             new_token_dialog = NewTokenDialog(token, self)
             new_token_dialog.exec_()
 
-        account = self.name_edit.text()
-        amount = self.startingbalance_edit.value()
-        _type = self.type_edit.currentText()
-        kyc = self.kyc_edit.currentText()
-        description = self.descr_edit.text()
-        cbalances.addAccount(account, token, amount, _type, kyc, description)
+        else:
+            # The token already exists
+            account = self.name_edit.text()
+            amount = self.startingbalance_edit.value()
+            _type = self.type_edit.currentText()
+            kyc = self.kyc_edit.currentText()
+            description = self.descr_edit.text()
+            cbalances.addAccount(account, token, amount,
+                                 _type, kyc, description)
 
-        self.updatecryptosignal.updated.emit()
-        self.close()
+            self.updatecryptosignal.updated.emit()
+            self.close()
 
 
 class NewTokenDialog(QDialog):
@@ -191,7 +194,7 @@ class NewTokenDialog(QDialog):
 
         # New Token Description
         self.description = QLabel(
-            self.tokenname + self.tr(" has to be added \n\
+            self.tokenname + self.tr(" has to be added \
                                      Select Method to obtain new its price data"))
         self.layout.addWidget(self.description)
 
@@ -259,7 +262,9 @@ class NewTokenDialog(QDialog):
 
         elif method == 'Custom Price':
             # We add a field to put the current price
-            self.currentprice.setText("")
+            self.select_token_by_id.clear()
+            self.select_token_by_id.hide()
+            self.currentprice.setText(" ")
             self.currentprice.setReadOnly(False)
 
         self.currentprice.show()
