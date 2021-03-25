@@ -27,121 +27,114 @@ class RightTable(QTableWidget):
     Table dynamically showing results
     """
 
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
 
         # Custom Menu
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showMenu)
-        self.rl = Communicate()  # A signal that will be emited whenever a line is removed
+        # A signal that will be emited whenever a line is removed
+        self.lineremoved = LineRemoved()
 
-        # UI
+        # UI Tweaks
         self.verticalHeader().hide()
         self.setSortingEnabled(True)
+
         self.setHorizontalHeaderLabels(
             ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount")])
 
-        # Not editable
-        # self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # When edited, change the data on the database too
         self.cellChanged.connect(self.changeCellOnDatabase)
 
-        # Data
-        self.data = data
         # A flag to prevent changeCellOnDatabase execution when needed
         self.updatingdata_flag = True
 
-        if len(self.data) > 0:
-            self.data = data
-            self.setRowCount(len(self.data))
-            self.setColumnCount(len(self.data[0]))
-        self.setHorizontalHeaderLabels(
-            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
+        # Initialization: show all transactions
+        self.setData(datetime(1900, 1, 1), datetime.today(), "All", "All")
 
     @updatingdata
-    def resetData(self):
+    def setData(self, startdate, enddate, strategy, account):
         """
-        Resets table, getting all results from database,
-        and showing them
+        Asks the database for results data within certain parameters,
+        then shows that data on the table
         """
+        # Clear table
         self.clear()
         self.setHorizontalHeaderLabels(
             ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
 
-        results_all = results.getResult_all()
-        self.setRowCount(len(results_all))
-        self.setColumnCount(len(results_all[0]))
+        # Get desired data from db
+        results_to_show = results.getResults_fromQuery(
+            start_date=startdate, end_date=enddate, strategy=strategy, account=account)
 
-        self.setData(newdata=results_all)
-
-    def changeData(self, new_data):
-        """ Refreshes with new data """
-        self.clear()
-        self.setHorizontalHeaderLabels(
-            ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
-
-        self.data = new_data
-        if new_data != []:
-            self.setData(newdata=new_data)
-            self.setRowCount(len(self.data))
-#            self.updateGeometry()  # ?
-#            self.resizeColumnsToContents()
-#            self.resizeRowsToContents()
-        else:
+        # If the data is empty, we are done
+        if len(results_to_show) == 0:
             self.setRowCount(0)
+            return
 
-    @updatingdata
-    def setData(self, newdata=None):
-        if newdata is not None:
-            self.data = newdata
+        # Resize table
+        self.setRowCount(len(results_to_show))
+        self.setColumnCount(len(results_to_show[0]))
 
-        for nrow, row in enumerate(self.data):
-            for ncol, d in enumerate(row):
-                if ncol == 1:
-                    # Change format to display date better
-                    d = datetime.fromtimestamp(d).strftime("%d-%m-%Y")
-                item = QTableWidgetItem()
-                if ncol == 0:
+        # Change content
+        for rownum, row in enumerate(results_to_show):
+            for colnum, data in enumerate(row):
+                item = QTableWidgetItem()  # Item that will be inserted
+
+                if colnum == 0:
                     # Ids can't be editable
                     item.setFlags(Qt.ItemIsSelectable)
-                item.setData(0, d)
-                self.setItem(nrow, ncol, item)
+                elif colnum == 1:
+                    # Change format to display date better
+                    data = datetime.fromtimestamp(data).strftime("%d-%m-%Y")
+
+                # Data is now formatted, we can write it on table
+                item.setData(0, data)
+                self.setItem(rownum, colnum, item)
 
     def showMenu(self, event):
+        """
+        Custom Menu to show when an item is right-clicked
+
+        Options:
+        - Remove Line: removes line from table and database
+        """
         menu = QMenu()
+
+        # Actions
         remove_action = menu.addAction(self.tr("Remove Line"))
 
+        # Getting action selected by user
         action = menu.exec_(QCursor.pos())
 
+        # Act accordingly
         if action == remove_action:
             self.removeSelection()
-            # Emit custom removed line signal,
-            # so that we can call the accounts tab to be updated from the outside
-            self.rl.lineRemoved.emit()
-            self.repaint()
-            """BUG CONOCIDO: POR ALGUNA RAZON AL BORRAR UNA SELECCIÓN MÚLTIPLE NO SE TERMINAN DE BORRAR TODAS LAS FILAS DE LA TABLA"""
+            self.lineremoved.lineRemoved.emit()
 
     @updatingdata
     def removeSelection(self):
-        indexes_on_table, indexes_on_db = self.getSelectionIndexes()
+        """
+        Removes the entire row of every selected item,
+        and then does the same on the databse
+        """
 
-        print("Removing rows with ids on db : ", indexes_on_db,
-              "\n & ids on table: ", indexes_on_table)
+        # Getting selected indexes, and their corresponding ids
+        # from the database
+        selected_indexes_table, selected_ids = [], []
+        for index in self.selectedIndexes():
+            index = index.row()  # Row number
+            if index not in selected_indexes_table:  # Avoid duplicates
+                selected_indexes_table.append(index)
+                selected_ids.append(int(self.item(index, 0).text()))
 
-        for i, idb in zip(indexes_on_table, indexes_on_db):
-            results.deleteResult(idb)
-            self.removeRow(i)
+        # Removing the rows from the table and the database
+        for index, id_db in zip(selected_indexes_table, selected_ids):
+            results.deleteResult(id_db)
+            self.removeRow(index)
 
-    def getSelectionIndexes(self):
-        indexes, indexes_on_db = [], []
-
-        for i in self.selectedIndexes():
-            i = i.row()
-            if i not in indexes:
-                indexes.append(i)
-                indexes_on_db.append(int(self.item(i, 0).text()))
-
-        return (indexes, indexes_on_db)
+        print("Removed rows with ids on db : ", selected_ids,
+              "\n & ids on table: ", selected_indexes_table)
 
     def changeCellOnDatabase(self, row, column):
         """
@@ -152,11 +145,11 @@ class RightTable(QTableWidget):
 
         if self.updatingdata_flag is True:
             return
-            # The data is being modified internally, not by the user,
+            # The data is being modified internally (not by the user)
             # so no errors assumed
 
         new_item = self.item(row, column)
-        new_item_data = self.item(row, column).text()
+        new_item_data = new_item.text()
         database_entry_id = self.item(row, 0).text()
 
         previous_amount = results.getResultAmountById(
@@ -164,6 +157,9 @@ class RightTable(QTableWidget):
         columnselected_name = self.horizontalHeaderItem(column).text()
         # Depending on from which column the item is, we check the data
         # proposed differently
+
+        # Check which part of the transaction has been edited, and accting accordingly
+        # -------------- id --------------------
         if columnselected_name == self.tr("Id"):
             # Ids can't be edited
             error_mssg = QMessageBox()
@@ -173,7 +169,6 @@ class RightTable(QTableWidget):
 
         # -------------- Date --------------------
         elif columnselected_name == self.tr("Date"):
-            print(self.tr("Date"))
             # The new text has to be a date
             try:
                 new_date = datetime.strptime(new_item_data, "%d-%m-%Y")
@@ -192,7 +187,9 @@ class RightTable(QTableWidget):
                     database_entry_id)
                 previous_date_text = datetime.fromtimestamp(
                     previous_date_timestamp).strftime("%d-%m-%Y")
+                self.updatingdata_flag = True
                 new_item.setData(0, previous_date_text)
+                self.updatingdata_flag = False
 
         # -------------- Account --------------------
         elif columnselected_name == self.tr("Account"):
@@ -209,7 +206,9 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset strategy to previous one
+                self.updatingdata_flag = True
                 new_item.setData(0, previous_account)
+                self.updatingdata_flag = False
 
             else:
                 # The data is good
@@ -238,7 +237,9 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset strategy to previous one
+                self.updatingdata_flag = True
                 new_item.setData(0, previous_strategy)
+                self.updatingdata_flag = False
             else:
                 # The data is good
                 # Change the result on the results table of the db
@@ -282,13 +283,16 @@ class RightTable(QTableWidget):
                 # Reset to previous amount
                 previous_amount = results.getResultAmountById(
                     database_entry_id)
+                self.updatingdata_flag = True
                 new_item.setData(0, previous_amount)
+                self.updatingdata_flag = False
 
         # -------------- Description --------------------
         # A description can be any data. So no checks
-        results.updateResult(database_entry_id, newdescription=new_item_data)
+        elif columnselected_name == self.tr("Description"):
+            results.updateResult(
+                database_entry_id, newdescription=new_item_data)
 
 
-class Communicate(QObject):
-    """Just a custom signal"""
+class LineRemoved(QObject):
     lineRemoved = pyqtSignal()

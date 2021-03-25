@@ -165,3 +165,7 @@ def getAllStrategies():
         cursor.execute(get_all_strategies_query)
 
         return cursor.fetchall()
+
+
+def getAllStrategyNames():
+    return [i[0] for i in getAllStrategies()]

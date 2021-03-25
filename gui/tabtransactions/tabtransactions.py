@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from datetime import datetime
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
@@ -37,9 +39,7 @@ class TabTransactions(QSplitter):
             self.updateRightLayout)
 
         # ------Right Layout Widgets------
-        all_transactions = transactions.getTransactions_All()
         self.righttable = RightTable()
-        self.righttable.changeData(all_transactions)
         self.rightlayout.addWidget(self.righttable, Qt.AlignCenter)
 
         # ------Main Layout----------------
@@ -52,17 +52,18 @@ class TabTransactions(QSplitter):
     def updateRightLayout(self):
 
         # Getting current form state
-        current_query = self.leftlayout.form.getCurrentQuery()
-        newdata = transactions.getTransactions_fromQuery(
-            start_date=current_query[0], end_date=current_query[1], senderaccount=current_query[2], receiveraccount=current_query[3])
+        current_startdate = datetime.strptime(
+            self.leftlayout.form.start_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")
+        current_enddate = datetime.strptime(
+            self.leftlayout.form.end_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")
+        current_senderaccount = self.leftlayout.form.senderaccount_select.currentText()
+        current_receiveraccount = self.leftlayout.form.receiveraccount_select.currentText()
 
         # Changing with new data
-        self.righttable.changeData(newdata)
-        self.righttable.changeData(
-            newdata)
-        # """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
+        self.righttable.setData(
+            current_startdate, current_enddate, current_senderaccount, current_receiveraccount)
 
         # Show message on status bar with the new transaction info
         self.parent().parent().parent().parent().statusBar().showMessage(
-            "".join([self.tr("New transaction added: "), current_query[0].strftime("%d/%m/%Y"),
-                     current_query[1].strftime("%d/%m/%Y"), current_query[2], current_query[3]]))
+            "".join([self.tr("New transaction added: "), current_startdate.strftime("%d/%m/%Y"),
+                     current_enddate.strftime("%d/%m/%Y"), current_senderaccount, current_receiveraccount]))

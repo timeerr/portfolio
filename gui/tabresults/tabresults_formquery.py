@@ -7,7 +7,7 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import QLabel, QComboBox, QDateEdit, QFormLayout
 
-from gui.dbhandler import balances
+from gui.dbhandler import balances, strategies
 from gui.resources.fonts import BoldFont
 
 
@@ -40,21 +40,23 @@ class ResultsQueryForm(QFormLayout):
 
         # Third line: Account selection
         self.label3 = QLabel(self.tr("Account"))
-        self.account_select = AccountSelectResults(is_query=True)
-        currentaccounts = [a[0] for a in balances.getAllAccounts()]
-        self.account_select.addItems(currentaccounts)
-        # Initializing a new attr, that we will use on parents to get current selected account
-        self.currentaccount = self.account_select.currentText()
+        self.account_select = QComboBox()
+        all_accounts = balances.getAllAccountNames()
+        self.account_select.addItem("All")
+        self.account_select.addItems(all_accounts)
 
         self.setWidget(2, self.LabelRole, self.label3)
         self.setWidget(2, self.FieldRole, self.account_select)
 
-    def getCurrentQuery(self):
-        """
-        Returns tuple with the start date, end date and current account of the query form
-        """
-        return (self.start_date_edit.dateTime(), self.end_date_edit.dateTime(),
-                self.account_select.currentText())
+        # Fourth Line: Strategy Selection
+        self.label4 = QLabel(self.tr("Strategy"))
+        self.strategy_select = QComboBox()
+        all_strategies = strategies.getAllStrategyNames()
+        self.strategy_select.addItem("All")
+        self.strategy_select.addItems(all_strategies)
+
+        self.setWidget(3, self.LabelRole, self.label4)
+        self.setWidget(3, self.FieldRole, self.strategy_select)
 
     def checkDates_startdate(self):
         """
@@ -71,18 +73,3 @@ class ResultsQueryForm(QFormLayout):
         if self.start_date_edit.dateTime() > self.end_date_edit.dateTime():
             # viceversa
             self.start_date_edit.setDate(self.end_date_edit.date())
-
-
-class AccountSelectResults(QComboBox):
-    """
-    ComboBox to select between all current accounts
-    """
-
-    def __init__(self, is_query=False):
-        super().__init__()
-
-        if is_query:
-            # If we use this ComboBox for results addition, "All" is not necessary
-            self.addItem("All", BoldFont())
-        self.setEditable(True)
-        self.setDuplicatesEnabled(False)

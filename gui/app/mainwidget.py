@@ -45,14 +45,14 @@ class MainWidget(QWidget):
 
         # --------------- Functionality between Tabs --------------
         # Whenever a result is removed, we update tabaccounts
-        self.tabresults.righttable.rl.lineRemoved.connect(
+        self.tabresults.righttable.lineremoved.lineRemoved.connect(
             self.tabaccounts.refreshBalances)
         # Whenever a result is added, we update tabaccounts
         self.tabresults.leftlayout.add_results_form.insert_button.clicked.connect(
             self.tabaccounts.refreshBalances)
 
         # Whenever a transaction is removed, we update tabaccounts
-        self.tabtransactions.righttable.rl.lineRemoved.connect(
+        self.tabtransactions.righttable.lineremoved.lineremoved.connect(
             self.tabaccounts.refreshBalances)
         # Whenever a transaction is added, we update tabaccounts
         self.tabtransactions.leftlayout.add_transactions_form.insert_button.clicked.connect(

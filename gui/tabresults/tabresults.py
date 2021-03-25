@@ -40,9 +40,7 @@ class TabResults(QSplitter):
             self.updateRightLayout)
 
         # ------Right Layout Widgets------
-        all_results = results.getResult_all()
-        self.righttable = RightTable(all_results)
-        self.righttable.changeData(all_results)
+        self.righttable = RightTable()
         self.rightlayout.addWidget(self.righttable, Qt.AlignCenter)
 
         # ------Main Layout----------------
@@ -53,18 +51,18 @@ class TabResults(QSplitter):
         self.insertWidget(1, self.rightlayout_widget)
 
     def updateRightLayout(self):
+
+        # Getting current form state
         sd = datetime.strptime(
-            self.leftlayout.currentquery[0].toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
+            self.leftlayout.form.start_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
         ed = datetime.strptime(
-            self.leftlayout.currentquery[1].toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
-        ac = self.leftlayout.currentquery[2]
+            self.leftlayout.form.end_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
+        st = self.leftlayout.form.strategy_select.currentText()
+        ac = self.leftlayout.form.account_select.currentText()
 
-        newdata = results.getResults_fromQuery(
-            start_date=sd, end_date=ed, account=ac)
+        # Changing with new data
+        self.righttable.setData(sd, ed, st, ac)
 
-        self.righttable.changeData(newdata)
-        self.righttable.changeData(
-            newdata)
-        """ THIS IS A BUG, AS IF THE DATA IS CHANGED JUST ONCE, THE TABLE GRID RESIZES, BUT THE DATA DOES NOT SHOW UP UNTIL UPDATED FOR A SECOND TIME"""
+        # Show message on status bar with the new result info
         self.parent().parent().parent().parent().statusBar().showMessage(
             "".join([self.tr("Updated: "), str(ac), ' ', str(sd), str(ed)]), 5000)

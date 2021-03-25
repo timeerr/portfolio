@@ -99,6 +99,57 @@ def deleteTransaction(transactionid):
             account_receive, - amount_from_transaction)
 
 
+def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamount=None, newreceiveraccount=None, newtype=None):
+    """
+    Updates a transaction entry
+    Note that it does not update the balances or strategies, etc.
+    Meaning that if you change the transaction of an account,
+    the account balance+costbasis of the balances+costbasis tables won't be updated here
+    """
+    transactionid = int(transactionid)
+
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        # First, we select the current result data, in case some of it does not need to be updated
+        current_transaction_query = """ SELECT * FROM transactions WHERE id= %d """ % transactionid
+        cursor.execute(current_transaction_query)
+        r = cursor.fetchall()  # Here we get the actual row. Now we have to disect it
+
+        currentdate = r[0][1]
+        currentsenderaccount = r[0][2]
+        currentamount = r[0][3]
+        currentreceiveraccount = r[0][4]
+        currenttype = r[0][5]
+
+        # Now we check which new data has to be updated. If it does not, it stays the same
+        if newdate is None:
+            newdate = currentdate
+        if newsenderaccount is None:
+            newsenderaccount = currentsenderaccount
+        if newamount is None:
+            newamount = currentamount
+        if newreceiveraccount is None:
+            newreceiveraccount = currentreceiveraccount
+        if newtype is None:
+            newtype = currenttype
+
+        update_transaction_query = """UPDATE transactions
+            SET date = ? ,
+                account_send = ? ,
+                amount = ?,
+                account_receive = ?,
+                depositwithdrawal = ?
+                WHERE id = ?
+        """
+
+        cursor.execute(update_transaction_query, (newdate, newsenderaccount,
+                                                  newamount, newreceiveraccount, newtype, transactionid))
+        conn.commit()
+
+
 def getTransactions_All():
     """ Returns all transactions """
 
@@ -111,6 +162,81 @@ def getTransactions_All():
 
         cursor.execute(get_transactions_all)
         return cursor.fetchall()
+
+
+def getTransactionById(_id):
+    """
+    Returns the transaction with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_transaction_by_id_query = "SELECT * FROM transactions WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_transaction_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getTransactionAmountById(_id):
+    """
+    Returns the transaction's amount with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_transaction_amount_by_id_query = "SELECT amount FROM transactions WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_transaction_amount_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getTransactionDateById(_id):
+    """
+    Returns the transaction's date with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_transaction_date_by_id_query = "SELECT date FROM transactions WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_transaction_date_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getTransactionSenderAccountById(_id):
+    """
+    Returns the transaction's sender account with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_transaction_senderaccount_by_id_query = "SELECT account_send FROM transactions WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_transaction_senderaccount_by_id_query)
+        return cursor.fetchall()[0][0]
+
+
+def getTransactionReceiverAccountById(_id):
+    """
+    Returns the transaction's receive account with a specific id
+    """
+    conn = createConnection()
+    with conn:
+        cursor = conn.cursor()
+
+        get_transaction_receiveraccount_by_id_query = "SELECT account_receive FROM transactions WHERE id = {}".format(
+            _id)
+
+        cursor.execute(get_transaction_receiveraccount_by_id_query)
+        return cursor.fetchall()[0][0]
 
 
 def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),

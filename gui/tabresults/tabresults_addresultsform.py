@@ -9,7 +9,6 @@ from PyQt5.QtGui import QFont, QIcon
 
 from gui.dbhandler import balances, results, strategies
 from gui.resources.fonts import TitleFont
-from gui.tabresults.tabresults_formquery import AccountSelectResults
 from gui.tabresults.tabresults_import_dialog import SelectTypeDialog
 from gui import confighandler
 
@@ -47,7 +46,7 @@ class AddResultsForm(QVBoxLayout):
         # Second Line: Account
         self.label2 = QLabel(self.tr("Account"))
         self.label2.setFixedWidth(80)
-        self.account_select = AccountSelectResults()
+        self.account_select = QComboBox()
         currentaccounts = [a[0] for a in balances.getAllAccounts()]
         self.account_select.addItems(currentaccounts)
 

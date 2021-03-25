@@ -59,7 +59,6 @@ class LeftLayout(QVBoxLayout):
         # Button
         self.update_query_pushbutton = QPushButton(self.tr("Update"))
         self.update_query_pushbutton.setFont(DateButtonFont())
-        self.update_query_pushbutton.clicked.connect(self.setCurrentQuery)
         self.update_query_pushbutton.setFont(UpdateButtonFont())
         self.update_query_pushbutton.setMinimumHeight(30)
         self.update_query_pushbutton.setMaximumWidth(75)
@@ -79,12 +78,6 @@ class LeftLayout(QVBoxLayout):
         self.add_results_form.setAlignment(Qt.AlignTop)
 
         self.addLayout(self.add_results_form)
-
-        # Initialize with start query
-        self.setCurrentQuery()
-
-    def setCurrentQuery(self):
-        self.currentquery = self.form.getCurrentQuery()
 
     def set_currentweek(self):
         dayofweek = QDate.currentDate().dayOfWeek()

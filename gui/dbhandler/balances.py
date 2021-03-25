@@ -78,6 +78,7 @@ def editAccount(account_name, new_account_name):
 
 def updateBalances_withNewResult(account, amount):
     """Adds the new result to the specific acccount involved, updating its balance"""
+    print("Updating balance from account ", account, " with amount ", amount)
     conn = createConnection()
 
     with conn:
@@ -144,3 +145,7 @@ def getAllAccounts():
         cursor.execute(get_all_accounts_query)
 
         return cursor.fetchall()
+
+
+def getAllAccountNames():
+    return [i[0] for i in getAllAccounts()]
