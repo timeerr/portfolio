@@ -30,13 +30,17 @@ class AccountsToolBar(QToolBar):
         self.add_account_dialog.setVisible(False)
 
         # Edit Account Action
-        self.editaccount_action = QAction(self.tr("Edit Account"), self)
-        self.editaccount_action.setStatusTip(
-            self.tr("Change account balance/info"))
-        self.editaccount_action.triggered.connect(self.editAccountActionClick)
-        self.addAction(self.editaccount_action)
+        """
+        Still not ready for use. Things like icon changing and how to handle 
+        previous results/transactions from the account have to be considered
+        """
+#        self.editaccount_action = QAction(self.tr("Edit Account"), self)
+#        self.editaccount_action.setStatusTip(
+#            self.tr("Change account balance/info"))
+#        self.editaccount_action.triggered.connect(self.editAccountActionClick)
+#        self.addAction(self.editaccount_action)
 
-        self.edit_account_dialog = EditAccountDialog()
+        #self.edit_account_dialog = EditAccountDialog()
 
         # Remove Account Action
         self.removeaccount_action = QAction(self.tr("Remove Account"), self)

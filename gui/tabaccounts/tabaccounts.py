@@ -41,8 +41,7 @@ class TabAccounts(QWidget):
         self.accounts_toolbar.remove_account_dialog.remove_account_warning.warning_bttn.clicked.connect(
             self.refreshBalances)
         # Account name updated
-        self.accounts_toolbar.edit_account_dialog.customSignal.accountEdited.connect(
-            self.refreshBalances)
+        # self.accounts_toolbar.edit_account_dialog.customSignal.accountEdited.connect(self.refreshBalances)
         # Refresh
         self.accounts_toolbar.refresh_action.triggered.connect(
             self.refreshBalances)
