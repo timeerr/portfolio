@@ -288,8 +288,8 @@ class RightTable(QTableWidget):
                 self.updatingdata_flag = False
 
         # -------------- Description --------------------
-        # A description can be any data. So no checks
         elif columnselected_name == self.tr("Description"):
+            # A description can be any data. So no checks
             results.updateResult(
                 database_entry_id, newdescription=new_item_data)
 

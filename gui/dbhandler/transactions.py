@@ -24,7 +24,7 @@ def createConnection(path_to_db=PATH_TO_DB):
     return conn
 
 
-def addTransaction(date, account_send, amount, account_receive, depositwithdrawal):
+def addTransaction(date, account_send, amount, account_receive, depositwithdrawal, description=""):
     conn = createConnection()
 
     with conn:
@@ -49,11 +49,11 @@ def addTransaction(date, account_send, amount, account_receive, depositwithdrawa
 
         # Finally, adding transaction on db
         add_transaction_query = """INSERT INTO 'transactions'
-        ('date', 'account_send', 'amount', 'account_receive', 'depositwithdrawal')
-        VALUES (?,?,?,?,?)"""
+        ('date', 'account_send', 'amount', 'account_receive', 'depositwithdrawal','description')
+        VALUES (?,?,?,?,?,?)"""
 
         cursor.execute(add_transaction_query, (date, account_send,
-                                               amount, account_receive, depositwithdrawal))
+                                               amount, account_receive, depositwithdrawal, description))
         conn.commit()
 
     # Finally, we update the account balance on the balance and costbasis tables
@@ -99,7 +99,7 @@ def deleteTransaction(transactionid):
             account_receive, - amount_from_transaction)
 
 
-def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamount=None, newreceiveraccount=None, newtype=None):
+def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamount=None, newreceiveraccount=None, newtype=None, newdescription=None):
     """
     Updates a transaction entry
     Note that it does not update the balances or strategies, etc.
@@ -123,6 +123,7 @@ def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamo
         currentamount = r[0][3]
         currentreceiveraccount = r[0][4]
         currenttype = r[0][5]
+        currentdescription = r[0][6]
 
         # Now we check which new data has to be updated. If it does not, it stays the same
         if newdate is None:
@@ -135,19 +136,24 @@ def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamo
             newreceiveraccount = currentreceiveraccount
         if newtype is None:
             newtype = currenttype
+        if newdescription is None:
+            newdescription = currentdescription
 
         update_transaction_query = """UPDATE transactions
             SET date = ? ,
                 account_send = ? ,
                 amount = ?,
                 account_receive = ?,
-                depositwithdrawal = ?
+                depositwithdrawal = ?,
+                description = ?
                 WHERE id = ?
         """
 
         cursor.execute(update_transaction_query, (newdate, newsenderaccount,
-                                                  newamount, newreceiveraccount, newtype, transactionid))
+                                                  newamount, newreceiveraccount, newtype, newdescription, transactionid))
         conn.commit()
+        print("Updated ", r, " Changed to", (newdate, newsenderaccount,
+                                             newamount, newreceiveraccount, newtype, newdescription))
 
 
 def getTransactions_All():

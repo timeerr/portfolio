@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout, QLineEdit
 from PyQt5.QtWidgets import QVBoxLayout, QComboBox, QSpinBox, QCheckBox, QButtonGroup
 from PyQt5.QtCore import Qt, QMargins
 
@@ -96,6 +96,15 @@ class AddTransactionsForm(QVBoxLayout):
         self.line5.addWidget(self.withdrawal_checkbox)
         self.line5.addWidget(self.transfer_checkbox)
 
+        # Sixth Line: Description
+        self.label6 = QLabel(self.tr("Description"))
+        self.label6.setFixedWidth(120)
+        self.description_edit = QLineEdit()
+
+        self.line6 = QHBoxLayout()
+        self.line6.addWidget(self.label6)
+        self.line6.addWidget(self.description_edit)
+
         # Dialogs
         self.importdialog = SelectTypeDialog()
 
@@ -124,6 +133,7 @@ class AddTransactionsForm(QVBoxLayout):
         self.addLayout(self.line3)
         self.addLayout(self.line4)
         self.addLayout(self.line5)
+        self.addLayout(self.line6)
         self.addLayout(self.button_layout)
 
         # Signal handle
@@ -163,7 +173,7 @@ class AddTransactionsForm(QVBoxLayout):
         # Adding the transaction on db
         transactions.addTransaction(self.current_date, self.current_senderaccount,
                                     self.current_amount, self.current_receiveraccount,
-                                    self.currenttype)
+                                    self.currenttype, description=self.description_edit.text())
 
     def handlechecks(self, state):
         """

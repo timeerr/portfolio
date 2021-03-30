@@ -40,10 +40,10 @@ class RightTable(QTableWidget):
         self.verticalHeader().hide()
         self.setSortingEnabled(True)
 
-        self.setColumnCount(6)
+        self.setColumnCount(7)
         self.setHorizontalHeaderLabels(
             ["id", self.tr("Date"), self.tr("Sender Account"),
-             self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type")])
+             self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type"), self.tr("Description")])
 
         # When edited, change the data on the database too
         self.cellChanged.connect(self.changeCellOnDatabase)
@@ -65,7 +65,7 @@ class RightTable(QTableWidget):
         self.clear()
         self.setHorizontalHeaderLabels(
             ["id", self.tr("Date"), self.tr("Sender Account"),
-             self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type")])
+             self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type"), self.tr("Description")])
 
         # Get desired data from db
         transactions_to_show = transactions.getTransactions_fromQuery(
@@ -317,6 +317,12 @@ class RightTable(QTableWidget):
                     previous_receiver_account, - previous_amount)
                 costbasis.updateCostBasis_withNewTransaction(
                     new_item_data, previous_amount)
+
+        # -------------- Description --------------------
+        elif columnselected_name == self.tr("Description"):
+            # A description can be any data. So no checks
+            transactions.updateTransaction(
+                database_entry_id, newdescription=new_item_data)
 
 
 class LineRemovedSignal(QObject):
