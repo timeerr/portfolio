@@ -440,7 +440,7 @@ class ExcelImportDialog(QDialog):
         # Now, we iterate resultslist and add each result to the db
         for r in resultslist:
             try:
-                results.addResult(r[0], r[1], r[2])
+                results.addResult(r[0], r[1], "", r[2])
             except:
                 print("Error adding result", r[0], r[1], r[2])
 
@@ -587,7 +587,7 @@ class BadDateError(QDialog):
 # --- Custom Signals----
 class FileSelectedSignal(QObject):
     """
-    Signal that is supposed to be emitted whenever 
+    Signal that is supposed to be emitted whenever
     a file has been selected by the user
     """
     selected = pyqtSignal(str)
