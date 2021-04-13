@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, Q
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QMargins, QSize, Qt
 
-from gui.assetgen.accounticongen import get_png_account
 from gui.resources.fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
 from gui.tabaccounts.tabaccounts_toolbar import AccountsToolBar
 from gui.tabaccounts.tabaccounts_layout import AccountsLayout

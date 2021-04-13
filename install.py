@@ -4,8 +4,9 @@ import os
 import shutil
 
 
-os.system("pip install appdirs")
-os.system("pip install .")
+def install_dependencies():
+    os.system("pip install appdirs")
+    os.system("pip install .")
 
 
 def initialize():
@@ -33,4 +34,5 @@ def initialize():
             os.remove(os.path.join(RESOURCES_PATH, file))
 
 
+install_dependencies()
 initialize()
