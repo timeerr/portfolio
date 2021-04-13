@@ -13,17 +13,20 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from gui.resources.fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
 from gui.dbhandler import balances, costbasis
-from gui.tabaccounts.account import Account
 
 
 class AccountsLayout(QScrollArea):
 
-    def __init__(self, accounts, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Data
+        accounts = balances.getAllAccountNames()
 
         # This ScrollArea has one Widget with one Layout that stores rows with each account info
         self.widget = QWidget()
         self.layout = QGridLayout()
+        self.layout.setAlignment(Qt.AlignCenter)
         self.layout.setColumnMinimumWidth(1, 350)
         self.layout.setColumnMinimumWidth(2, 350)
 
@@ -31,16 +34,54 @@ class AccountsLayout(QScrollArea):
         self.setHeaders()
 
         # Account Rows
-        self.rowwidgets = {}  # Here we'll store all balance objects to edit them if needed
-        for row_number, account in enumerate(accounts):
+        self.accrowwidgets = {}  # Here we'll store all balance objects to edit them if needed
+        for row_number, accname in enumerate(accounts):
             # First row is aleady taken (headers)
-            self.addAccountRow(account, row_number+1)
+            self.addAccountRow(accname, row_number+1)
 
         # UI Tweaks
         self.layout.setVerticalSpacing(40)
 
         self.widget.setLayout(self.layout)
         self.setWidget(self.widget)
+
+    def addAccountRow(self, acc_name, row_number):
+        row_maxheight = 90
+
+        # Account Name
+        accname = QLabel(acc_name)
+        accname.setAlignment(Qt.AlignCenter)
+        accname.setFont(AccountBalanceTextFont())
+        accname.setObjectName("accname")
+        accname.setMaximumHeight(row_maxheight)
+
+        # Account Balance
+        accbalance = QLabel()
+        accbalance.setAlignment(Qt.AlignCenter)
+        accbalance.setObjectName(str(accname))
+        # So that we can find this balance label later by the account name
+        # Getting the balance of the account from the db
+        balance = balances.getAccountBalance(acc_name)
+        accbalance.setText(str(balance) + " EUR")
+        accbalance.setFont(AccountBalanceTextFont())
+
+        # Cost Basis
+        acccostbasis = QLabel()
+        acccostbasis.setAlignment(Qt.AlignCenter)
+        acccostbasis.setText(str(costbasis.getCostBasis(acc_name)))
+        acccostbasis.setFont(AccountBalanceTextFont())
+
+        self.layout.addWidget(accname, row_number, 1)
+        self.layout.addWidget(accbalance, row_number, 2)
+        self.layout.addWidget(acccostbasis, row_number, 3)
+
+        # Storing the widget inside a well structured dictionary will enable editing later
+        if accname not in self.accrowwidgets.keys():
+            self.accrowwidgets[accname] = {}
+
+        self.accrowwidgets[accname]['name'] = accname
+        self.accrowwidgets[accname]['balance'] = accbalance
+        self.accrowwidgets[accname]['costbasis'] = acccostbasis
 
     def setHeaders(self):
         # "Name" Header
@@ -55,51 +96,6 @@ class AccountsLayout(QScrollArea):
         self.layout.addWidget(name_header, 0, 1)
         self.layout.addWidget(balance_header, 0, 2)
         self.layout.addWidget(costbasis_header, 0, 3)
-
-    def addAccountRow(self, account: Account, row_number):
-        row_maxheight = 90
-
-        # Account Icon
-        icon = AccountIcon(account.iconpath, row_maxheight)
-        icon.setObjectName("icon")
-
-        # Account Name
-        accname = QLabel(account.account_name)
-        accname.setAlignment(Qt.AlignCenter)
-        accname.setFont(AccountBalanceTextFont())
-        accname.setObjectName("accname")
-        accname.setMaximumHeight(row_maxheight)
-
-        # Account Balance
-        accbalance = QLabel()
-        accbalance.setAlignment(Qt.AlignCenter)
-        accbalance.setObjectName(str(account.account_name))
-        # So that we can find this balance label later by the account name
-        # Getting the balance of the account from the db
-        balance = balances.getAccount(account.account_name)
-        balance = balance[1]
-        accbalance.setText(str(balance) + " EUR")
-        accbalance.setFont(AccountBalanceTextFont())
-
-        # Cost Basis
-        acccostbasis = QLabel()
-        acccostbasis.setAlignment(Qt.AlignCenter)
-        acccostbasis.setText(str(costbasis.getCostBasis(account.account_name)))
-        acccostbasis.setFont(AccountBalanceTextFont())
-
-        self.layout.addWidget(icon, row_number, 0)
-        self.layout.addWidget(accname, row_number, 1)
-        self.layout.addWidget(accbalance, row_number, 2)
-        self.layout.addWidget(acccostbasis, row_number, 3)
-
-        # Storing the widget inside a well structured dictionary will enable editing later
-        if account.account_name not in self.rowwidgets.keys():
-            self.rowwidgets[account.account_name] = {}
-
-        self.rowwidgets[account.account_name]['name'] = accname
-        self.rowwidgets[account.account_name]['balance'] = accbalance
-        self.rowwidgets[account.account_name]['costbasis'] = acccostbasis
-        self.rowwidgets[account.account_name]['icon'] = icon
 
 
 class HeaderLabel(QLabel):
