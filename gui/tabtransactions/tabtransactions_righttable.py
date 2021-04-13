@@ -52,7 +52,7 @@ class RightTable(QTableWidget):
         self.updatingdata_flag = True
 
         # Initialization: show all transactions
-        self.setData(datetime(1900, 1, 1),
+        self.setData(datetime(1980, 1, 1),
                      datetime.today(), "All", "All")
 
     @updatingdata
