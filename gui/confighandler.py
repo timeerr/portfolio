@@ -14,13 +14,11 @@ def getUserDataPath():
 
 
 def initial_setup():
-    if 'portfolio' not in os.listdir(os.path.join(os.path.expanduser('~'), '.config')):
-        CONFIG_PATH = getConfigPath()
+    CONFIG_PATH = getConfigPath()
+    if 'portfolio' not in os.listdir(user_config_dir()):
         os.mkdir(CONFIG_PATH)
 
-    CONFIG_PATH = getConfigPath()
-    CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
-
+    CONFIG_FILE_PATH = os.path.join(CONFIG_PATH, 'config.ini')
     if 'config.ini' not in os.listdir(CONFIG_PATH):
         create_config_file(CONFIG_FILE_PATH)
 
@@ -60,6 +58,13 @@ def get_fiat_currency():
     config.read(CONFIG_FILE_PATH)
 
     return config['PREFERENCES']['fiat_currency']
+
+def get_portfolios():
+    """Reads the configuration file and returns all portfolio directories"""
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE_PATH)
+
+    return(config['PORTFOLIODATA PATHS'])
 
 
 def set_language(language):
