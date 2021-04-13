@@ -173,7 +173,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         # Data
         previous_balance = balances.getAccountBalance(account)
         # UI
-        self.setFixedSize(250, 200)
+        self.setFixedSize(250, 250)
 
         self.layout = QVBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
