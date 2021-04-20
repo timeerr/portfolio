@@ -82,6 +82,8 @@ def get_firstBalance():
     - Check if first historicalbalance and chistoricalbalance have the same day
     - If not, then consider the earliest only
     - If yes, sum them
+
+    If there is not any historical data, returns 0
     """
     first_balance_day = datetime.fromtimestamp(
         historicalbalances.getFirstEntryDate())
@@ -94,13 +96,22 @@ def get_firstBalance():
     first_cbalance_day = datetime(
         first_cbalance_day.year, first_cbalance_day.month, first_cbalance_day.day)
 
-    if first_balance_day == first_cbalance_day:
+    # Check if cbalancehistory or chistoricalbalances is empty
+    if first_cbalance_day == first_balance_day == 0:
+        return 0
+    elif first_cbalance_day == 0:
+        first_balance = historicalbalances.getFirstTotalBalance()
+    elif first_balance_day == 0:
+        first_balance = chistoricalbalances.getFirstTotalBalance_fiat()
+
+    elif first_balance_day == first_cbalance_day:
         first_balance = historicalbalances.getFirstTotalBalance(
         ) + chistoricalbalances.getFirstTotalBalance_fiat()
-    elif first_balance_day < first_cbalance_day:
-        first_balance = historicalbalances.getFirstTotalBalance()
-    else:
+
+    elif first_balance_day > first_cbalance_day:
         first_balance = chistoricalbalances.getFirstTotalBalance_fiat()
+    else:
+        first_balance = historicalbalances.getFirstTotalBalance()
 
     return first_balance
 

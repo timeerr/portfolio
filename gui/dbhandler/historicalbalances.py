@@ -147,6 +147,8 @@ def getFirstEntryDate():
     Returns timestamp of the day of the first entry ont he table
     """
     balancesbyday = getBalancesByDay()
+    if len(balancesbyday.keys()) == 0:
+        return 0
     firstday = int(float(min(balancesbyday.keys())))
 
     return firstday
