@@ -60,7 +60,6 @@ def deleteResult(resultid):
         select_result_query = """SELECT account,amount FROM results WHERE id= %d""" % resultid
         result = cursor.execute(
             select_result_query).fetchall()
-        print(result)
         account_from_result = result[0][0]
         amount_from_result = result[0][1]
 
@@ -235,7 +234,7 @@ def getResultAmountById(_id):
         return cursor.fetchall()[0][0]
 
 
-def getResults_fromQuery(start_date=datetime(1980,1,1) , end_date=datetime(3000, 1, 1),
+def getResults_fromQuery(start_date=datetime(1980, 1, 1), end_date=datetime(3000, 1, 1),
                          strategy="All", account="All"):
     """
     Executing query to return rows with certain start&end dates + account.
@@ -246,8 +245,9 @@ def getResults_fromQuery(start_date=datetime(1980,1,1) , end_date=datetime(3000,
 
     with conn:
         cursor = conn.cursor()
-        
-        get_results_query = "SELECT * FROM results WHERE date>={} AND date<={}".format(start_date.timestamp(),end_date.timestamp())
+
+        get_results_query = "SELECT * FROM results WHERE date>={} AND date<={}".format(
+            start_date.timestamp(), end_date.timestamp())
         account_query_addon = """ AND account = '{}'""".format(account)
         strategy_query_addon = """ AND STRATEGY = '{}'""".format(strategy)
 
@@ -258,7 +258,6 @@ def getResults_fromQuery(start_date=datetime(1980,1,1) , end_date=datetime(3000,
             get_results_query += account_query_addon
         if strategy != "All":
             get_results_query += strategy_query_addon
-        print(get_results_query)
         cursor.execute(get_results_query)
 
         return cursor.fetchall()

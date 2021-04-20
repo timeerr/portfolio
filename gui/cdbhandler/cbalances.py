@@ -5,7 +5,9 @@ Handles all the input and output operations that use the cbalances table from cp
 
 import sqlite3
 import os
+
 from gui.prices import prices
+from gui import confighandler
 
 
 PATH_TO_DB = os.path.join('database', 'cportfolio.db')
@@ -210,6 +212,38 @@ def getAllAccountsWithAmount():
         return final_result
 
 
+def getAllAccountsWithAmount_fiat():
+    """ Returns a dict with each full account balance """
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_accounts_and_amounts_query = "SELECT account, token,amount FROM cbalances"
+        cursor.execute(get_all_accounts_and_amounts_query)
+
+        result = cursor.fetchall()
+        result_dict = {}
+        final_result = []
+        for r in result:
+            account = r[0]
+            token = r[1]
+            amount = r[2]
+            amount_btc = float(prices.toBTC(token, amount))
+            amount_fiat = prices.btcToFiat(
+                amount_btc, confighandler.get_fiat_currency())
+            if account in result_dict.keys():
+                # We add the amount to the account
+                result_dict[account] += amount_fiat
+            else:
+                result_dict[account] = amount_fiat
+
+        for r in result_dict:
+            final_result.append((r, result_dict[r]))
+
+        return final_result
+
+
 def getAccountWithToken(account, token):
     conn = create_connection()
 
@@ -377,3 +411,30 @@ def getBalance(account, token):
         cursor.execute(get_balance_query)
 
         return cursor.fetchall()[0][0]
+
+
+def getTotalBalanceAllAccounts():
+    """
+    Returns the sum of all the balances of all the accounts on this table
+    """
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_total_balances_all_accs_query = "SELECT token,amount FROM cbalances"
+
+        cursor.execute(get_total_balances_all_accs_query)
+        result_list = cursor.fetchall()
+        cumsum = 0
+        for token, amount in result_list:
+            cumsum += prices.toBTC(token, amount)
+
+        return cumsum
+
+
+def getTotalBalanceAllAccounts_fiat():
+    """
+    Returns the sum of all the balances of all the accounts on this table
+    """
+    return prices.btcToFiat(getTotalBalanceAllAccounts(), confighandler.get_fiat_currency())

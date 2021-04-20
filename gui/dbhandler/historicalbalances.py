@@ -8,6 +8,7 @@ import sqlite3
 import os
 
 from gui.dbhandler import balances
+from gui import utils
 
 PATH_TO_DB = os.path.join('database', 'portfolio.db')
 
@@ -38,6 +39,29 @@ def getBalancesFromLastDay():
         return cursor.fetchall()
 
 
+def getBalancesByDay():
+    """ Returns a dictionary with the total balance of all accounts by each day """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_balances = "SELECT date, balance FROM balancehistory"
+
+        cursor.execute(get_all_balances)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance = entry[1]
+            if date in balances_by_date.keys():
+                balances_by_date[date] += balance
+            else:
+                balances_by_date[date] = balance
+
+        return balances_by_date
+
+
 def addTodaysBalances():
     """ Reads balances from balances table, and updates the balancehistory table accordingly"""
     conn = createConnection()
@@ -49,7 +73,7 @@ def addTodaysBalances():
         current_accounts = balances.getAllAccounts()
 
         add_balance_history_query = """INSERT INTO 'balancehistory'
-                                (account, date, balance) 
+                                (account, date, balance)
                                 VALUES (?,?,?);"""
         today = datetime.today().timestamp()
 
@@ -65,6 +89,87 @@ def addTodaysBalances():
             balance = acc[1]
             cursor.execute(add_balance_history_query,
                            (account, today, balance))
+
+
+def getFirstTotalBalance():
+    """
+    Returns the sum of all balances from the earliest day
+    """
+    balancesbyday = getBalancesByDay()
+    firstday = min(balancesbyday.keys())
+    firstday_balance = balancesbyday[firstday]
+
+    return(firstday_balance)
+
+
+def getAllEntryDates():
+    """
+    Returns all the dates with an entry on the database
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_entry_dates_query = "SELECT date FROM balancehistory"
+        cursor.execute(get_all_entry_dates_query)
+
+        return list(set([i[0] for i in cursor.fetchall()]))
+
+
+def getMonthFirstTotalBalance(month, year=datetime.today().year):
+    """
+    Returns the total balance from the earliest entry of the month selected
+    """
+    # Get date of first entry of selected month
+    all_dates = getAllEntryDates()
+
+    selected_month_first_day_timestamp = datetime(year, month, 1).timestamp()
+    selected_month_last_day_timestamp = utils.next_month_date(
+        datetime(year, month, 1)).timestamp()
+
+    all_dates_from_month = [d for d in all_dates if d >
+                            selected_month_first_day_timestamp and d < selected_month_last_day_timestamp]
+
+    if len(all_dates_from_month) == 0:
+        # No entries on selected month, no balance assumed
+        return 0
+
+    # Now that we have all the entries from a certain month,
+    # we want the earliest one
+    first_entry_from_month_date = min(all_dates_from_month)
+
+    return getBalancesByDay()[str(first_entry_from_month_date)]
+
+
+def getFirstEntryDate():
+    """
+    Returns timestamp of the day of the first entry ont he table
+    """
+    balancesbyday = getBalancesByDay()
+    firstday = int(float(min(balancesbyday.keys())))
+
+    return firstday
+
+
+def getCurrentMonthFirstTotalBalance():
+    """
+    Returns the total balance from the earliest entry from the current month
+    """
+    current_month_first_day_timestamp = str(datetime(
+        datetime.today().year, datetime.today().month, 1).timestamp())
+
+    balancesbyday = getBalancesByDay()
+    balancesbyday_days_from_current_month = [
+        i for i in balancesbyday.keys() if i > current_month_first_day_timestamp]
+
+    if len(balancesbyday_days_from_current_month) == 0:
+        # No balances yet
+        return 0
+
+    first_total_balance_day = min(balancesbyday_days_from_current_month)
+
+    return balancesbyday[first_total_balance_day]
 
 
 def deleteBalanceFromId(_id):

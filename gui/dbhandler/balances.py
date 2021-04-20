@@ -149,3 +149,23 @@ def getAllAccounts():
 
 def getAllAccountNames():
     return [i[0] for i in getAllAccounts()]
+
+
+def getTotalBalanceAllAccounts():
+    """
+    Returns the sum of all the balances of all the accounts on this table
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_total_balances_all_accs_query = "SELECT amount FROM balances"
+
+        cursor.execute(get_total_balances_all_accs_query)
+        result_list = [i[0] for i in cursor.fetchall()]
+
+        # Computing the sum
+        result = sum(result_list)
+
+        return result
