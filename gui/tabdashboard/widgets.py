@@ -92,11 +92,16 @@ class TotalWealthWidget(QFrame):
         # The percentage is the difference between the first balance history and the las one
         first_balance = utils.get_firstBalance()
         last_balance = utils.get_lastBalance()
-        percentage = ((last_balance/first_balance)-1)*100
-        if percentage > 0:
-            percentage_str = "+{}%".format(round(percentage, 1))
+
+        if first_balance != 0:
+            percentage = ((last_balance/first_balance)-1)*100
+            if percentage > 0:
+                percentage_str = "+{}%".format(round(percentage, 1))
+            else:
+                percentage_str = "{}%".format(round(percentage, 1))
         else:
-            percentage_str = "{}%".format(round(percentage, 1))
+            # No first balance, so no change
+            percentage_str = "na"
 
         self.percentage_label = QLabel(percentage_str)
         self.percentage_label.setStyleSheet(
