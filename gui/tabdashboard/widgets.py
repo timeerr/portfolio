@@ -10,7 +10,7 @@ from PyQt5.QtCore import Qt, QDateTime, QEvent, QPropertyAnimation, QObject
 from PyQt5.QtCore import QEasingCurve, QPoint, QSize, pyqtProperty, pyqtSignal
 
 
-from gui.dbhandler import balances, historicalbalances
+from gui.dbhandler import balances, historicalbalances, strategies
 from gui.cdbhandler import cbalances, chistoricalbalances
 from gui.prices import prices
 from gui import confighandler, utils
@@ -18,7 +18,6 @@ from gui.tabdashboard.charts import TotalWealthHistoryChartView, LastMonthsHisto
 from gui.tabdashboard.charts import DistributionPieChart
 
 RESOURCES_PATH = confighandler.getUserDataPath()
-FIAT_CURRENCY = confighandler.get_fiat_currency()
 
 
 class TotalWealthWidget(QFrame):
@@ -73,7 +72,7 @@ class TotalWealthWidget(QFrame):
         self.amount_label.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
 
         # - Fiat Label -
-        self.fiat_label = QLabel(FIAT_CURRENCY.upper())
+        self.fiat_label = QLabel(confighandler.get_fiat_currency().upper())
         self.fiat_label.setMaximumHeight(40)
         self.fiat_label.setStyleSheet(
             "background-color: rgba(0,0,0,0);margin-top:15;margin-left:0;margin-right:0")
@@ -186,7 +185,7 @@ class LastMonthWidget(QFrame):
         self.second_row.addWidget(self.change_fiat)
 
         # -- Fiat label --
-        self.fiat_label = QLabel(FIAT_CURRENCY.upper())
+        self.fiat_label = QLabel(confighandler.get_fiat_currency().upper())
         self.fiat_label.setStyleSheet(
             "background-color: rgba(0,0,0,0);color:#D3EABD; margin-top:10px")
         font = QFont()
@@ -453,11 +452,11 @@ class FilterLayout(QVBoxLayout):
                       self.stra, self.period)
 
         # Connect button checks to handle them
-        self.acc.clicked.connect(
+        self.acc.toggled.connect(
             lambda checked: self.handleCheck(self.acc, checked))
-        self.stra.clicked.connect(
+        self.stra.toggled.connect(
             lambda checked: self.handleCheck(self.stra, checked))
-        self.period.clicked.connect(
+        self.period.toggled.connect(
             lambda checked: self.handleCheck(self.period, checked))
 
         for bttn in self.bttns:
@@ -469,44 +468,107 @@ class FilterLayout(QVBoxLayout):
         self.filter_accounts_scrollarea = QScrollArea()
         self.filter_accounts_scrollarea.setFixedHeight(80)
         self.filter_accounts_scrollarea.horizontalScrollBar(
-        ).setStyleSheet("QScrollBar:horizontal {height: 15px;}")
+        ).setStyleSheet("QScrollBar:horizontal {height: 10px;}")
         self.filter_accounts = QHBoxLayout()
 
-        ccolor = "#E43E53"
-        color = "#3A634A"
+        self.accountfilterbuttons = []  # To manipulate them later
+
+        # Add "all" button
+        self.addbttn_accounts = FilterAccountButton("All")
+        self.addChildLayout
+        self.addbttn_accounts.toggled.connect(
+            lambda checked: self.checkAllButtons(self.accountfilterbuttons, checked))
+        self.filter_accounts.addWidget(self.addbttn_accounts)
 
         # Add crypto accounts
         for cacc in cbalances.getAllAccounts():
             bttn = FilterAccountButton(cacc, color=1)
             self.filter_accounts.addWidget(bttn)
+            self.accountfilterbuttons.append(bttn)
         # Add fiat accounts
         for acc in balances.getAllAccountNames():
             bttn = FilterAccountButton(acc, color=2)
             self.filter_accounts.addWidget(bttn)
+            self.accountfilterbuttons.append(bttn)
 
         self.filter_accounts_wrapper = QWidget()
         self.filter_accounts_wrapper.setLayout(self.filter_accounts)
         self.filter_accounts_scrollarea.setWidget(self.filter_accounts_wrapper)
         self.addWidget(self.filter_accounts_scrollarea)
+        self.filter_accounts_scrollarea.hide()
+
+        # ---------- Filter Strategies ----------
+        self.filter_strategies_scrollarea = QScrollArea()
+        self.filter_strategies_scrollarea.setFixedHeight(80)
+        self.filter_strategies_scrollarea.horizontalScrollBar(
+        ).setStyleSheet("QScrollBar:horizontal {height: 10px;}")
+        self.filter_strategies = QHBoxLayout()
+
+        self.strategyfilterbuttons = []  # To manipulate later
+
+        # Add "all" button
+        self.addbttn_strategies = FilterAccountButton("All")
+        self.addbttn_strategies.toggled.connect(
+            lambda checked: self.checkAllButtons(self.strategyfilterbuttons, checked))
+        self.filter_strategies.addWidget(self.addbttn_strategies)
+
+        # Add crypto as a strategy
+        cbttn = FilterAccountButton("Crypto", color=1)
+        self.filter_strategies.addWidget(cbttn)
+        self.strategyfilterbuttons.append(cbttn)
+
+        # Add strategies
+        for stgy in strategies.getAllStrategyNames():
+            bttn = FilterAccountButton(stgy, color=2)
+            self.filter_strategies.addWidget(bttn)
+            self.strategyfilterbuttons.append(bttn)
+
+        self.filter_strategies_wrapper = QWidget()
+        self.filter_strategies_wrapper.setLayout(self.filter_strategies)
+        self.filter_strategies_scrollarea.setWidget(
+            self.filter_strategies_wrapper)
+        self.addWidget(self.filter_strategies_scrollarea)
+        self.filter_strategies_scrollarea.hide()
 
     def handleCheck(self, button, checked):
         """
         Only one button can be selected at a time
         """
-        for bttn in self.bttns:
-            if bttn != button:
-                # Uncheck previously checked button
-                bttn.setChecked(False)
-
         # Change chart according to new mode
-        if not checked:
-            pass
-        elif button == self.acc:
-            pass
+
+        if button == self.acc:
+            if checked:
+                self.filter_accounts_scrollarea.show()
+            else:
+                self.filter_accounts_scrollarea.hide()
+                # Unselect all buttons
+                for bttn in self.accountfilterbuttons:
+                    bttn.setChecked(False)
+
         elif button == self.stra:
-            pass
+            if checked:
+                self.filter_strategies_scrollarea.show()
+            else:
+                self.filter_strategies_scrollarea.hide()
+                # Unselect all buttons
+                for bttn in self.strategyfilterbuttons:
+                    bttn.setChecked(False)
+
         elif button == self.period:
             pass
+
+    def checkAllButtons(self, buttons, checked):
+        """
+        "All button is checked, so all buttons from the layout should checked aswell"
+        """
+        if checked:
+            # Check all buttons
+            for bttn in buttons:
+                bttn.setChecked(True)
+        else:
+            # Uncheck all buttons
+            for bttn in buttons:
+                bttn.setChecked(False)
 
 
 class FilterButton(QPushButton):
@@ -574,5 +636,12 @@ class FilterAccountButton(QPushButton):
                            "}"
                            )
 
-        # Functionality
+        if self.text() == "All":
+            font = QFont()
+            font.setPointSize(15)
+            font.setBold(True)
+            self.setFont(font)
+            self.setFixedWidth(20)
+
+            # Functionality
         self.setCheckable(True)
