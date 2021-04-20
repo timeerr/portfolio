@@ -11,6 +11,7 @@ import configparser
 import qdarkstyle
 
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QTranslator
 
 from gui import confighandler
@@ -40,6 +41,9 @@ def main():
     # ------- Style ---------
     # Dark Theme
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    defaultfont = QFont()
+    defaultfont.setFamily('Roboto')
+    app.setFont(defaultfont)
 
     # Custom Theme
     # app.setStyle('Fusion')

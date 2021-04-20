@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
+import os
+
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 
-from gui.tabresults.tabresults import TabResults
-from gui.tabaccounts.tabaccounts import TabAccounts
-from gui.tabtransactions.tabtransactions import TabTransactions
 from gui.tabcrypto.tabcrypto import TabCrypto
+from gui.tabtransactions.tabtransactions import TabTransactions
+from gui.tabaccounts.tabaccounts import TabAccounts
+from gui.tabresults.tabresults import TabResults
+from gui.tabdashboard.dashboard import TabDashboard
 
 
 class MainWidget(QWidget):
@@ -15,30 +18,34 @@ class MainWidget(QWidget):
     """
 
     def __init__(self,  *args, **kwargs):
-        import os
-        print("hooooo", os.path.abspath(os.getcwd()))
+        print(os.path.abspath(os.getcwd()))
         super().__init__(*args, **kwargs)
 
         self.tabwidget = QTabWidget(self)
         # self.tabwidget.setDocumentMode(True)
         self.tabwidget.setMovable(True)
 
-        # Tab1 : Results
+        # Tab1 : Dashboard
+        self.tabdashboard = TabDashboard(self)
+        self.tabwidget.addTab(self.tabdashboard, self.tabdashboard.windowIcon(),
+                              self.tabdashboard.windowTitle())
+
+        # Tab2 : Results
         self.tabresults = TabResults(self)
         self.tabwidget.addTab(self.tabresults, self.tabresults.windowIcon(),
                               self.tabresults.windowTitle())
 
-        # Tab2 : Accounts
+        # Tab3 : Accounts
         self.tabaccounts = TabAccounts(self)
         self.tabwidget.addTab(self.tabaccounts, self.tabaccounts.windowIcon(),
                               self.tabaccounts.windowTitle())
 
-        # Tab3 : Transactions
+        # Tab4 : Transactions
         self.tabtransactions = TabTransactions(self)
         self.tabwidget.addTab(self.tabtransactions, self.tabtransactions.windowIcon(),
                               self.tabtransactions.windowTitle())
 
-        # Tab 4 : Crypto
+        # Tab 5 : Crypto
         self.tabcrypto = TabCrypto(self)
         self.tabwidget.addTab(
             self.tabcrypto, self.tabcrypto.windowIcon(), self.tabcrypto.windowTitle())
