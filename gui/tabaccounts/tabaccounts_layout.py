@@ -7,7 +7,8 @@ Here all accounts are displayed, with their respective info.
 import os
 import shutil
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea, QGridLayout, QLabel, QMenu, QDialog, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
+from PyQt5.QtWidgets import QGridLayout, QLabel, QMenu, QDialog, QPushButton, QFileDialog
 from PyQt5.QtGui import QPixmap, QCursor
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 

@@ -753,7 +753,8 @@ class BalanceHistoryChartView(QChartView):
         # Axis Y (Balances)
         self.y_axis = QValueAxis()
         if data != {}:
-            self.y_axis.setMax(max(data.values())*1.5)
+            self.y_axis.setMax(max(data.values())*1.1)
+            self.y_axis.setMin(min(data.values())*0.9)
 
         self.chart.addAxis(self.y_axis, Qt.AlignLeft)
         self.chart.addAxis(self.x_axis, Qt.AlignBottom)
