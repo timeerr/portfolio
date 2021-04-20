@@ -11,50 +11,54 @@ def get_totalWealthByDay():
     """
     Groups the historicalbalances from portfolio and cportfolio,
     and returns a dictionary where:
-     - keys are days
+     - keys are dates (timestamps)
      - values are total wealth on that day
     """
 
     balancesbyday = historicalbalances.getBalancesByDay()
     cbalancesbyday = chistoricalbalances.getBalancesByDay_fiat()
 
-    balancesbyday_days = set([datetime.fromtimestamp(
-        int(float(i))) for i in balancesbyday.keys()])
-    cbalancesbyday_days = set([datetime.fromtimestamp(
-        int(float(i))) for i in cbalancesbyday.keys()])
-
-    wealthbyday_days = list(balancesbyday_days & cbalancesbyday_days)
     wealthbyday = {}
 
     # Now that we have the days that have balances and crypto balances,
     # we iterate through them and calculate the sum for each day
     for day in balancesbyday:
-        day_datetime = datetime.fromtimestamp(int(float(day)))
         balance = balancesbyday[day]
 
-        if day_datetime in wealthbyday_days:
-            if day_datetime in wealthbyday.keys():
-                wealthbyday[day_datetime] += balance
-            else:
-                wealthbyday[day_datetime] = balance
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
 
     for day in cbalancesbyday:
-        day_datetime = datetime.fromtimestamp(int(float(day)))
         balance = cbalancesbyday[day]
 
-        if day_datetime in wealthbyday_days:
-            if day_datetime in wealthbyday.keys():
-                wealthbyday[day_datetime] += balance
-            else:
-                wealthbyday[day_datetime] = balance
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
 
-    # Changing the keys to timestamp format
-    wealthbyday_timestamps = {}
-    for day_datetime in wealthbyday:
-        wealthbyday_timestamps[day_datetime.timestamp()
-                               ] = wealthbyday[day_datetime]
+    # Format to iterate better
+    wealthbyday_formatted = []
+    for day in wealthbyday:
+        balance = wealthbyday[day]
+        wealthbyday_formatted.append((day, balance))
 
-    return wealthbyday_timestamps
+    # Sort by timestamp
+    wealthbyday_formatted.sort(key=lambda x: x[0])
+
+    # Remake dictionary
+    wealthbyday = {}
+    for data in wealthbyday_formatted:
+        day = data[0]
+        balance = data[1]
+
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
+
+    return wealthbyday
 
 
 def get_totalWealthByDay_LastMonth():

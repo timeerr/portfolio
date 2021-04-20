@@ -75,7 +75,7 @@ def addTodaysBalances():
         add_balance_history_query = """INSERT INTO 'balancehistory'
                                 (account, date, balance)
                                 VALUES (?,?,?);"""
-        today = datetime.today().timestamp()
+        today = int(float(datetime.today().timestamp()))
 
         if len(todays_balances) > 0:
             # Delete previous balances from today (that way we'll avoid dealing with new accounts)
