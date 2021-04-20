@@ -3,7 +3,6 @@ SOURCES += gui/app/mainwidget.py
 SOURCES += gui/app/welcomescreen.py
 SOURCES += gui/app/statusbar.py
 
-SOURCES += gui/tabaccounts/account.py
 SOURCES += gui/tabaccounts/tabaccounts.py
 SOURCES += gui/tabaccounts/tabaccounts_layout.py
 SOURCES += gui/tabaccounts/tabaccounts_toolbar.py
@@ -11,6 +10,8 @@ SOURCES += gui/tabaccounts/tabaccounts_toolbar_dialogs.py
 
 SOURCES += gui/tabcrypto/tabcrypto.py
 SOURCES += gui/tabcrypto/tabcrypto_toolbar.py
+
+SOURCES += gui/tabdashboard/dashboard.py
 
 SOURCES += gui/tabresults/tabresults.py
 SOURCES += gui/tabresults/tabresults_addresultsform.py

@@ -5,13 +5,14 @@ import shutil
 
 
 def install_dependencies():
-    os.system("pip install appdirs")
-    os.system("pip install .")
+    os.system("pip3 install appdirs")
+    os.system("pip3 install .")
 
 
 def initialize():
     from gui import confighandler
     from appdirs import user_data_dir
+    confighandler.initial_setup()
     CONFIG_PATH = confighandler.getConfigPath()
     for file in os.listdir():
         if ".qm" in file:
