@@ -94,8 +94,12 @@ def addTodaysBalances():
 def getFirstTotalBalance():
     """
     Returns the sum of all balances from the earliest day
+
+    If there is no historical data yet, returns 0
     """
     balancesbyday = getBalancesByDay()
+    if len(balancesbyday.keys()) == 0:
+        return 0
     firstday = min(balancesbyday.keys())
     firstday_balance = balancesbyday[firstday]
 
