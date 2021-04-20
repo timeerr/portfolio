@@ -3,6 +3,7 @@
 import requests
 import json
 import os
+from datetime import datetime
 
 coingeckoids_path = os.path.join('prices', 'coingeckoids.json')
 coinprices_path = os.path.join('prices', 'coinprices.json')
@@ -39,9 +40,9 @@ def updateCoinListFile():
 def updateBTCToFiat():
     """ Writes btc in several fiat terms """
     with open(btctofiat_path, 'w', encoding='utf-8') as f:
-        btcfiat = requests.get(
+        btcfiat_rate = requests.get(
             "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur%2Cusd%2Cjpy%2Ccad%2Caud%2Cchf").json()
-        json.dump(btcfiat, f, ensure_ascii=False, indent=4)
+        json.dump(btcfiat_rate, f, ensure_ascii=False, indent=4)
 
         f.close()
 
@@ -169,6 +170,25 @@ def btcToFiat(amount, currency="EUR"):
     with open(btctofiat_path) as f:
         f = json.load(f)
         return(round(amount * f['bitcoin'][currency.lower()], 2))
+
+
+def btcToFiat_Date(amount, date, currency="EUR"):
+    """
+    Returns a btc amount converted to the selected fiat
+    currency on a certain date in the past
+
+    date must be in timestamp format
+    """
+    date_string = datetime.fromtimestamp(date).strftime("%d-%m-%Y")
+    request = requests.get(
+        "https://api.coingecko.com/api/v3/coins/bitcoin/history?date={}".format(date_string)).json()
+
+    try:
+        btcfiat_rate = request['market_data']['current_price'][currency.lower()]
+    except KeyError:
+        print("Could't get the data from the response")
+
+    return amount*btcfiat_rate
 
 
 def addTokenPrice(token, _method, _id, price):
