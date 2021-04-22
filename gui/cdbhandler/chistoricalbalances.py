@@ -71,14 +71,14 @@ def getBalancesByDay_fiat():
     with conn:
         cursor = conn.cursor()
 
-        get_all_balances = "SELECT date, balance_btc FROM cbalancehistory"
+        get_all_balances = f"SELECT date, balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory"
 
         cursor.execute(get_all_balances)
         result = cursor.fetchall()
         balances_by_date = {}
         for entry in result:
             date = str(entry[0])
-            balance = prices.btcToFiat(entry[1])
+            balance = entry[1]
             if date in balances_by_date.keys():
                 balances_by_date[date] += balance
             else:
@@ -147,8 +147,8 @@ def addTodaysBalances():
         current_accounts = cbalances.getAllEntries()
 
         add_balance_history_query = """INSERT INTO 'cbalancehistory'
-                                (account, date, token, balance, balance_btc)
-                                VALUES (?,?,?,?,?);"""
+                                (account, date, token, balance, balance_btc, balance_eur,balance_usd,balance_jpy)
+                                VALUES (?,?,?,?,?,?,?,?);"""
         today = int(float(datetime.today().timestamp()))
 
         if len(todays_balances) > 0:
@@ -163,9 +163,12 @@ def addTodaysBalances():
             token = acc[1]
             balance = acc[2]
             balance_btc = prices.toBTC(token, balance)
+            balance_eur = prices.btcToFiat(balance_btc, currency='eur')
+            balance_usd = prices.btcToFiat(balance_btc, currency='usd')
+            balance_jpy = prices.btcToFiat(balance_btc, currency='jpy')
 
             cursor.execute(add_balance_history_query,
-                           (account, today, token, balance, balance_btc))
+                           (account, today, token, balance, balance_btc, balance_eur, balance_usd, balance_jpy))
 
 
 def getFirstTotalBalance():
@@ -185,14 +188,12 @@ def getFirstTotalBalance_fiat():
     """
     Returns the sum of all balances from the earliest day
     """
-    balancesbyday = getBalancesByDay()
-    firstday = min(balancesbyday.keys())
-    firstday_balance = balancesbyday[firstday]
-
-    firstday_balance = prices.btcToFiat_Date(
-        firstday_balance, int(float(firstday)), confighandler.get_fiat_currency())
-
-    return(firstday_balance)
+    balancesbyday = getBalancesByDay_fiat()
+    if len(balancesbyday.keys()) > 0:
+        firstday = min(balancesbyday.keys())
+        firstday_balance = balancesbyday[firstday]
+        return(firstday_balance)
+    return 0
 
 
 def getAllEntryDates():
@@ -258,11 +259,8 @@ def getMonthFirstTotalBalance_fiat(month, year=datetime.today().year):
     # we want the earliest one
     first_entry_from_month_date = min(all_dates_from_month)
 
-    result_btc = getBalancesByDay()[str(first_entry_from_month_date)]
-
-    # Express result in fiat
-    return prices.btcToFiat_Date(result_btc, first_entry_from_month_date,
-                                 currency=confighandler.get_fiat_currency())
+    result = getBalancesByDay_fiat()[str(first_entry_from_month_date)]
+    return result
 
 
 def getFirstEntryDate():
@@ -300,7 +298,7 @@ def getCurrentMonthFirstTotalBalance_fiat():
     current_month_first_day_timestamp = str(datetime(
         datetime.today().year, datetime.today().month, 1).timestamp())
 
-    balancesbyday = getBalancesByDay()
+    balancesbyday = getBalancesByDay_fiat()
     balancesbyday_days_from_current_month = [
         i for i in balancesbyday.keys() if i > current_month_first_day_timestamp]
     if len(balancesbyday_days_from_current_month) == 0:
@@ -310,11 +308,7 @@ def getCurrentMonthFirstTotalBalance_fiat():
     first_total_balance_day = min(balancesbyday_days_from_current_month)
     first_total_balance = balancesbyday[first_total_balance_day]
 
-    # Now, convert to fiat
-    first_total_balance_fiat = prices.btcToFiat_Date(first_total_balance, int(
-        float(first_total_balance_day)), currency=confighandler.get_fiat_currency())
-
-    return first_total_balance_fiat
+    return first_total_balance
 
 
 def deleteBalanceFromId(_id):

@@ -284,3 +284,35 @@ def getTokenMethod(tokensymbol):
         coinprices = json.load(f)
 
         return coinprices[tokensymbol]['method']
+
+
+def btcToFiat_history(startdate, enddate, currency):
+    """
+    Returns a dictionary with the price of btc/currency
+    for each day on the selected period
+
+    Parameters:
+        - startdate: timestamp
+        - enddate: timestamp
+        - currency: (eur,usd,jpy)
+    """
+    result = {}
+
+    # getting data
+    url = f"https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency={currency.lower()}&from={startdate}&to={enddate}"
+
+    req = requests.get(url).json()
+    req = req['prices']
+
+    for data in req:
+        date = datetime.fromtimestamp(data[0]/1000)  # Only consider date
+        date = datetime(date.year, date.month, date.day)
+        date = int(date.timestamp())
+        price = data[1]
+
+        # If an entry from the same day has already been stored, we ignore the rest
+        # If it is the first entry of the day, we save it
+        if date not in result.keys():
+            result[date] = price
+
+    return result
