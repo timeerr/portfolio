@@ -261,3 +261,20 @@ def getResults_fromQuery(start_date=datetime(1980, 1, 1), end_date=datetime(3000
         cursor.execute(get_results_query)
 
         return cursor.fetchall()
+
+
+def getStrategiesFromAccount(account):
+    """
+    Searchs for all the strategies where an account is involved
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_strategies_from_acc_query = "SELECT strategy FROM results WHERE account = '{}'".format(
+            account)
+
+        result = cursor.execute(get_strategies_from_acc_query)
+
+        return set([i[0] for i in result])
