@@ -85,6 +85,7 @@ class TabDashboard(QWidget):
 
         # ------------  Right layout: General portfolio data ---------------
         self.rightlayout = QVBoxLayout()
+        self.rightlayout.setContentsMargins(10, 0, 0, 0)
 
         # -- First Widget: Filter buttons --
         self.filterbuttons = FilterLayout()

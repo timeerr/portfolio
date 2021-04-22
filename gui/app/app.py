@@ -27,8 +27,8 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle(self.tr("Portfolio"))
-        # self.showMaximized()
-        self.setGeometry(500, 300, 1000, 600)
+        self.showMaximized()
+        #self.setGeometry(500, 300, 1000, 600)
 
         self.welcomewidget = WelcomeWidget(self)
         self.welcomewidget.portfolioselected.selected.connect(
