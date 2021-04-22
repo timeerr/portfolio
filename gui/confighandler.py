@@ -3,9 +3,13 @@
 import os
 import configparser
 import sqlite3
+from datetime import datetime
+
 from appdirs import user_config_dir, user_data_dir
 
-VERSION = "0.0.1"
+from gui.prices import prices
+
+VERSION = "0.0.2"
 
 
 def getConfigPath():
@@ -95,12 +99,12 @@ def get_portfolios():
     return(config['PORTFOLIODATA PATHS'])
 
 
-def set_version():
+def set_version(version=VERSION):
     """ Sets the version on the config file """
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
 
-    config.set('INFO', 'version', VERSION)
+    config.set('INFO', 'version', version)
 
     with open(CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
@@ -145,15 +149,41 @@ def migrate_version():
     Checks the current version, and executes any migration needed tasks, if necessary
     """
 
-    # Migration from no version to version 0.0.1
+    # ----------- App Migration ----------
     if get_version() == "None":
-        update_timestamps_from_db_to_ints()
-        set_version()
+        pass
+    if get_version() == "0.0.1":
+        pass
 
-    else:
-        return
+    # ----------- Database Migration ----------
 
-    add_version_to_databases()
+    paths = get_portfolios().values()
+
+    for path in paths:
+        db_version = str(get_database_version(path))
+
+        # Migration from no version to version 0.0.1
+        if db_version == "None":
+            print("Updating to version ", VERSION)
+            update_timestamps_from_db_to_ints(path)
+        if db_version == "0.0.1":
+            print("Updating to version ", VERSION)
+            add_balance_fiat_to_cportfoliodb(path)
+        if db_version < VERSION:
+            add_version_to_databases()
+        if db_version > VERSION:
+            print(
+                path, " database's version is ahead of current app version. update app required")
+
+    set_version()
+
+
+def get_database_version(path_to_db):
+    """
+    Returns the version number of the database
+    """
+    with open(os.path.join(path_to_db, "database", "version.txt")) as f:
+        return f.read().split()[0]
 
 
 def add_version_to_databases():
@@ -169,51 +199,135 @@ def add_version_to_databases():
             f.write(VERSION)
 
 
-def update_timestamps_from_db_to_ints():
+def update_timestamps_from_db_to_ints(path):
     """
     Scans all .db files, and removes decimals from timestamps
     """
 
-    # get paths to all databases
-    paths = get_portfolios().values()
+    # portfolio.db
+    portfoliodb_path = os.path.join(path, "database", "portfolio.db")
 
-    for path in paths:
-        # portfolio.db
-        portfoliodb_path = os.path.join(path, "database", "portfolio.db")
+    conn = sqlite3.connect(portfoliodb_path)
+    cursor = conn.cursor()
 
-        conn = sqlite3.connect(portfoliodb_path)
+    get_entries_query = "SELECT id,date FROM balancehistory"
+    cursor.execute(get_entries_query)
+
+    entries = cursor.fetchall()
+
+    for entry in entries:
+        _id = entry[0]
+        new_timestamp = int(float(entry[1]))
+
+        update_timestamp_query = f"UPDATE balancehistory SET date={new_timestamp} WHERE id={_id}"
+        cursor.execute(update_timestamp_query)
+
+        conn.commit()
+
+    # cportfolio.db
+    cportfoliodb_path = os.path.join(path, "database", "cportfolio.db")
+
+    conn = sqlite3.connect(cportfoliodb_path)
+    cursor = conn.cursor()
+
+    get_entries_query = "SELECT id,date FROM cbalancehistory"
+    cursor.execute(get_entries_query)
+
+    entries = cursor.fetchall()
+
+    for entry in entries:
+        _id = entry[0]
+        new_timestamp = int(float(entry[1]))
+
+        update_timestamp_query = f"UPDATE cbalancehistory SET date={new_timestamp} WHERE id={_id}"
+        cursor.execute(update_timestamp_query)
+
+        conn.commit()
+
+
+def add_balance_fiat_to_cportfoliodb(path):
+    """
+    Adds a column on cportfolio's cbalancehistory table
+    by converting each balance_btc to its fiat value on each entry's date
+    """
+    print("Updating databases")
+
+    print("Adding balance_fiat history to cbalancehistory on ", path)
+    # cportfolio.db
+    cportfoliodb_path = os.path.join(path, "database", "cportfolio.db")
+    conn = sqlite3.connect(cportfoliodb_path)
+
+    with conn:
         cursor = conn.cursor()
 
-        get_entries_query = "SELECT id,date FROM balancehistory"
-        cursor.execute(get_entries_query)
+        # get data
+        get_balances_btc_query = "SELECT id, date,balance_btc FROM cbalancehistory"
+        cursor.execute(get_balances_btc_query)
 
         entries = cursor.fetchall()
 
+        # Now, we need to convert each balance_btc to its fiat value
+        # on each entry's date
+        dates = [i[1] for i in entries]
+        dates = set(dates)
+
+        mindate = min(dates)
+        maxdate = max(dates)
+
+        # Get btc/eur history from coingecko's api
+        priceshistory_eur = prices.btcToFiat_history(
+            mindate, maxdate, 'eur')
+        priceshistory_usd = prices.btcToFiat_history(
+            mindate, maxdate, 'usd')
+        priceshistory_jpy = prices.btcToFiat_history(
+            mindate, maxdate, 'jpy')
+
+        # Convert each balances_btc to balance_fiat
+        balances_fiat = []
         for entry in entries:
             _id = entry[0]
-            new_timestamp = int(float(entry[1]))
+            date = datetime.fromtimestamp(entry[1])
+            date = datetime(date.year, date.month, date.day).timestamp()
 
-            update_timestamp_query = f"UPDATE balancehistory SET date={new_timestamp} WHERE id={_id}"
-            cursor.execute(update_timestamp_query)
+            balance_btc = entry[2]
 
-            conn.commit()
+            balance_eur = int(balance_btc * priceshistory_eur[date])
+            balance_usd = int(balance_btc * priceshistory_usd[date])
+            balance_jpy = int(balance_btc * priceshistory_jpy[date])
 
-        # cportfolio.db
-        cportfoliodb_path = os.path.join(path, "database", "cportfolio.db")
+            balances_fiat.append(
+                (_id, balance_eur, balance_usd, balance_jpy))
 
-        conn = sqlite3.connect(cportfoliodb_path)
-        cursor = conn.cursor()
+        # Add columns to cbalancehistory table
+        add_column_query = "ALTER TABLE cbalancehistory ADD COLUMN balance_{} integer"
+        try:
+            cursor.execute(add_column_query.format('eur'))
+        except Exception as e:
+            print(e)
+        try:
+            cursor.execute(add_column_query.format('usd'))
+        except Exception as e:
+            print(e)
+        try:
+            cursor.execute(add_column_query.format('jpy'))
+        except Exception as e:
+            print(e)
+        # If it fails, it already exists assumed (connection errors will be detected later)
 
-        get_entries_query = "SELECT id,date FROM cbalancehistory"
-        cursor.execute(get_entries_query)
+        # Fill columns with history
+        fill_balance_fiat_query = "UPDATE cbalancehistory SET balance_{} = {} WHERE id={}"
 
-        entries = cursor.fetchall()
+        for balance_fiat in balances_fiat:
+            _id = balance_fiat[0]
+            balance_eur = balance_fiat[1]
+            balance_usd = balance_fiat[2]
+            balance_jpy = balance_fiat[3]
 
-        for entry in entries:
-            _id = entry[0]
-            new_timestamp = int(float(entry[1]))
+            cursor.execute(fill_balance_fiat_query.format(
+                'eur', balance_eur, _id))
+            cursor.execute(fill_balance_fiat_query.format(
+                'usd', balance_usd, _id))
+            cursor.execute(fill_balance_fiat_query.format(
+                'jpy', balance_jpy, _id))
 
-            update_timestamp_query = f"UPDATE cbalancehistory SET date={new_timestamp} WHERE id={_id}"
-            cursor.execute(update_timestamp_query)
-
-            conn.commit()
+        conn.commit()
