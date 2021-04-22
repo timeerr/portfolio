@@ -57,32 +57,44 @@ class WelcomeWidget(QWidget):
         """
 
         # First, we get all the current portfolio directories
-        config = configparser.ConfigParser()
-        config.read(CONFIG_FILE_PATH)
+        portfolios = confighandler.get_portfolios()
 
-        for portfolioname in config['PORTFOLIODATA PATHS']:
-            portfoliopath = config['PORTFOLIODATA PATHS'][portfolioname]
+        for portfolio_name in portfolios:
+            portfolio_path = portfolios[portfolio_name]
+            portfolio_version = confighandler.get_database_version(
+                portfolio_path)
 
             portfolio_lyt = QHBoxLayout()
             portfolio_lyt.setAlignment(Qt.AlignHCenter)
 
-            portfolio_name = QLabel(portfolioname)
+            portfolio_label = QLabel(portfolio_name)
             font = QFont()
             font.setBold(True)
             font.setFamily('Noto Sans')
-            portfolio_name.setFont(font)
-            portfolio_name.setFixedWidth(120)
-            portfolio_lyt.addWidget(portfolio_name)
+            portfolio_label.setFont(font)
+            portfolio_label.setFixedWidth(120)
+            portfolio_lyt.addWidget(portfolio_label)
 
-            portfolio_path = QLabel(portfoliopath)
-            portfolio_path.setFixedWidth(300)
-            portfolio_lyt.addWidget(portfolio_path)
+            portfolio_path_label = QLabel(portfolio_path)
+            portfolio_path_label.setFixedWidth(300)
+            portfolio_lyt.addWidget(portfolio_path_label)
+
+            portfolio_version_label = QLabel(portfolio_version)
+            portfolio_version_label.setFixedWidth(50)
+            portfolio_lyt.addWidget(portfolio_version_label)
 
             go_to_portfolio_bttn = QPushButton(self.tr("Open"))
             go_to_portfolio_bttn.setFixedWidth(100)
             go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-            go_to_portfolio_bttn.setObjectName(portfoliopath)
+            go_to_portfolio_bttn.setObjectName(portfolio_path)
             go_to_portfolio_bttn.setCheckable(True)
+
+            # If the database has a version that is superior to the one
+            # on the app, hide open button
+            if portfolio_version > confighandler.get_version():
+                go_to_portfolio_bttn.hide()
+                portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
+
             self.buttons.append(go_to_portfolio_bttn)
 
             go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
