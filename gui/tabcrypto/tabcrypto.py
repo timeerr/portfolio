@@ -114,8 +114,7 @@ class TabCrypto(QWidget):
             self.description.allMode()
             self.accountpiechart.allMode()
             self.tokenpiechart.allMode()
-            self.balancehistorychart.setupChartWithData(
-                chistoricalbalances.getBalancesByDay())
+            self.balancehistorychart.setupChartWithData('all')
 
         elif self.description.mode == 1:
             # Token mode
@@ -125,7 +124,7 @@ class TabCrypto(QWidget):
             self.tokenpiechart.selectSlice(selection)
             self.description.tokenChanged(selection)
             self.balancehistorychart.setupChartWithData(
-                chistoricalbalances.getBalancesWithToken(selection.lower()))
+                'token', name=selection.lower())
 
         elif self.description.mode == 2:
             print("Account changed to ", selection)
@@ -135,7 +134,7 @@ class TabCrypto(QWidget):
             self.accountpiechart.selectSlice(selection)
             self.description.accountChanged(selection)
             self.balancehistorychart.setupChartWithData(
-                chistoricalbalances.getBalancesWithAccount(selection))
+                'account', name=selection)
 
     def updateSelectMode(self):
         """ Switches between three states: all, token, or account selection """
@@ -726,13 +725,16 @@ class BalanceHistoryChartView(QChartView):
 
         self.chart = QChart()
 
-    def setupChartWithData(self, data):
+    def setupChartWithData(self, selectiontype, name=None):
         """
-        Chart gets updated displaying the new data.
+        Chart gets updated displaying new data.
+        The data gets extracted from cbalancehistory, according 
+        to the selection
 
-        Data has to be expressed on a dictionary form:
-            - keys are timestamps
-            - values are total balance for that timestamp
+        Parameters:
+            - selectiontype : in ('account','token','all')
+            - name: str, corresponds to account/token on cbalancehistory
+
         """
         self.chart = QChart()
 
@@ -742,6 +744,39 @@ class BalanceHistoryChartView(QChartView):
 #         self.chart.setTitle("")
 #         self.chart.setTitleBrush(QBrush(QColor('white')))
 
+        # Data
+        # Get data
+        if selectiontype == 'token':
+            assert(name is not None)
+            data = chistoricalbalances.getBalancesWithTokenTuple(name)
+        elif selectiontype == 'account':
+            assert(name is not None)
+            data = chistoricalbalances.getBalancesWithAccountTuple(name)
+        elif selectiontype == 'all':
+            data = chistoricalbalances.getBalancesByDayTuple()
+        # Separate balance_btc from balance_fiat
+        dates, balances_btc, balances_fiat = [], [], []
+        for date in data:
+            dates.append(int(date))
+            balances_btc.append(data[date][0])
+            balances_fiat.append(data[date][1])
+
+        # Series
+        self.btcseries = QSplineSeries()
+        self.fiatseries = QSplineSeries()
+        for date, balance_btc, balance_fiat in zip(dates, balances_btc, balances_fiat):
+            date = datetime.fromtimestamp(date)
+            date = datetime(date.year, date.month, date.day)
+            dateQ = QDateTime(date)
+            self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance_btc)
+            self.fiatseries.append(dateQ.toMSecsSinceEpoch(), balance_fiat)
+
+        # Append current balances
+        self.btcseries.append(QDateTime(datetime.today()).toMSecsSinceEpoch(),
+                              cbalances.getTotalBalanceAllAccounts())
+        self.fiatseries.append(QDateTime(datetime.today()).toMSecsSinceEpoch(),
+                               cbalances.getTotalBalanceAllAccounts_fiat())
+
         # Axis X (Dates)
         self.x_axis = QDateTimeAxis()
         self.x_axis.setTickCount(11)
@@ -750,26 +785,32 @@ class BalanceHistoryChartView(QChartView):
         self.x_axis.setTitleText(self.tr('Date'))
 
         # Axis Y (Balances)
-        self.y_axis = QValueAxis()
-        if data != {}:
-            self.y_axis.setMax(max(data.values())*1.1)
-            self.y_axis.setMin(min(data.values())*0.9)
+        # BTC
+        self.y_axis_btc = QValueAxis()
+        if len(balances_btc) > 0:
+            self.y_axis_btc.setMax(max(balances_btc)*1.1)
+            self.y_axis_btc.setMin(min(balances_btc)*0.9)
+        # Fiat
+        self.y_axis_fiat = QValueAxis()
+        if len(balances_fiat) > 0:
+            self.y_axis_fiat.setMax(max(balances_fiat)*1.1)
+            self.y_axis_fiat.setMin(min(balances_fiat)*0.9)
 
-        self.chart.addAxis(self.y_axis, Qt.AlignLeft)
+        self.chart.addAxis(self.y_axis_btc, Qt.AlignLeft)
+        self.chart.addAxis(self.y_axis_fiat, Qt.AlignRight)
         self.chart.addAxis(self.x_axis, Qt.AlignBottom)
 
-        self.btcseries = QSplineSeries()
-        for date in data:
-            balance = data[date]
-            date = datetime.fromtimestamp(int(float(date)))
-            dateQ = QDateTime(date)
-            #self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance)
-            self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance)
-
+        # Add series to chart
+        # BTC
         self.btcseries.setName("BTC")
         self.chart.addSeries(self.btcseries)
         self.btcseries.attachAxis(self.x_axis)
-        self.btcseries.attachAxis(self.y_axis)
+        self.btcseries.attachAxis(self.y_axis_btc)
+        # Fiat
+        self.fiatseries.setName(confighandler.get_fiat_currency().upper())
+        self.chart.addSeries(self.fiatseries)
+        self.fiatseries.attachAxis(self.x_axis)
+        self.fiatseries.attachAxis(self.y_axis_fiat)
 
         self.setChart(self.chart)
         self.setRenderHint(QPainter.Antialiasing)
