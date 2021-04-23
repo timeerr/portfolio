@@ -4,7 +4,7 @@ The Toolbar from Tabcrypto, with all of its actions and functionality.
 """
 
 from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout, QMessageBox
-from PyQt5.QtWidgets import QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame
+from PyQt5.QtWidgets import QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame, QCheckBox, QGridLayout, QWidget, QListWidget
 from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QFont
 
@@ -23,6 +23,14 @@ class TabCryptoToolBar(QToolBar):
             self.tr("Add cryptocurrency account"))
         self.addaccount_action.triggered.connect(self.addAccountActionClick)
         self.addAction(self.addaccount_action)
+
+        # Remove account action
+        self.removeaccount_action = QAction(self.tr("Remove Account"), self)
+        self.removeaccount_action.setStatusTip(
+            self.tr("Remove cryptocurrency account"))
+        self.removeaccount_action.triggered.connect(
+            self.removeAccountActionClick)
+        self.addAction(self.removeaccount_action)
 
         # Update all accounts action
         self.update_all_accounts_action = QAction(
@@ -53,9 +61,13 @@ class TabCryptoToolBar(QToolBar):
 
         # Pre-computed dialogs
         self.addaccount_dialog = AddAccountDialog(self)
+        self.removeaccount_dialog = RemoveAccountDialog(self)
 
     def addAccountActionClick(self):
         self.addaccount_dialog.setVisible(True)
+
+    def removeAccountActionClick(self):
+        self.removeaccount_dialog.exec_()
 
     def updateAccountsActionClick(self):
         """
@@ -176,6 +188,76 @@ class AddAccountDialog(QDialog):
 
             self.updatecryptosignal.updated.emit()
             self.close()
+
+
+class RemoveAccountDialog(QDialog):
+    """ Dialog to delete a new account from the database """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setupUI()
+
+    def setupUI(self):
+        self.setWindowTitle(self.tr("Remove Cryptocurrency Account"))
+        self.layout = QVBoxLayout()
+        self.setFixedWidth(300)
+
+        # Account Selection
+        self.acc_select = QComboBox()
+        self.acc_select.addItems(cbalances.getAllAccounts())
+        self.acc_select.currentTextChanged.connect(self.showTokens)
+
+        # Token Selection
+        self.token_select_wrapper = QWidget()
+        self.token_select_lyt = QGridLayout()  # Filled on showTokens event
+
+        # Remove Button
+        self.remove_bttn = QPushButton(self.tr("Delete"))
+        self.remove_bttn.clicked.connect(self.deleteAccounts)
+
+        self.layout.insertWidget(0, self.acc_select)
+        self.layout.insertWidget(2, self.remove_bttn)
+        self.setLayout(self.layout)
+
+        # Initialize with first account
+        self.showTokens(self.acc_select.currentText())
+
+    def showTokens(self, account):
+        self.token_select_wrapper.deleteLater()
+        self.token_checkboxes = []
+
+        self.token_select_wrapper = QWidget()
+        self.token_select_lyt = QGridLayout()
+
+        tokens = cbalances.getTokensFromAccount(account)
+        for i, token in enumerate(tokens):
+            token_select = QCheckBox()
+            token_select.setText(token.upper())
+            row = i//4
+            col = i % 4
+            self.token_select_lyt.addWidget(token_select, row, col)
+            self.token_checkboxes.append(token_select)
+
+        self.token_select_wrapper.setLayout(self.token_select_lyt)
+        self.layout.insertWidget(1, self.token_select_wrapper)
+
+    def deleteAccounts(self):
+        """
+        Removes all checked accounts from de database
+        """
+        acc = self.acc_select.currentText()
+        for token_select in self.token_checkboxes:
+            if token_select.isChecked():
+                cbalances.deleteAccount(
+                    acc, token_select.text())
+
+        mssg_box = QMessageBox(self)
+        mssg_box.setText(f"Accounts removed")
+        mssg_box.exec_()
+
+        self.acc_select.clear()
+        self.acc_select.addItems(cbalances.getAllAccounts())
+        self.close()
 
 
 class NewTokenDialog(QDialog):
