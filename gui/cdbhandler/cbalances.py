@@ -83,7 +83,7 @@ def editAccount(account_name, new_account_name=None, new_token_name=None):
 
 
 def getEntriesWithAccount(account):
-    """Returns all tokens from an account"""
+    """Returns all entries from an account"""
     conn = create_connection()
 
     with conn:
@@ -95,6 +95,22 @@ def getEntriesWithAccount(account):
         cursor.execute(get_account_query)
 
         result = cursor.fetchall()
+        return result
+
+
+def getTokensFromAccount(account):
+    """Returns all tokens from an account"""
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_account_query = "SELECT token FROM cbalances WHERE account= '{}'".format(
+            account)
+
+        cursor.execute(get_account_query)
+
+        result = [i[0] for i in cursor.fetchall()]
         return result
 
 
@@ -245,6 +261,7 @@ def getAllAccountsWithAmount_fiat():
 
 
 def getAccountWithToken(account, token):
+    token = token.lower()
     conn = create_connection()
 
     with conn:
