@@ -63,9 +63,9 @@ class RightTable(QTableWidget):
         """
         # Clear table
         self.clear()
-        self.setHorizontalHeaderLabels(
-            ["id", self.tr("Date"), self.tr("Sender Account"),
-             self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type"), self.tr("Description")])
+        self.horizontalheaders = ["id", self.tr("Date"), self.tr("Sender Account"),
+                                  self.tr("Amount"), self.tr("Receiver Account"), self.tr("Type"), self.tr("Description")]
+        self.setHorizontalHeaderLabels(self.horizontalheaders)
 
         # Get desired data from db
         transactions_to_show = transactions.getTransactions_fromQuery(
@@ -85,13 +85,13 @@ class RightTable(QTableWidget):
             for colnum, data in enumerate(row):
                 item = QTableWidgetItem()  # Item that will be inserted
 
-                if colnum == 0:
+                if colnum == self.horizontalheaders.index("id"):
                     # Ids can't be editable
                     item.setFlags(Qt.ItemIsSelectable)
-                elif colnum == 1:
+                elif colnum == self.horizontalheaders.index(self.tr("Date")):
                     # Format date to display date better
                     data = datetime.fromtimestamp(data).strftime("%d-%m-%Y")
-                elif colnum == 5:
+                elif colnum == self.horizontalheaders.index(self.tr("Type")):
                     # Format Deposit/Withdrawal
                     if data == 1:
                         data = self.tr("Deposit")
@@ -124,7 +124,7 @@ class RightTable(QTableWidget):
             self.removeSelection()
             self.lineremoved.lineremoved.emit()
 
-    @updatingdata
+    @ updatingdata
     def removeSelection(self):
         """
         Removes the entire row of every selected item,
@@ -150,7 +150,7 @@ class RightTable(QTableWidget):
 
     def changeCellOnDatabase(self, row, column):
         """
-        When a Table Item is edited by the user, 
+        When a Table Item is edited by the user,
         we want to check if it fits the type
         and edit it on the database too
         """
@@ -240,6 +240,22 @@ class RightTable(QTableWidget):
                 costbasis.updateCostBasis_withNewTransaction(
                     new_item_data, - previous_amount)
 
+                # If the sender account is now Cash, the transaction turns into a deposit
+                if new_item_data == "Cash":
+                    transactions.updateTransaction(
+                        database_entry_id, newtype=1)
+                    type_item = self.item(
+                        row, self.horizontalheaders.index(self.tr("Type")))
+                    type_item.setData(0, self.tr("Deposit"))
+
+                # If the sender account was Cash, the transaction turns into a transfer
+                elif previous_sender_account == "Cash":
+                    transactions.updateTransaction(
+                        database_entry_id, newtype=0)
+                    type_item = self.item(
+                        row, self.horizontalheaders.index(self.tr("Type")))
+                    type_item.setData(0, self.tr("Transfer"))
+
         # -------------- Amount --------------------
         elif columnselected_name == self.tr("Amount"):
             # The amount has to be an integer
@@ -317,6 +333,22 @@ class RightTable(QTableWidget):
                     previous_receiver_account, - previous_amount)
                 costbasis.updateCostBasis_withNewTransaction(
                     new_item_data, previous_amount)
+
+                # If the receiver account is now Cash, the transaction turns into a withdrawal
+                if new_item_data == "Cash":
+                    transactions.updateTransaction(
+                        database_entry_id, newtype=-1)
+                    type_item = self.item(
+                        row, self.horizontalheaders.index(self.tr("Type")))
+                    type_item.setData(0, self.tr("Withdrawal"))
+
+                # If the receiver account was Cash, the transaction turns into a transfer
+                elif previous_receiver_account == "Cash":
+                    transactions.updateTransaction(
+                        database_entry_id, newtype=0)
+                    type_item = self.item(
+                        row, self.horizontalheaders.index(self.tr("Type")))
+                    type_item.setData(0, self.tr("Transfer"))
 
         # -------------- Description --------------------
         elif columnselected_name == self.tr("Description"):
