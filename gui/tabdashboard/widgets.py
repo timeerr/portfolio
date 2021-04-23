@@ -4,13 +4,14 @@ import os
 from datetime import datetime
 import calendar
 
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QFrame, QWidget, QPushButton, QScrollArea
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QFrame, QBoxLayout
+from PyQt5.QtWidgets import QWidget, QPushButton, QScrollArea, QDateEdit
 from PyQt5.QtGui import QFont, QBrush, QColor, QPen, QPainter
 from PyQt5.QtCore import Qt, QDateTime, QEvent, QPropertyAnimation, QObject
-from PyQt5.QtCore import QEasingCurve, QPoint, QSize, pyqtProperty, pyqtSignal
+from PyQt5.QtCore import QEasingCurve, QPoint, QSize, pyqtProperty, pyqtSignal, QDate
 
 
-from gui.dbhandler import balances, historicalbalances, strategies
+from gui.dbhandler import balances, historicalbalances, strategies, results
 from gui.cdbhandler import cbalances, chistoricalbalances
 from gui.prices import prices
 from gui import confighandler, utils
@@ -441,137 +442,122 @@ class FilterLayout(QVBoxLayout):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ---------- Filter Buttons ----------
-        self.filterbuttons = QHBoxLayout()
-
-        self.acc = FilterButton(self.tr("Account"), color=1)
-        self.stra = FilterButton(self.tr("Strategy"), color=2)
-        self.period = FilterButton(self.tr("Period"), color=3)
-
-        self.bttns = (self.acc,
-                      self.stra, self.period)
-
-        # Connect button checks to handle them
-        self.acc.toggled.connect(
-            lambda checked: self.handleCheck(self.acc, checked))
-        self.stra.toggled.connect(
-            lambda checked: self.handleCheck(self.stra, checked))
-        self.period.toggled.connect(
-            lambda checked: self.handleCheck(self.period, checked))
-
-        for bttn in self.bttns:
-            self.filterbuttons.addWidget(bttn)
-
-        self.addLayout(self.filterbuttons)
+        # UI
+        self.setSpacing(0)
 
         # ---------- Filter Accounts ----------
-        self.filter_accounts_scrollarea = QScrollArea()
-        self.filter_accounts_scrollarea.setFixedHeight(80)
-        self.filter_accounts_scrollarea.horizontalScrollBar(
+        # Fiat accounts
+        self.fiataccount_buttons_scrollarea = QScrollArea()
+        self.fiataccount_buttons_scrollarea.setFixedHeight(80)
+        self.fiataccount_buttons_scrollarea.horizontalScrollBar(
         ).setStyleSheet("QScrollBar:horizontal {height: 10px;}")
-        self.filter_accounts = QHBoxLayout()
 
-        self.accountfilterbuttons = []  # To manipulate them later
+        self.fiataccount_buttons_lyt = QHBoxLayout()
+        self.fiataccount_buttons_lyt.setContentsMargins(0, 0, 0, 0)
 
+        self.fiataccount_buttons = []  # To manipulate them later
         # Add "all" button
-        self.addbttn_accounts = FilterAccountButton("All")
-        self.addChildLayout
-        self.addbttn_accounts.toggled.connect(
-            lambda checked: self.checkAllButtons(self.accountfilterbuttons, checked))
-        self.filter_accounts.addWidget(self.addbttn_accounts)
+        self.all_bttn = FilterAccountOrStrategyButton(
+            'allaccounts', "All")
+        self.all_bttn.toggled.connect(
+            lambda checked: self.handleCheck(self.all_bttn, checked))
+        self.fiataccount_buttons_lyt.addWidget(self.all_bttn)
+
+        for acc in balances.getAllAccountNames():
+            bttn = FilterAccountOrStrategyButton('fiat', acc)
+            self.fiataccount_buttons_lyt.addWidget(bttn)
+            self.fiataccount_buttons.append(bttn)
+
+        self.fiataccount_buttons_wrapper = QWidget()
+        self.fiataccount_buttons_wrapper.setLayout(
+            self.fiataccount_buttons_lyt)
+        self.fiataccount_buttons_scrollarea.setWidget(
+            self.fiataccount_buttons_wrapper)
+        self.addWidget(self.fiataccount_buttons_scrollarea)
 
         # Add crypto accounts
-        for cacc in cbalances.getAllAccounts():
-            bttn = FilterAccountButton(cacc, color=1)
-            self.filter_accounts.addWidget(bttn)
-            self.accountfilterbuttons.append(bttn)
-        # Add fiat accounts
-        for acc in balances.getAllAccountNames():
-            bttn = FilterAccountButton(acc, color=2)
-            self.filter_accounts.addWidget(bttn)
-            self.accountfilterbuttons.append(bttn)
-
-        self.filter_accounts_wrapper = QWidget()
-        self.filter_accounts_wrapper.setLayout(self.filter_accounts)
-        self.filter_accounts_scrollarea.setWidget(self.filter_accounts_wrapper)
-        self.addWidget(self.filter_accounts_scrollarea)
-        self.filter_accounts_scrollarea.hide()
-
-        # ---------- Filter Strategies ----------
-        self.filter_strategies_scrollarea = QScrollArea()
-        self.filter_strategies_scrollarea.setFixedHeight(80)
-        self.filter_strategies_scrollarea.horizontalScrollBar(
+        self.cryptoaccount_buttons_scrollarea = QScrollArea()
+        self.cryptoaccount_buttons_scrollarea.setFixedHeight(80)
+        self.cryptoaccount_buttons_scrollarea.horizontalScrollBar(
         ).setStyleSheet("QScrollBar:horizontal {height: 10px;}")
-        self.filter_strategies = QHBoxLayout()
 
-        self.strategyfilterbuttons = []  # To manipulate later
+        self.cryptoaccount_buttons_lyt = QHBoxLayout()
+        self.cryptoaccount_buttons_lyt.setContentsMargins(0, 0, 0, 0)
 
+        self.cryptoaccount_buttons = []
         # Add "all" button
-        self.addbttn_strategies = FilterAccountButton("All")
-        self.addbttn_strategies.toggled.connect(
-            lambda checked: self.checkAllButtons(self.strategyfilterbuttons, checked))
-        self.filter_strategies.addWidget(self.addbttn_strategies)
+        self.all_cbttn = FilterAccountOrStrategyButton('allaccounts', "All")
+        self.all_cbttn.toggled.connect(
+            lambda checked: self.handleCheck(self.all_cbttn, checked))
+        self.cryptoaccount_buttons_lyt.addWidget(self.all_cbttn)
 
-        # Add crypto as a strategy
-        cbttn = FilterAccountButton("Crypto", color=1)
-        self.filter_strategies.addWidget(cbttn)
-        self.strategyfilterbuttons.append(cbttn)
+        for cacc in cbalances.getAllAccounts():
+            bttn = FilterAccountOrStrategyButton('crypto', cacc)
+            self.cryptoaccount_buttons_lyt.addWidget(bttn)
+            self.cryptoaccount_buttons.append(bttn)
 
-        # Add strategies
-        for stgy in strategies.getAllStrategyNames():
-            bttn = FilterAccountButton(stgy, color=2)
-            self.filter_strategies.addWidget(bttn)
-            self.strategyfilterbuttons.append(bttn)
+        self.cryptoaccount_buttons_wrapper = QWidget()
+        self.cryptoaccount_buttons_wrapper.setLayout(
+            self.cryptoaccount_buttons_lyt)
+        self.cryptoaccount_buttons_scrollarea.setWidget(
+            self.cryptoaccount_buttons_wrapper)
+        self.addWidget(self.cryptoaccount_buttons_scrollarea)
 
-        self.filter_strategies_wrapper = QWidget()
-        self.filter_strategies_wrapper.setLayout(self.filter_strategies)
-        self.filter_strategies_scrollarea.setWidget(
-            self.filter_strategies_wrapper)
-        self.addWidget(self.filter_strategies_scrollarea)
-        self.filter_strategies_scrollarea.hide()
+        # ---------- Filter Period ----------
+        self.filter_period_wrapper = QWidget()
+        self.filter_period_wrapper.setFixedHeight(70)
+        self.filter_period_layout = QVBoxLayout()
+        self.filter_period_layout.setSpacing(0)
+
+        # Labels
+        self.filter_period_labels_layout = QHBoxLayout()
+        labelfont = QFont()
+        labelfont.setBold(True)
+        labelfont.setPointSize(15)
+        self.start_date_label = QLabel(self.tr("Start Date"))
+        self.start_date_label.setFont(labelfont)
+        self.start_date_label.setFixedHeight(30)
+        self.end_date_label = QLabel(self.tr("End Date"))
+        self.end_date_label.setFont(labelfont)
+        self.end_date_label.setFixedHeight(30)
+        self.end_date_label.setStyleSheet(
+            "margin-left:5px;")  # For alignment purposes
+        self.filter_period_labels_layout.addWidget(self.start_date_label)
+        self.filter_period_labels_layout.addWidget(self.end_date_label)
+        self.filter_period_layout.addLayout(self.filter_period_labels_layout)
+
+        # Date selection
+        self.filter_period_dates_layout = QHBoxLayout()
+        self.filter_period_dates_layout.setSpacing(10)
+        self.filter_period_start_date = DateEdit()
+        self.filter_period_end_date = DateEdit()
+        self.filter_period_dates_layout.addWidget(
+            self.filter_period_start_date)
+        self.filter_period_dates_layout.addWidget(self.filter_period_end_date)
+        self.filter_period_layout.addLayout(self.filter_period_dates_layout)
+
+        self.filter_period_wrapper.setLayout(self.filter_period_layout)
+        self.addWidget(self.filter_period_wrapper)
 
     def handleCheck(self, button, checked):
-        """
-        Only one button can be selected at a time
-        """
-        # Change chart according to new mode
-
-        if button == self.acc:
+        if button == self.all_bttn:
             if checked:
-                self.filter_accounts_scrollarea.show()
+                for bttn in self.fiataccount_buttons:
+                    bttn.setChecked(True)
             else:
-                self.filter_accounts_scrollarea.hide()
-                # Unselect all buttons
-                for bttn in self.accountfilterbuttons:
+                for bttn in self.fiataccount_buttons:
                     bttn.setChecked(False)
 
-        elif button == self.stra:
+        elif button == self.all_cbttn:
             if checked:
-                self.filter_strategies_scrollarea.show()
+                for bttn in self.cryptoaccount_buttons:
+                    bttn.setChecked(True)
             else:
-                self.filter_strategies_scrollarea.hide()
-                # Unselect all buttons
-                for bttn in self.strategyfilterbuttons:
+                for bttn in self.cryptoaccount_buttons:
                     bttn.setChecked(False)
 
-        elif button == self.period:
-            pass
 
-    def checkAllButtons(self, buttons, checked):
-        """
-        "All button is checked, so all buttons from the layout should checked aswell"
-        """
-        if checked:
-            # Check all buttons
-            for bttn in buttons:
-                bttn.setChecked(True)
-        else:
-            # Uncheck all buttons
-            for bttn in buttons:
-                bttn.setChecked(False)
-
-
-class FilterButton(QPushButton):
+class FilterModeButton(QPushButton):
     def __init__(self, *args, color=1, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -609,13 +595,19 @@ class FilterButton(QPushButton):
         self.setCheckable(True)
 
 
-class FilterAccountButton(QPushButton):
-    def __init__(self, *args, color=1, **kwargs):
+class FilterAccountOrStrategyButton(QPushButton):
+    """
+    buttontype in ('fiat','crypto','all')
+    """
+
+    def __init__(self, buttontype, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Color selection
-        colors = {1: "#E43E53", 2: "#3A634A"}
-        color = colors[color]
+        self.setColors()
+        color = self.colors[buttontype]
+
+        self.checkButtonType(buttontype)
 
         # UI
         self.setStyleSheet("QPushButton"
@@ -645,3 +637,34 @@ class FilterAccountButton(QPushButton):
 
             # Functionality
         self.setCheckable(True)
+
+    def setColors(self):
+        self.colors = {'fiat': "#E43E53", 'crypto': "#3A634A",
+                       'strategy': '#273B4F', 'allaccounts': '#3C556E', 'allstrategies': '#3C556E'}
+
+    def checkButtonType(self, buttontype):
+        assert(buttontype in ('fiat', 'crypto',
+                              'strategy', 'allaccounts', 'allstrategies'))
+        self.type = buttontype
+
+
+class DateEdit(QDateEdit):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setCalendarPopup(True)
+        self.setAlignment(Qt.AlignCenter)
+        self.setDisplayFormat("d MMM yyyy")
+        self.setDate(QDate().currentDate())
+        self.setStyleSheet(
+            "QDateEdit"
+            "{"
+            "background-color: #C7CFD8;margin-left:7px; font-size:15px;"
+            "border: 0px;"
+            "color: #19232D;"
+            "}"
+            "QDateEdit::drop-down"
+            "{"
+            "border: 0.5px #C7CFD8;"
+            "color: #8398AD"
+            "}")
