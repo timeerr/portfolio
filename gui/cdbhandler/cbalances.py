@@ -26,6 +26,7 @@ def create_connection(path_to_db=PATH_TO_DB):
 
 
 def addAccount(account, token, amount, _type, kyc, description):
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -51,6 +52,7 @@ def addAccount(account, token, amount, _type, kyc, description):
 
 
 def deleteAccount(account_name, token_name):
+    token_name = token_name.lower()
     conn = create_connection()
 
     with conn:
@@ -65,6 +67,9 @@ def deleteAccount(account_name, token_name):
 
 def editAccount(account_name, new_account_name=None, new_token_name=None):
     conn = create_connection()
+
+    if new_token_name is not None:
+        new_token_name = new_token_name.lower()
 
     with conn:
         cursor = conn.cursor()
@@ -116,6 +121,7 @@ def getTokensFromAccount(account):
 
 def getEntriesWithToken(token):
     """Returns all rows where a token is involved"""
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -132,6 +138,7 @@ def getEntriesWithToken(token):
 
 def getTotalTokenBalance(token):
     """Sums all token balances from all accounts"""
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -148,6 +155,42 @@ def getTotalTokenBalance(token):
             totaltokenbalance += r[0]
 
         return totaltokenbalance
+
+
+def getAllAccounts():
+    """Returns a listwith all accounts on cbalances"""
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_accounts_query = "SELECT account FROM cbalances"
+
+        cursor.execute(get_all_accounts_query)
+
+        result = cursor.fetchall()
+        result_no_duplicates = []
+
+        for r in result:
+            r = r[0]
+            if r not in result_no_duplicates:
+                result_no_duplicates.append(r)
+
+        return result_no_duplicates
+
+
+def getAllAccountsWithToken():
+    """Returns a list with all (account,token) tuples on cbalances"""
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_accounts_query = "SELECT account,token FROM cbalances"
+
+        cursor.execute(get_all_accounts_query)
+
+        return cursor.fetchall()
 
 
 def getAllTokens():
@@ -292,30 +335,9 @@ def getAllEntries():
         return cursor.fetchall()
 
 
-def getAllAccounts():
-    """Returns a listwith all accounts on cbalances"""
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_all_accounts_query = "SELECT account FROM cbalances"
-
-        cursor.execute(get_all_accounts_query)
-
-        result = cursor.fetchall()
-        result_no_duplicates = []
-
-        for r in result:
-            r = r[0]
-            if r not in result_no_duplicates:
-                result_no_duplicates.append(r)
-
-        return result_no_duplicates
-
-
 def updateBalance(account, token, newbalance):
     """ Changes balance for a specific account with a specific token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -330,6 +352,7 @@ def updateBalance(account, token, newbalance):
 
 def updateType(account, token, newtype):
     """ Changes type for a specific account with a specific token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -344,6 +367,7 @@ def updateType(account, token, newtype):
 
 def updateKYC(account, token, newkyc):
     """ Changes kyc for a specific account with a specific token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -358,6 +382,7 @@ def updateKYC(account, token, newkyc):
 
 def updateDescription(account, token, newdescription):
     """ Changes description for a specific account with a specific token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -372,6 +397,7 @@ def updateDescription(account, token, newdescription):
 
 def getType(account, token):
     """ Returns the type of the account with a certain token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -387,6 +413,7 @@ def getType(account, token):
 
 def getKYC(account, token):
     """ Returns the kyc of the account with a certain token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -402,6 +429,7 @@ def getKYC(account, token):
 
 def getDescription(account, token):
     """ Returns the description of the account with a certain token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:
@@ -417,6 +445,7 @@ def getDescription(account, token):
 
 def getBalance(account, token):
     """ Returns the balance of the account with a certain token """
+    token = token.lower()
     conn = create_connection()
 
     with conn:

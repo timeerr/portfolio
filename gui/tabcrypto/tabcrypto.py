@@ -12,7 +12,7 @@ from datetime import datetime
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QAbstractItemView, QSplitter
 from PyQt5.QtCore import Qt, QDateTime
-from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis
+from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QSplineSeries, QDateTimeAxis, QValueAxis
 from PyQt5.QtGui import QPainter, QBrush, QColor, QFont, QPixmap, QIcon
 
 from gui.cdbhandler import cbalances, chistoricalbalances
@@ -81,8 +81,7 @@ class TabCrypto(QWidget):
         self.setLayout(self.mainlayout)
 
         # ---- Initialization ----
-
-        DATABASE_TOKENS = cbalances.getAllTokens()
+        DATABASE_TOKENS = [i.upper() for i in cbalances.getAllTokens()]
         # Checking if there is remote data avaliable
         prices.initialize_prices()
         if 'coingeckoids.json' not in os.listdir('prices'):
@@ -126,7 +125,7 @@ class TabCrypto(QWidget):
             self.tokenpiechart.selectSlice(selection)
             self.description.tokenChanged(selection)
             self.balancehistorychart.setupChartWithData(
-                chistoricalbalances.getBalancesWithToken(selection))
+                chistoricalbalances.getBalancesWithToken(selection.lower()))
 
         elif self.description.mode == 2:
             print("Account changed to ", selection)
@@ -151,7 +150,7 @@ class TabCrypto(QWidget):
             # Token mode
             self.description.select_mode.setText("Token")
             self.description.select_token_or_account.clear()
-            DATABASE_TOKENS = cbalances.getAllTokens()
+            DATABASE_TOKENS = [i.upper() for i in cbalances.getAllTokens()]
             self.description.select_token_or_account.addItems(DATABASE_TOKENS)
             self.tokenpiechart.allMode()
         elif self.description.mode == 2:
@@ -409,7 +408,7 @@ class TokenBalancesLayout(QTableWidget):
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Token
-            self.setItem(numrow, 0, QTableWidgetItem(row[1]))
+            self.setItem(numrow, 0, QTableWidgetItem(row[1].upper()))
             # Balance
             item = QTableWidgetItem()
             item.setData(0, row[2])
@@ -455,7 +454,7 @@ class TokenBalancesLayout(QTableWidget):
             # Account
             self.setItem(numrow, 0, QTableWidgetItem(row[0]))
             # Token
-            self.setItem(numrow, 1, QTableWidgetItem(row[1]))
+            self.setItem(numrow, 1, QTableWidgetItem(row[1].upper()))
             # Balance
             item = QTableWidgetItem()
             item.setData(0, row[2])
@@ -644,7 +643,7 @@ class TokenPieChart(QChartView):
 
         self.series.clear()
         for entry in entries_with_account:
-            token = entry[1]
+            token = entry[1].upper()
             amount = entry[2]
             amount_btc = prices.toBTC(token, amount)
             self.series.append(token, amount_btc)
@@ -656,7 +655,7 @@ class TokenPieChart(QChartView):
         data = cbalances.getAllTokensWithAmount()
 
         for d in data:
-            token = d[0]
+            token = d[0].upper()
             amount = d[1]
             total_in_btc = prices.toBTC(token, amount)
             self.series.append(token, total_in_btc)
@@ -759,7 +758,7 @@ class BalanceHistoryChartView(QChartView):
         self.chart.addAxis(self.y_axis, Qt.AlignLeft)
         self.chart.addAxis(self.x_axis, Qt.AlignBottom)
 
-        self.btcseries = QLineSeries()
+        self.btcseries = QSplineSeries()
         for date in data:
             balance = data[date]
             date = datetime.fromtimestamp(int(float(date)))

@@ -89,7 +89,7 @@ def getBalancesByDay_fiat():
 
 def getBalancesWithToken(token):
     """Returns all entries where a token is involved"""
-    token = token.upper()
+    token = token.lower()
     conn = createConnection()
 
     with conn:
