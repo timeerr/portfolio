@@ -64,6 +64,35 @@ def getBalancesByDay():
         return balances_by_date
 
 
+def getBalancesByDayTuple():
+    """ 
+    Returns a dict of tuples with the total balance of all accounts by each day 
+    Formatted as dict[date] = (balance_btc,balance_fiat)
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_balances = f"SELECT date, balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory"
+
+        cursor.execute(get_all_balances)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance_btc = entry[1]
+            balance_fiat = entry[2]
+            if date in balances_by_date.keys():
+                new_balance_btc = balances_by_date[date][0] + balance_btc
+                new_balance_fiat = balances_by_date[date][1] + balance_fiat
+                balances_by_date[date] = (new_balance_btc, new_balance_fiat)
+            else:
+                balances_by_date[date] = (balance_btc, balance_fiat)
+
+        return balances_by_date
+
+
 def getBalancesByDay_fiat():
     """ Returns a dictionary with the total btc balance of all accounts by each day """
     conn = createConnection()
@@ -95,8 +124,7 @@ def getBalancesWithToken(token):
     with conn:
         cursor = conn.cursor()
 
-        get_balances_with_token = "SELECT date,balance_btc FROM cbalancehistory WHERE token = '{}'".format(
-            token)
+        get_balances_with_token = f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE token = '{token}'"
 
         cursor.execute(get_balances_with_token)
         result = cursor.fetchall()
@@ -112,6 +140,36 @@ def getBalancesWithToken(token):
         return balances_by_date
 
 
+def getBalancesWithTokenTuple(token):
+    """
+    Returns all entries where a token is involved
+    Formatted as dict[date] = (balance_btc,balance_fiat)
+    """
+    token = token.lower()
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_balances_with_token = f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE token = '{token}'"
+
+        cursor.execute(get_balances_with_token)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance_btc = entry[1]
+            balance_fiat = entry[2]
+            if date in balances_by_date.keys():
+                new_balance_btc = balances_by_date[date][0] + balance_btc
+                new_balance_fiat = balances_by_date[date][1] + balance_fiat
+                balances_by_date[date] = (new_balance_btc, new_balance_fiat)
+            else:
+                balances_by_date[date] = (balance_btc, balance_fiat)
+
+        return balances_by_date
+
+
 def getBalancesWithAccount(account):
     """Returns all entries where an account is involved"""
     conn = createConnection()
@@ -119,8 +177,7 @@ def getBalancesWithAccount(account):
     with conn:
         cursor = conn.cursor()
 
-        get_balances_with_account = "SELECT date,balance_btc FROM cbalancehistory WHERE account = '{}'".format(
-            account)
+        get_balances_with_account = f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE account = '{account}'"
 
         cursor.execute(get_balances_with_account)
         result = cursor.fetchall()
@@ -132,6 +189,35 @@ def getBalancesWithAccount(account):
                 balances_by_date[date] += balance
             else:
                 balances_by_date[date] = balance
+
+        return balances_by_date
+
+
+def getBalancesWithAccountTuple(account):
+    """
+    Returns all entries where an account is involved
+    Formatted as dict[date] = (balance_btc,balance_fiat)
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_balances_with_account = f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE account = '{account}'"
+
+        cursor.execute(get_balances_with_account)
+        result = cursor.fetchall()
+        balances_by_date = {}
+        for entry in result:
+            date = str(entry[0])
+            balance_btc = entry[1]
+            balance_fiat = entry[2]
+            if date in balances_by_date.keys():
+                new_balance_btc = balances_by_date[date][0] + balance_btc
+                new_balance_fiat = balances_by_date[date][1] + balance_fiat
+                balances_by_date[date] = (new_balance_btc, new_balance_fiat)
+            else:
+                balances_by_date[date] = (balance_btc, balance_fiat)
 
         return balances_by_date
 
