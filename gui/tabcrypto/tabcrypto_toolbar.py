@@ -179,6 +179,16 @@ class AddAccountDialog(QDialog):
         else:
             # The token already exists
             account = self.name_edit.text()
+
+            if (account, token) in cbalances.getAllAccountsWithToken():
+                # Account already exists
+                mssg = QMessageBox()
+                mssg.setText(
+                    self.tr(f"Account {account} with token {token.upper()} already exists"))
+                mssg.exec_()
+                return
+
+            # Create new account
             amount = self.startingbalance_edit.value()
             _type = self.type_edit.currentText()
             kyc = self.kyc_edit.currentText()
