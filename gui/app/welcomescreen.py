@@ -86,7 +86,8 @@ class WelcomeWidget(QWidget):
             go_to_portfolio_bttn = QPushButton(self.tr("Open"))
             go_to_portfolio_bttn.setFixedWidth(100)
             go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-            go_to_portfolio_bttn.setObjectName(portfolio_path)
+            go_to_portfolio_bttn.setObjectName(
+                portfolio_path+";"+portfolio_name)
             go_to_portfolio_bttn.setCheckable(True)
 
             # If the database has a version that is superior to the one
@@ -124,7 +125,7 @@ class WelcomeWidget(QWidget):
         go_to_portfolio_bttn = QPushButton(self.tr("Open"))
         go_to_portfolio_bttn.setFixedWidth(100)
         go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-        go_to_portfolio_bttn.setObjectName(location)
+        go_to_portfolio_bttn.setObjectName(location+";"+name)
         go_to_portfolio_bttn.setCheckable(True)
         self.buttons.append(go_to_portfolio_bttn)
 
@@ -148,14 +149,17 @@ class WelcomeWidget(QWidget):
         for bttn in self.buttons:
             print(bttn.isChecked())
             if bttn.isChecked() is True:
-                path = bttn.objectName()
+                path = bttn.objectName().split(";")[0]
+                name = bttn.objectName().split(";")[1]
                 os.chdir(path)
                 print("changed to ", path)
 
+        # Initialize databases
         from gui.dbhandler import db_initialize
         from gui.cdbhandler import cdb_initialize
 
-        self.portfolioselected.selected.emit()
+        # Emit open portfolio signal
+        self.portfolioselected.selected.emit(name)
 
 
 class AddPortfolioDialog(QDialog):
@@ -229,4 +233,4 @@ class AddPortfolioDialog(QDialog):
 
 
 class PortfolioSelected(QObject):
-    selected = pyqtSignal()
+    selected = pyqtSignal(str)

@@ -36,8 +36,13 @@ class MainWindow(QMainWindow):
         # self.welcomewidget.continue_bttn.clicked.connect(self.endWelcomeWidget)
         self.setCentralWidget(self.welcomewidget)
 
-    def endWelcomeWidget(self):
-        """ When the user selects a portfolio, the welcomewidget closes """
+    def endWelcomeWidget(self, portfolioname):
+        """ 
+        When the user selects a portfolio, the welcomewidget closes 
+        Parameters:
+            - portfolioname: name of portfolio to be opened
+        """
+        self.setWindowTitle(portfolioname)
         self.setCentralWidget(MainWidget(self))
         self.welcomewidget.deleteLater()
         self.statusbar = StatusBar()
