@@ -8,7 +8,6 @@ from PyQt5.QtCore import Qt, QMargins
 
 from gui.dbhandler import transactions, balances
 from gui.resources.fonts import TitleFont
-from gui.tabtransactions.tabtransactions_import_dialog import SelectTypeDialog
 
 
 class AddTransactionsForm(QVBoxLayout):
@@ -105,9 +104,6 @@ class AddTransactionsForm(QVBoxLayout):
         self.line6.addWidget(self.label6)
         self.line6.addWidget(self.description_edit)
 
-        # Dialogs
-        self.importdialog = SelectTypeDialog()
-
         # Buttons
         self.button_layout = QHBoxLayout()
 
@@ -120,12 +116,6 @@ class AddTransactionsForm(QVBoxLayout):
         self.insert_button.clicked.connect(self.insertTransaction)
         self.button_layout.addWidget(
             self.insert_button, Qt.AlignVCenter)
-
-        self.import_button = QPushButton(self.tr("Import from"))
-        self.import_button.setMaximumWidth(50)
-        self.import_button.clicked.connect(
-            lambda: self.importdialog.setVisible(True))
-        self.button_layout.addWidget(self.import_button)
 
         self.addWidget(self.title)
         self.addLayout(self.line1)

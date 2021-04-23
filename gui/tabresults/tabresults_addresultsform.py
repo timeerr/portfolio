@@ -9,7 +9,6 @@ from PyQt5.QtGui import QFont, QIcon
 
 from gui.dbhandler import balances, results, strategies
 from gui.resources.fonts import TitleFont
-from gui.tabresults.tabresults_import_dialog import SelectTypeDialog
 from gui import confighandler
 
 RESOURCES_PATH = confighandler.getUserDataPath()
@@ -92,9 +91,6 @@ class AddResultsForm(QVBoxLayout):
         self.line5.addWidget(self.label5)
         self.line5.addWidget(self.description_select, Qt.AlignLeft)
 
-        # Dialogs
-        self.importdialog = SelectTypeDialog()
-
         # Buttons
         self.button_layout = QHBoxLayout()
 
@@ -108,12 +104,6 @@ class AddResultsForm(QVBoxLayout):
         self.button_layout.addWidget(
             self.insert_button, Qt.AlignVCenter)
 
-        self.import_button = QPushButton(self.tr("Import from"))
-        self.import_button.setMaximumWidth(50)
-        self.import_button.clicked.connect(
-            lambda: self.importdialog.setVisible(True))
-        self.button_layout.addWidget(self.import_button)
-
         self.addWidget(self.title)
         self.addLayout(self.line1)
         self.addLayout(self.line2)
@@ -121,6 +111,7 @@ class AddResultsForm(QVBoxLayout):
         self.addLayout(self.line4)
         self.addLayout(self.line5)
         self.addLayout(self.button_layout)
+        self.addWidget(self.insert_button)
 
     def setToday(self):
         self.date_edit.setDate(datetime.now())
