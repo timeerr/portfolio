@@ -89,32 +89,38 @@ def get_firstBalance():
 
     If there is not any historical data, returns 0
     """
-    first_balance_day = datetime.fromtimestamp(
-        historicalbalances.getFirstEntryDate())
-    first_cbalance_day = datetime.fromtimestamp(
-        chistoricalbalances.getFirstEntryDate())
+    first_balance_day = historicalbalances.getFirstEntryDate()
+    first_cbalance_day = chistoricalbalances.getFirstEntryDate()
+
+    if first_cbalance_day == first_balance_day == 0:
+        return 0
+    elif first_cbalance_day == 0:
+        return historicalbalances.getFirstTotalBalance()
+    elif first_balance_day == 0:
+        return chistoricalbalances.getFirstTotalBalance_fiat()
 
     # Remove hour, minute and second
+    first_balance_day = datetime.fromtimestamp(first_balance_day)
+    first_cbalance_day = datetime.fromtimestamp(first_cbalance_day)
+
     first_balance_day = datetime(
         first_balance_day.year, first_balance_day.month, first_balance_day.day)
     first_cbalance_day = datetime(
         first_cbalance_day.year, first_cbalance_day.month, first_cbalance_day.day)
+    print(first_balance_day)
+    print(first_cbalance_day)
+    print(datetime.fromtimestamp(0))
 
     # Check if cbalancehistory or chistoricalbalances is empty
-    if first_cbalance_day == first_balance_day == 0:
-        return 0
-    elif first_cbalance_day == 0:
-        first_balance = historicalbalances.getFirstTotalBalance()
-    elif first_balance_day == 0:
-        first_balance = chistoricalbalances.getFirstTotalBalance_fiat()
-
-    elif first_balance_day == first_cbalance_day:
+    if first_balance_day == first_cbalance_day:
+        # First entry has both crypto and fiat data
         first_balance = historicalbalances.getFirstTotalBalance(
         ) + chistoricalbalances.getFirstTotalBalance_fiat()
-
     elif first_balance_day > first_cbalance_day:
+        # First entry has crypto data only
         first_balance = chistoricalbalances.getFirstTotalBalance_fiat()
     else:
+        # First entry has fiat data only
         first_balance = historicalbalances.getFirstTotalBalance()
 
     return first_balance
@@ -132,8 +138,7 @@ def get_first_total_wealth_current_month():
     Returns the total wealth from the first entry of
     the current month
     """
-    return historicalbalances.getCurrentMonthFirstTotalBalance() + \
-        chistoricalbalances.getCurrentMonthFirstTotalBalance_fiat()
+    return historicalbalances.getCurrentMonthFirstTotalBalance() + chistoricalbalances.getCurrentMonthFirstTotalBalance_fiat()
 
 
 def get_total_wealth_on_month(month, year=datetime.today().year):
@@ -144,8 +149,7 @@ def get_total_wealth_on_month(month, year=datetime.today().year):
     month: int
     """
 
-    return historicalbalances.getMonthFirstTotalBalance(month, year=year) +  \
-        chistoricalbalances.getMonthFirstTotalBalance_fiat(month, year=year)
+    return historicalbalances.getMonthFirstTotalBalance(month, year=year) + chistoricalbalances.getMonthFirstTotalBalance_fiat(month, year=year)
 
 
 def get_change_last_month():
