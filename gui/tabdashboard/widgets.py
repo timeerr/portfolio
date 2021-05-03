@@ -198,13 +198,19 @@ class LastMonthWidget(QFrame):
         self.second_row.addWidget(self.fiat_label)
 
         # -- Change (%) --
-        change_percentage = 100 * \
-            (utils.get_change_last_month() /
-             utils.get_first_total_wealth_current_month())
-        change_percentage = round(change_percentage, 1)
+        first_total_wealth_current_month = utils.get_first_total_wealth_current_month()
+        change_last_month = utils.get_change_last_month()
+        if first_total_wealth_current_month > 0:
+            change_percentage = 100 * \
+                (change_last_month /
+                 first_total_wealth_current_month)
+            change_percentage = round(change_percentage, 1)
 
-        change_percentage_str = "+{}%".format(str(
-            change_percentage)) if change_percentage >= 0 else "{}%".format(str(change_percentage))
+            change_percentage_str = "+{}%".format(str(
+                change_percentage)) if change_percentage >= 0 else "{}%".format(str(change_percentage))
+        else:
+            # No change this month
+            change_percentage_str = "0%"
 
         self.change_percentage = QLabel(change_percentage_str)
         self.change_percentage.setStyleSheet(

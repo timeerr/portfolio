@@ -280,7 +280,7 @@ class DescriptionLayout(QWidget):
             token_name[0].upper()+token_name[1:])
 
         # Updating token balances
-        tokenbalance = cbalances.getTotalTokenBalance(tokensymbol)
+        tokenbalance = round(cbalances.getTotalTokenBalance(tokensymbol), 6)
         self.token_or_account_balance.setText(
             str(tokenbalance)+' '+tokensymbol)
         self.token_or_account_balance.show()
@@ -767,15 +767,18 @@ class BalanceHistoryChartView(QChartView):
         for date, balance_btc, balance_fiat in zip(dates, balances_btc, balances_fiat):
             date = datetime.fromtimestamp(date)
             date = datetime(date.year, date.month, date.day)
-            dateQ = QDateTime(date)
-            self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance_btc)
-            self.fiatseries.append(dateQ.toMSecsSinceEpoch(), balance_fiat)
+            dateQ = QDateTime(date).toMSecsSinceEpoch()
+            self.btcseries.append(dateQ, balance_btc)
+            self.fiatseries.append(dateQ, balance_fiat)
 
-        # Append current balances
-        self.btcseries.append(QDateTime(datetime.today()).toMSecsSinceEpoch(),
-                              cbalances.getTotalBalanceAllAccounts())
-        self.fiatseries.append(QDateTime(datetime.today()).toMSecsSinceEpoch(),
-                               cbalances.getTotalBalanceAllAccounts_fiat())
+        # Append current point
+        currentdate = QDateTime(datetime.today()).toMSecsSinceEpoch()
+        if selectiontype == "all":
+            # Append current balances
+            self.btcseries.append(currentdate,
+                                  cbalances.getTotalBalanceAllAccounts())
+            self.fiatseries.append(currentdate,
+                                   cbalances.getTotalBalanceAllAccounts_fiat())
 
         # Axis X (Dates)
         self.x_axis = QDateTimeAxis()

@@ -158,11 +158,14 @@ def get_change_last_month():
     and the total wealth from the first entry on the current month
     """
     first_day_month_total_wealth = get_first_total_wealth_current_month()
-    current_total_wealth = balances.getTotalBalanceAllAccounts(
-    ) + cbalances.getTotalBalanceAllAccounts_fiat()
+    if first_day_month_total_wealth > 0:
+        current_total_wealth = balances.getTotalBalanceAllAccounts(
+        ) + cbalances.getTotalBalanceAllAccounts_fiat()
 
-    change_fiat_value = int(current_total_wealth -
-                            first_day_month_total_wealth)
+        change_fiat_value = int(current_total_wealth -
+                                first_day_month_total_wealth)
+    else:
+        change_fiat_value = 0
 
     return change_fiat_value
 

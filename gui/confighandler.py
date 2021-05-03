@@ -275,12 +275,23 @@ def add_balance_fiat_to_cportfoliodb(path):
         maxdate = max(dates)
 
         # Get btc/eur history from coingecko's api
-        priceshistory_eur = prices.btcToFiat_history(
-            mindate, maxdate, 'eur')
-        priceshistory_usd = prices.btcToFiat_history(
-            mindate, maxdate, 'usd')
-        priceshistory_jpy = prices.btcToFiat_history(
-            mindate, maxdate, 'jpy')
+        if len(dates) > 1:
+            priceshistory_eur = prices.btcToFiat_history(
+                mindate, maxdate, 'eur')
+            priceshistory_usd = prices.btcToFiat_history(
+                mindate, maxdate, 'usd')
+            priceshistory_jpy = prices.btcToFiat_history(
+                mindate, maxdate, 'jpy')
+        elif len(dates) == 1:
+            single_date = datetime.fromtimestamp(list(dates)[0])
+            single_date = datetime(
+                single_date.year, single_date.month, single_date.day).timestamp()
+            priceshistory_eur = {
+                single_date: prices.btcToFiat_Date(1, single_date, 'eur')}
+            priceshistory_usd = {
+                single_date: prices.btcToFiat_Date(1, list(dates)[0], 'usd')}
+            priceshistory_jpy = {
+                single_date: prices.btcToFiat_Date(1, list(dates)[0], 'jpy')}
 
         # Convert each balances_btc to balance_fiat
         balances_fiat = []
