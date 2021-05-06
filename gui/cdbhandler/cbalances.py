@@ -408,7 +408,10 @@ def getType(account, token):
 
         cursor.execute(get_type_query)
 
-        return cursor.fetchall()[0][0]
+        try:
+            return cursor.fetchall()[0][0]
+        except IndexError:
+            raise IndexError(f"Could not find type of {account},{token}")
 
 
 def getKYC(account, token):
