@@ -383,27 +383,29 @@ class UpdateAllAccountsDialog(QDialog):
         self.layout = QVBoxLayout()
 
         # All account names:
-        self.accentries = [(i[0], i[1]) for i in cbalances.getAllEntries()]
-        self.current_accentry = 0
+        self.accnames = cbalances.getAllAccounts()
 
         # Account
         self.account_lyt = QHBoxLayout()
         self.account_descr = QLabel(self.tr("Account"))
         self.account_descr.setFixedWidth(110)
         self.account_descr.setAlignment(Qt.AlignRight)
-        self.account = QLabel()
-        self.account.setMaximumWidth(140)
+        self.accounts = QComboBox()
+        self.accounts.setMaximumWidth(140)
+        self.accounts.addItems(self.accnames)
+        # Functionality: when account is changed, selectable tokens have to
+        # change to the ones from that account
+        self.accounts.currentTextChanged.connect(self.updateTokens)
         font = QFont()
         font.setItalic(True)
-        self.account.setFont(font)
-        self.account.setText(self.accentries[0][0])
+        self.accounts.setFont(font)
         self.account_lyt.addWidget(self.account_descr)
         # Separator line
         line = QFrame()
         line.setFrameShape(QFrame.VLine)
         line.setFrameShadow(QFrame.Sunken)
         self.account_lyt.addWidget(line)
-        self.account_lyt.addWidget(self.account)
+        self.account_lyt.addWidget(self.accounts)
         self.layout.addLayout(self.account_lyt)
 
         # Token
@@ -411,19 +413,22 @@ class UpdateAllAccountsDialog(QDialog):
         self.token_descr = QLabel(self.tr("Token"))
         self.token_descr.setFixedWidth(110)
         self.token_descr.setAlignment(Qt.AlignRight)
-        self.token = QLabel()
-        self.token.setMaximumWidth(140)
+        self.tokens = QComboBox()
+        self.tokens.setMaximumWidth(140)
         font = QFont()
         font.setItalic(True)
-        self.token.setFont(font)
-        self.token.setText(self.accentries[0][1])
+        self.tokens.setFont(font)
         self.token_lyt.addWidget(self.token_descr)
+        # Functionality: when the token is changed,
+        # all the account info (balance, type, etc.) changes too
+        self.tokens.currentTextChanged.connect(
+            lambda tokenname: self.updateWithAccInfo(self.accounts.currentText(), tokenname))
         # Separator line
         line = QFrame()
         line.setFrameShape(QFrame.VLine)
         line.setFrameShadow(QFrame.Sunken)
         self.token_lyt.addWidget(line)
-        self.token_lyt.addWidget(self.token)
+        self.token_lyt.addWidget(self.tokens)
         self.layout.addLayout(self.token_lyt)
 
         # Type
@@ -530,29 +535,18 @@ class UpdateAllAccountsDialog(QDialog):
         self.diff_lyt.addWidget(self.diff)
         self.layout.addLayout(self.diff_lyt)
 
-        # Buttons
-        self.bttns_lyt = QHBoxLayout()
-        self.previous_bttn = QPushButton(self.tr("Previous"))
-        self.previous_bttn.clicked.connect(lambda: self.changeEntry(-1))
-        self.bttns_lyt.addWidget(self.previous_bttn)
+        # Button to save changes
+        self.savebttn = QPushButton(self.tr("Save Changes"))
+        self.savebttn.clicked.connect(self.updateAccount)
+        self.layout.addWidget(self.savebttn)
 
-        self.update_bttn = QPushButton(self.tr("Update"))
-        self.update_bttn.clicked.connect(self.updateAccount)
-        self.bttns_lyt.addWidget(self.update_bttn)
-
-        self.next_btnn = QPushButton(self.tr("Next"))
-        self.next_btnn.clicked.connect(lambda: self.changeEntry(1))
-        self.bttns_lyt.addWidget(self.next_btnn)
-        self.layout.addLayout(self.bttns_lyt)
-
-        # Setting info according to account
-        self.changeEntry(1)
-        self.changeEntry(-1)
+        # Initialize
+        self.accounts.setCurrentIndex(1)
 
     def updateAccount(self):
         """Updates the account with a certain token with new data"""
-        accname = self.accentries[self.current_accentry][0]
-        tokenname = self.accentries[self.current_accentry][1]
+        accname = self.accounts.currentText()
+        tokenname = self.tokens.currentText()
 
         # Updating Type
         cbalances.updateType(accname, tokenname, self.type.currentText())
@@ -563,47 +557,40 @@ class UpdateAllAccountsDialog(QDialog):
         # Updating Description
         cbalances.updateDescription(accname, tokenname, self.descr.text())
 
-    def changeEntry(self, change):
+        self.updateWithAccInfo(accname, tokenname)
+
+        # Show message
+        mssg = QMessageBox(self)
+        mssg.setText(self.tr("Updated!"))
+        mssg.exec_()
+
+    def updateTokens(self, accountname):
         """
-        Switches between accounts on the database
-        displaying the next or previous one.
-
-        self.current_accentry is used to store the position of the
-        account that is currently selected
+        Updates the token combobox to show the tokens from the new account
+        that has been selected
         """
-        if change == 1:
-            # Switch to next account
-            self.current_accentry += 1
-            if self.current_accentry == len(self.accentries):
-                # Reset to 0
-                self.current_accentry = 0
+        self.tokens.clear()
+        tokens_from_acc = [i.upper()
+                           for i in cbalances.getTokensFromAccount(accountname)]
+        self.tokens.addItems(tokens_from_acc)
 
-        elif change == -1:
-            # Switch to prev account
-            self.current_accentry -= 1
-            if self.current_accentry == -1:
-                # Reset to last
-                self.current_accentry = len(self.accentries)-1
+    def updateWithAccInfo(self, accname, tokenname):
+        if tokenname != "":
+            accname = self.accounts.currentText()
+            # Type
+            self.type.setCurrentText(cbalances.getType(accname, tokenname))
+            # KYC
+            self.kyc.setCurrentText(cbalances.getKYC(accname, tokenname))
+            # Description
+            self.descr.setText(cbalances.getDescription(accname, tokenname))
+            # Previous Balance
+            self.prevbalance.setText(
+                str(cbalances.getBalance(accname, tokenname)))
+            # Set New Balance same as previous at start
+            self.newbalance.setValue(float(self.prevbalance.text()))
 
-        accname = self.accentries[self.current_accentry][0]
-        tokenname = self.accentries[self.current_accentry][1]
-        # Account
-        self.account.setText(accname)
-        # Token
-        self.token.setText(tokenname)
-        # Type
-        self.type.setCurrentText(cbalances.getType(accname, tokenname))
-        # KYC
-        self.kyc.setCurrentText(cbalances.getKYC(accname, tokenname))
-        # Description
-        self.descr.setText(cbalances.getDescription(accname, tokenname))
-        # Previous Balance
-        self.prevbalance.setText(str(cbalances.getBalance(accname, tokenname)))
-        # Set New Balance same as previous at start
-        self.newbalance.setValue(float(self.prevbalance.text()))
-
-        # Reset diff label
-        self.setDiff()
+            # Reset diff label
+            self.setDiff()
 
     def setDiff(self):
         """
