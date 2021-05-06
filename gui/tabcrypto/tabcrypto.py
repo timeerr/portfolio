@@ -543,7 +543,7 @@ class AccountPieChart(QChartView):
             account = entry[0]
             amount = entry[2]
             self.series.append(account, amount)
-        self.showSliceLabels()
+        self.showSliceLabels(token)
 
     def allMode(self):
         """Updates series with all accounts"""
@@ -554,16 +554,16 @@ class AccountPieChart(QChartView):
             account = d[0]
             balance = d[1]
             self.series.append(account, balance)
-        self.showSliceLabels()
+        self.showSliceLabels("btc")
         self.hideLittleSlices()
 
-    def showSliceLabels(self):
+    def showSliceLabels(self, token):
         """
         Formats the Slices so that they show the percentage
         """
         for slce in self.series.slices():
             slce.setLabel("{} {}% ({})".format(
-                slce.label(), int(100*slce.percentage()), str(slce.value()) + " BTC"))
+                slce.label(), int(100*slce.percentage()), str(prices.toBTC(token, slce.value())) + " BTC"))
             slce.setLabelPosition(QPieSlice.LabelInsideNormal)
             # slce.setLabelPosition(QPieSlice.LabelOutside)
             slce.setLabelColor(QColor('white'))
