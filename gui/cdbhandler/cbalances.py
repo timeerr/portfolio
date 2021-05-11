@@ -454,12 +454,46 @@ def getBalance(account, token):
     with conn:
         cursor = conn.cursor()
 
-        get_balance_query = "SELECT amount from cbalances WHERE account = '{}' AND token = '{}'".format(
+        get_balance_query = "SELECT amount FROM cbalances WHERE account = '{}' AND token = '{}'".format(
             account, token)
 
         cursor.execute(get_balance_query)
 
         return cursor.fetchall()[0][0]
+
+
+def getTotalAccountBalance(account):
+    """
+    Returns the total balance from all tokens from a certain account
+    expressed in btc
+    """
+    conn = create_connection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_total_account_balance = f"SELECT token,amount FROM cbalances WHERE account = '{account}'"
+        cursor.execute(get_total_account_balance)
+
+        result = cursor.fetchall()
+
+        totalaacountbalance_btc = 0
+        for entry in result:
+            token = entry[0]
+            amount = entry[1]
+
+            totalaacountbalance_btc += prices.toBTC(token, amount)
+
+        return totalaacountbalance_btc
+
+
+def getTotalAccountBalance_fiat(account):
+    """
+    Returns the total balance from all tokens from a certain account
+    expressed in fiat
+    """
+    totalaacountbalance_btc = getTotalAccountBalance(account)
+    return prices.btcToFiat(totalaacountbalance_btc, currency=confighandler.get_fiat_currency())
 
 
 def getTotalBalanceAllAccounts():
