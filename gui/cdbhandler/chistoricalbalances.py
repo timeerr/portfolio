@@ -426,6 +426,52 @@ def getAccountBalance_minDate(cryptoacc, startdate):
         return sum(result)
 
 
+def getAllEntries():
+    """
+    Returns all entries
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_all_entries_query = f"SELECT * FROM cbalancehistory"
+        cursor.execute(get_all_entries_query)
+
+        return cursor.fetchall()
+
+
+def getEntriesWithToken(token):
+    """
+    Returns all entries where token=token
+    """
+    token = token.lower()
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_entries_with_token_query = f"SELECT * FROM cbalancehistory WHERE token='{token}'"
+        cursor.execute(get_entries_with_token_query)
+
+        return cursor.fetchall()
+
+
+def getEntriesWithAccount(account):
+    """
+    Returns all entries where account=account
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        get_entries_with_account_query = f"SELECT * FROM cbalancehistory WHERE account='{account}'"
+        cursor.execute(get_entries_with_account_query)
+
+        return cursor.fetchall()
+
+
 def deleteBalanceFromId(_id):
     conn = createConnection()
 

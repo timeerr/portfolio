@@ -157,6 +157,14 @@ def getTotalTokenBalance(token):
         return totaltokenbalance
 
 
+def getTotalTokenBalance_fiat(token):
+    """
+    Sums all token balances from all accounts
+    Expressed in fiat"""
+    result_btc = getTotalTokenBalance(token)
+    return prices.btcToFiat(result_btc)
+
+
 def getAllAccounts():
     """Returns a listwith all accounts on cbalances"""
     conn = create_connection()
