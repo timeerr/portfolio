@@ -397,6 +397,35 @@ def getCurrentMonthFirstTotalBalance_fiat():
     return first_total_balance
 
 
+def getAccountBalance_minDate(cryptoacc, startdate):
+    """
+    Returns the first entry of an account's balance after the 
+    selected startdate
+    """
+    conn = createConnection()
+
+    with conn:
+        cursor = conn.cursor()
+
+        timestamps = getAllEntryDates()
+        timestamps.sort()
+        date = None
+        for tm in timestamps:
+            if tm >= startdate:
+                date = tm
+                break
+
+        if date is None:
+            return cbalances.getTotalAccountBalance_fiat(cryptoacc)
+
+        get_account_balance_mindate_query = f"SELECT balance_{confighandler.get_fiat_currency()} FROM cbalancehistory WHERE date={date} and account='{cryptoacc}'"
+        cursor.execute(get_account_balance_mindate_query)
+
+        result = [i[0] for i in cursor.fetchall()]
+
+        return sum(result)
+
+
 def deleteBalanceFromId(_id):
     conn = createConnection()
 
