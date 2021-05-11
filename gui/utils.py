@@ -3,7 +3,7 @@
 from datetime import datetime
 import calendar
 
-from gui.dbhandler import balances, historicalbalances
+from gui.dbhandler import balances, historicalbalances, results
 from gui.cdbhandler import cbalances, chistoricalbalances
 
 
@@ -190,3 +190,32 @@ def prev_month_date(d):
         next_month = next_month.replace(day=next_month_len)
     next_month = next_month.replace(year=_year, month=_month)
     return next_month
+
+
+def getTotalResult(fiataccs, cryptoaccs, startdate, enddate):
+    """
+    Sums all results from both databases from the 
+    selected accounts and on the selected period
+
+    Parameters:
+        - fiataccs: list of selected fiat accounts
+        - cryptoaccs: list of selected crypto accounts
+        - startdate: timestamp
+        - enddate: timestamp
+    """
+    fiattotalresult = 0
+    for fiatacc in fiataccs:
+        result = results.getResults_fromQuery(start_date=datetime.fromtimestamp(
+            startdate), end_date=datetime.fromtimestamp(enddate), account=fiatacc)
+        fiattotalresult += result
+
+    cryptototalresult = 0
+    for cryptoacc in cryptoaccs:
+        start_balance = chistoricalbalances.getAccountBalance_minDate(
+            cryptoacc, startdate)
+        end_balance = chistoricalbalances.getAccountBalance_minDate(
+            cryptoacc, enddate)
+        cryptototalresult += (end_balance-start_balance)
+
+    result = fiattotalresult + cryptototalresult
+    return round(result, 2)
