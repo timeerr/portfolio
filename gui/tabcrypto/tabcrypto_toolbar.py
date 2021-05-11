@@ -64,7 +64,7 @@ class TabCryptoToolBar(QToolBar):
         self.removeaccount_dialog = RemoveAccountDialog(self)
 
     def addAccountActionClick(self):
-        self.addaccount_dialog.setVisible(True)
+        self.addaccount_dialog.show()
 
     def removeAccountActionClick(self):
         self.removeaccount_dialog.exec_()
