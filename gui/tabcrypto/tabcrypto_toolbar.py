@@ -285,9 +285,8 @@ class NewTokenDialog(QDialog):
         self.layout = QVBoxLayout()
 
         # New Token Description
-        self.description = QLabel(
-            self.tokenname + self.tr(" has to be added \
-                                     Select Method to obtain new its price data"))
+        self.description = QLabel(self.tr(
+            f"{self.tokenname.upper()} token has to be added. \nSelect Method to obtain price data"))
         self.layout.addWidget(self.description)
 
         # Method to obtain new token price data
@@ -301,9 +300,15 @@ class NewTokenDialog(QDialog):
         self.select_token_by_id = QComboBox()
         self.select_token_by_id.hide()
         self.layout.addWidget(self.select_token_by_id)
+        # If the new token has a custom price, the user has to add an id manually
+        self.manual_token_id = QLineEdit()
+        self.manual_token_id.setPlaceholderText("Token full name")
+        self.manual_token_id.hide()
+        self.layout.addWidget(self.manual_token_id)
 
         # Displaying the current price for the new token
         self.currentprice = QLineEdit("")
+        self.currentprice.setPlaceholderText("Token's price (in BTC)")
         self.layout.addWidget(self.currentprice)
         self.currentprice.hide()
 
@@ -324,26 +329,41 @@ class NewTokenDialog(QDialog):
         token = self.tokenname
 
         method = self.method.currentText()
-        if method == 'Coingecko':
-            method = 'coingecko'
-        elif method == 'Custom Price':
-            method = 'custom'
 
-        _id = self.select_token_by_id.currentText()
+        try:
+            if method == self.tr('Coingecko'):
+                method = 'coingecko'
+                _id = self.select_token_by_id.currentText()
+                price = float(self.currentprice.text().split(" ")[0])
+            elif method == self.tr('Custom Price'):
+                method = 'custom'
+                _id = self.manual_token_id.text()
+                price = float(self.currentprice.text())
+            prices.addTokenPrice(token, method, _id, price)
 
-        price = float(self.currentprice.text().split(" ")[0])
+            self.close()
 
-        prices.addTokenPrice(token, method, _id, price)
-        self.close()
+        except Exception as e:
+            print(e)
+            error_mssg = QMessageBox()
+            error_mssg.setIcon(QMessageBox.Critical)
+            error_mssg.setText(
+                self.tr("Can't add account. Make sure price and id are properly formatted"))
+            error_mssg.exec_()
 
     def handleMethodChanged(self, method):
         """ Depending on the method, we display different things """
 
-        if method == 'Coingecko':
+        if method == self.tr('Coingecko'):
             # Checking if there are multiple tokens for a certain symbol
-            for tokenid in prices.symbolToId_CoinGeckoList(self.tokenname):
+            possibleids = prices.symbolToId_CoinGeckoList(self.tokenname)
+            if len(possibleids) == 0:
+                self.select_token_by_id.addItem(
+                    self.tr("No ids for that token name"))
+            for tokenid in possibleids:
                 self.select_token_by_id.addItem(tokenid)
 
+            self.manual_token_id.hide()
             self.select_token_by_id.currentTextChanged.connect(
                 self.handleIdSelected)
             self.select_token_by_id.show()
@@ -352,11 +372,13 @@ class NewTokenDialog(QDialog):
             self.currentprice.setText(
                 self.tr("Select Id above to get coingecko's price"))
 
-        elif method == 'Custom Price':
+        elif method == self.tr('Custom Price'):
             # We add a field to put the current price
             self.select_token_by_id.clear()
             self.select_token_by_id.hide()
-            self.currentprice.setText(" ")
+            self.manual_token_id.setText("")
+            self.manual_token_id.show()
+            self.currentprice.clear()
             self.currentprice.setReadOnly(False)
 
         self.currentprice.show()
