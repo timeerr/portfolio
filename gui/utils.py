@@ -61,6 +61,63 @@ def get_totalWealthByDay():
     return wealthbyday
 
 
+def getWealthByDay(fiataccs=None, cryptoaccs=None, startdate=0, enddate=9999999999999999):
+    """
+    Groups the historicalbalances from portfolio and cportfolio,
+    only considering the accounts from fiataccs & cryptoaccs parameters,
+    between de period (startdate - enddate)
+    and returns a dictionary where:
+     - keys are dates (timestamps)
+     - values are total wealth on that day
+    """
+    balancesbyday = historicalbalances.getBalancesByDay(fiataccs=fiataccs)
+    cbalancesbyday = chistoricalbalances.getBalancesByDay_fiat(
+        cryptoaccs=cryptoaccs)
+    wealthbyday = {}
+
+    # Now that we have the days that have balances and crypto balances,
+    # we iterate through them and calculate the sum for each day
+    for day in balancesbyday:
+        balance = balancesbyday[day]
+
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
+
+    for day in cbalancesbyday:
+        balance = cbalancesbyday[day]
+
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
+
+    # Format to iterate better
+    wealthbyday_formatted = []
+    for day in wealthbyday:
+        balance = wealthbyday[day]
+        wealthbyday_formatted.append((day, balance))
+
+    # Sort by timestamp
+    wealthbyday_formatted.sort(key=lambda x: x[0])
+
+    # Remake dictionary
+    wealthbyday = {}
+    for data in wealthbyday_formatted:
+        day = data[0]
+        if int(day) < startdate or int(day) > enddate:
+            continue
+        balance = data[1]
+
+        if day in wealthbyday.keys():
+            wealthbyday[day] += balance
+        else:
+            wealthbyday[day] = balance
+
+    return wealthbyday
+
+
 def get_totalWealthByDay_LastMonth():
     """
     Groups the historicalbalances from las month from portfolio and cportfolio,
