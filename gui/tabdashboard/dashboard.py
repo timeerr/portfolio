@@ -13,7 +13,7 @@ from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries
 from gui.cdbhandler import cbalances, chistoricalbalances
 from gui.dbhandler import balances, historicalbalances
 from gui.tabdashboard.widgets import TotalWealthWidget, LastMonthWidget, LastMonthsHistogramWidget
-from gui.tabdashboard.widgets import TotalEquityWidget, DistributionWidget, FilterLayout
+from gui.tabdashboard.widgets import TotalEquityWidget, DistributionWidget, FilterLayout, QueryResultsWidget
 
 from gui.prices import prices
 
@@ -38,7 +38,9 @@ class TabDashboard(QWidget):
         # Layout
         self.mainlayout = QHBoxLayout()
 
+        # ------------------------------------------------------------------
         # ------------  Left layout: General portfolio data ---------------
+        # ------------------------------------------------------------------
         self.leftlayout = QVBoxLayout()
         self.leftlayout.setSpacing(30)
 
@@ -83,20 +85,31 @@ class TabDashboard(QWidget):
         self.leftlayout_scrollarea.setWidget(
             self.leftlayout_scrollarea_wrapper)  # Set wrapper widget as QScrollArea's Widget
 
+        # ------------------------------------------------------------------
         # ------------  Right layout: General portfolio data ---------------
+        # ------------------------------------------------------------------
         self.rightlayout = QVBoxLayout()
         self.rightlayout.setContentsMargins(10, 0, 0, 0)
+        self.rightlayout.setSpacing(30)
 
         # -- First Widget: Filter buttons --
         self.filterbuttons = FilterLayout()
 
+        # -- Second Widget: General results --
+        self.queryresultswdgt = QueryResultsWidget()
+
         self.rightlayout.addLayout(self.filterbuttons)
-        self.rightlayout.addWidget(QLabel("Test"))
+        self.rightlayout.addWidget(self.queryresultswdgt)
         self.rightlayout.addWidget(QLabel("Test"))
         self.rightlayout.addWidget(QLabel("Test"))
         self.rightlayout.addWidget(QLabel("Test"))
 
         self.mainlayout.addWidget(self.leftlayout_scrollarea)
         self.mainlayout.addLayout(self.rightlayout)
+
+        # --- Functionality ----
+        # When the filters change, we update the results
+        self.filterbuttons.querysignal.newquery.connect(
+            self.queryresultswdgt.updateData)
 
         self.setLayout(self.mainlayout)

@@ -41,16 +41,28 @@ def getBalancesFromLastDay():
         return cursor.fetchall()
 
 
-def getBalancesByDay():
+def getBalancesByDay(cryptoaccs=None):
     """ Returns a dictionary with the total btc balance of all accounts by each day """
     conn = createConnection()
 
     with conn:
         cursor = conn.cursor()
 
-        get_all_balances = "SELECT date, balance_btc FROM cbalancehistory"
+        if cryptoaccs is None:
+            get_all_balances = "SELECT date, balance_btc FROM cbalancehistory"
+            cursor.execute(get_all_balances)
+        elif len(cryptoaccs) == 0:
+            return {}
+        else:
+            if len(cryptoaccs) > 1:
+                cryptoaccs = tuple(cryptoaccs)
+                get_balances_by_day = f"SELECT date, balance_btc FROM cbalancehistory WHERE account IN {cryptoaccs}"
+            else:
+                cryptoaccs = cryptoaccs[0]
+                get_balances_by_day = f"SELECT date,balance_btc FROM cbalancehistory WHERE account = '{cryptoaccs}'"
 
-        cursor.execute(get_all_balances)
+            cursor.execute(get_balances_by_day)
+
         result = cursor.fetchall()
         balances_by_date = {}
         for entry in result:
@@ -93,16 +105,30 @@ def getBalancesByDayTuple():
         return balances_by_date
 
 
-def getBalancesByDay_fiat():
+def getBalancesByDay_fiat(cryptoaccs=None):
     """ Returns a dictionary with the total btc balance of all accounts by each day """
     conn = createConnection()
+
+    FIAT_CURRENCY = confighandler.get_fiat_currency().lower()
 
     with conn:
         cursor = conn.cursor()
 
-        get_all_balances = f"SELECT date, balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory"
+        if cryptoaccs is None:
+            get_all_balances = f"SELECT date, balance_{FIAT_CURRENCY} FROM cbalancehistory"
+            cursor.execute(get_all_balances)
+        elif len(cryptoaccs) == 0:
+            return {}
+        else:
+            if len(cryptoaccs) > 1:
+                cryptoaccs = tuple(cryptoaccs)
+                get_balances_by_day_fiat = f"SELECT date, balance_{FIAT_CURRENCY} FROM cbalancehistory WHERE account IN {cryptoaccs}"
+            else:
+                cryptoaccs = cryptoaccs[0]
+                get_balances_by_day_fiat = f"SELECT date, balance_{FIAT_CURRENCY} FROM cbalancehistory WHERE account = '{cryptoaccs}'"
 
-        cursor.execute(get_all_balances)
+            cursor.execute(get_balances_by_day_fiat)
+
         result = cursor.fetchall()
         balances_by_date = {}
         for entry in result:

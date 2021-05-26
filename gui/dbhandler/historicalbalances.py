@@ -39,16 +39,28 @@ def getBalancesFromLastDay():
         return cursor.fetchall()
 
 
-def getBalancesByDay():
+def getBalancesByDay(fiataccs=None):
     """ Returns a dictionary with the total balance of all accounts by each day """
     conn = createConnection()
 
     with conn:
         cursor = conn.cursor()
 
-        get_all_balances = "SELECT date, balance FROM balancehistory"
+        if fiataccs is None:
+            get_all_balances = "SELECT date, balance FROM balancehistory"
+            cursor.execute(get_all_balances)
+        elif len(fiataccs) == 0:
+            return {}
+        else:
+            if len(fiataccs) > 1:
+                fiataccs = tuple(fiataccs)
+                get_balances_by_day = f"SELECT date, balance FROM balancehistory WHERE account IN {fiataccs}"
+            else:
+                fiataccs = fiataccs[0]
+                get_balances_by_day = f"SELECT date, balance FROM balancehistory WHERE account ='{fiataccs}'"
 
-        cursor.execute(get_all_balances)
+            cursor.execute(get_balances_by_day)
+
         result = cursor.fetchall()
         balances_by_date = {}
         for entry in result:

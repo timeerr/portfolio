@@ -194,6 +194,7 @@ class TabCrypto(QWidget):
         if columname in (self.tr("Account"), self.tr("Token")):
             self.updateSelectMode(mode=columname)
             self.selectionChanged(itemname)
+            self.description.select_token_or_account.setCurrentText(itemname)
 
 
 class DescriptionLayout(QWidget):
@@ -955,17 +956,15 @@ class BalanceHistoryChartView(QChartView):
                                   cbalances.getTotalBalanceAllAccounts())
             self.fiatseries.append(currentdate,
                                    cbalances.getTotalBalanceAllAccounts_fiat())
-        elif selectiontype == "account":
-            # Append current balances
-            self.btcseries.append(
-                currentdate, cbalances.getTotalAccountBalance(name))
-            self.fiatseries.append(
-                currentdate, cbalances.getTotalAccountBalance_fiat(name))
-        elif selectiontype == "token":
-            self.btcseries.append(
-                currentdate, cbalances.getTotalTokenBalance(name))
-            self.fiatseries.append(
-                currentdate, cbalances.getTotalTokenBalance_fiat(name))
+        elif name != '':
+            if selectiontype == "account":
+                # Append current balances
+                self.btcseries.append(
+                    currentdate, cbalances.getTotalAccountBalance(name))
+                self.fiatseries.append(
+                    currentdate, cbalances.getTotalAccountBalance_fiat(name))
+            elif selectiontype == "token":
+                pass
 
         # Axis X (Dates)
         self.x_axis = QDateTimeAxis()

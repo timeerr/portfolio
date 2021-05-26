@@ -201,7 +201,7 @@ class TotalEquityChartView(QChartView):
 
         self.chart = QChart()
 
-    def setupChartWithData(self, data):
+    def setupChartWithData(self, data, linecolor='#422F8A'):
         """
         Chart gets updated displaying the new data.
 
@@ -254,7 +254,7 @@ class TotalEquityChartView(QChartView):
             self.btcseries.append(dateQ.toMSecsSinceEpoch(), balance)
 
         self.btcseries.setName("BTC")
-        pen = QPen(QColor("#422F8A"))
+        pen = QPen(QColor(linecolor))
         pen.setWidth(3)
         self.btcseries.setPen(pen)
 
