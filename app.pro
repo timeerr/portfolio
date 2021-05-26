@@ -12,18 +12,18 @@ SOURCES += gui/tabcrypto/tabcrypto.py
 SOURCES += gui/tabcrypto/tabcrypto_toolbar.py
 
 SOURCES += gui/tabdashboard/dashboard.py
+SOURCES += gui/tabdashboard/charts.py
+SOURCES += gui/tabdashboard/widgets.py
 
 SOURCES += gui/tabresults/tabresults.py
 SOURCES += gui/tabresults/tabresults_addresultsform.py
 SOURCES += gui/tabresults/tabresults_formquery.py
-SOURCES += gui/tabresults/tabresults_import_dialog.py
 SOURCES += gui/tabresults/tabresults_leftlayout.py
 SOURCES += gui/tabresults/tabresults_righttable.py
 
 SOURCES += gui/tabtransactions/tabtransactions.py
 SOURCES += gui/tabtransactions/tabtransactions_addtransactionsform.py
 SOURCES += gui/tabtransactions/tabtransactions_formquery.py
-SOURCES += gui/tabtransactions/tabtransactions_import_dialog.py
 SOURCES += gui/tabtransactions/tabtransactions_leftlayout.py
 SOURCES += gui/tabtransactions/tabtransactions_righttable.py
 
