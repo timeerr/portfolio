@@ -10,7 +10,7 @@ def install_dependencies():
 
 
 def initialize():
-    from gui import confighandler
+    from portfolio import confighandler
     from appdirs import user_data_dir
     confighandler.initial_setup()
     CONFIG_PATH = confighandler.getConfigPath()
@@ -22,13 +22,12 @@ def initialize():
             print("Moved ", source, "translation to ", dest)
 
     RESOURCES_PATH = confighandler.getUserDataPath()
-
     if 'portfolio' in os.listdir(user_data_dir()):
         # Deleting previous folder
         print("Deleting ", RESOURCES_PATH)
         shutil.rmtree(RESOURCES_PATH)
-
-    shutil.copytree(os.path.join('gui', 'resources'), RESOURCES_PATH)
+    # Copy resources to RESOURCES_PATH
+    shutil.copytree(os.path.join('resources'), RESOURCES_PATH)
     print("Created resources folder on ", RESOURCES_PATH)
     for file in os.listdir(RESOURCES_PATH):
         if ".py" in file:

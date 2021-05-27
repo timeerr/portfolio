@@ -12,7 +12,7 @@ setup(name='portfolio',
       license='MIT',
       packages=find_packages(),
       entry_points={
-          'console_scripts': ['portfolio=gui.portfolio:main']
+          'console_scripts': ['portfolio=portfolio.portfolio:main']
       },
       install_requires=[
           'PyQt5 >= 5.13',
