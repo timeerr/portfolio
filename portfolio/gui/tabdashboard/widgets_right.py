@@ -180,18 +180,30 @@ class FilterLayout(QVBoxLayout):
         Parses all filters, and structures a query dictionary,
         then returns it
         """
+        # Check if startdate is before enddate
+        startdate = self.filter_period_start_date.date()
+        enddate = self.filter_period_end_date.date()
+        if startdate > enddate:
+            self.filter_period_start_date.setDate(enddate)
+            startdate = enddate
+
         self.query_data['fiataccs'] = [bttn.text()
                                        for bttn in self.fiataccount_buttons if bttn.isChecked() is True]
         self.query_data['cryptoaccs'] = [bttn.text()
                                          for bttn in self.cryptoaccount_buttons if bttn.isChecked() is True]
+        if len(self.query_data['fiataccs']) == 0:
+            self.query_data['fiataccs'] = [bttn.text()
+                                           for bttn in self.fiataccount_buttons]
+        if len(self.query_data['cryptoaccs']) == 0:
+            self.query_data['cryptoaccs'] = [bttn.text()
+                                             for bttn in self.cryptoaccount_buttons]
 
-        startdate = self.filter_period_start_date.date()
         self.query_data['startdate'] = datetime(
             startdate.year(), startdate.month(), startdate.day()).timestamp()
-        enddate = self.filter_period_end_date.date()
         self.query_data['enddate'] = datetime(
             enddate.year(), enddate.month(), enddate.day()).timestamp()
 
+        print(self.query_data)
         self.querysignal.newquery.emit(self.query_data)
 
     def set_ytd(self):
@@ -436,8 +448,6 @@ class QueryResultsWidget(QFrame):
 #        self.right_lyt_wrapper.setMinimumWidth(400)
 #        self.right_lyt_wrapper_lyt = QVBoxLayout()
         self.chart = TotalEquityChartView()
-        self.chart.setupChartWithData(
-            dbhandler.getWealthByDay(), linecolor='white')
         # self.right_lyt_wrapper_lyt.addWidget(self.chart)
         # self.right_lyt_wrapper.setLayout(self.right_lyt_wrapper_lyt)
 
@@ -470,8 +480,9 @@ class QueryResultsWidget(QFrame):
             self.endbalance.setText(f"0 {FIAT_CURRENCY.upper()}")
             self.drawdown.setText(f"0 %")
             self.drawdown_fiat.setText(f"0 {FIAT_CURRENCY.upper()}")
-            self.chart.setupChartWithData(
-                dbhandler.getWealthByDay(), linecolor='white')
+            wealthbyday = dbhandler.getWealthByDay(
+                fiataccs=None, cryptoaccs=None, startdate=query['startdate'], enddate=query['enddate'])
+            self.chart.setupChartWithData(wealthbyday, linecolor='white')
             return
 
         startbalance = int(wealthbyday[min(wealthbyday.keys())])

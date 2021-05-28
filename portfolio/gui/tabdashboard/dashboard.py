@@ -108,3 +108,6 @@ class TabDashboard(QWidget):
             self.queryresultswdgt.updateData)
 
         self.setLayout(self.mainlayout)
+
+        # Initialization
+        self.filterbuttons.sendQuery()
