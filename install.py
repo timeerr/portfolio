@@ -10,7 +10,7 @@ def install_dependencies():
 
 
 def initialize():
-    from portfolio import confighandler
+    from portfolio.utils import confighandler
     from appdirs import user_data_dir
     confighandler.initial_setup()
     CONFIG_PATH = confighandler.getConfigPath()
