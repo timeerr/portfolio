@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, Q
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QMargins, QSize, Qt
 
-from portfolio.db.fdbhandler import balances
 from portfolio.gui.ui_components.fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
 from portfolio.gui.tabaccounts.tabaccounts_toolbar import AccountsToolBar
 from portfolio.gui.tabaccounts.tabaccounts_layout import AccountsLayout

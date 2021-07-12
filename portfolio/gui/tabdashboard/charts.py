@@ -325,18 +325,18 @@ class DistributionPieChart(QChartView):
 
         # Get data
         if mode == "all":
-            data = balances.getAllAccounts(
-            ) + cbalances.getAllAccountsWithAmount_fiat()
+            data = balances.get_all_accounts(
+            ) + cbalances.get_all_accounts_with_amount_fiat()
 
         elif mode == "accounts":
-            data = balances.getAllAccounts()
+            data = balances.get_all_accounts()
 
         elif mode == "crypto":
-            data = cbalances.getAllAccountsWithAmount_fiat()
+            data = cbalances.get_all_accounts_with_amount_fiat()
 
         elif mode == "currency":
-            data = [(confighandler.get_fiat_currency().upper(), balances.getTotalBalanceAllAccounts(
-            )),  ("BTC", cbalances.getTotalBalanceAllAccounts_fiat())]
+            data = [(confighandler.get_fiat_currency().upper(), balances.get_total_balance_all_accounts(
+            )),  ("BTC", cbalances.get_total_balance_all_accounts_fiat())]
 
         # Sort
         data.sort(key=lambda x: x[1])

@@ -44,7 +44,7 @@ class AddTransactionsForm(QVBoxLayout):
         self.senderaccount_select.setEditable(True)
         self.senderaccount_select.setDuplicatesEnabled(False)
         currentaccounts = [a[0]
-                           for a in balances.getAllAccounts()]
+                           for a in balances.get_all_accounts()]
         self.senderaccount_select.addItems(currentaccounts)
 
         self.line2 = QHBoxLayout()
@@ -59,7 +59,7 @@ class AddTransactionsForm(QVBoxLayout):
         self.receiveraccount_select.setEditable(True)
         self.receiveraccount_select.setDuplicatesEnabled(False)
         currentaccounts = [a[0]
-                           for a in balances.getAllAccounts()]
+                           for a in balances.get_all_accounts()]
         self.receiveraccount_select.addItems(currentaccounts)
         self.receiveraccount_select.setCurrentIndex(1)
 
@@ -154,16 +154,16 @@ class AddTransactionsForm(QVBoxLayout):
             self.currenttype = 0
 
         # If there is a new account involved, it should be created first
-        all_accounts = [i[0] for i in balances.getAllAccounts()]
+        all_accounts = [i[0] for i in balances.get_all_accounts()]
         if self.current_senderaccount not in all_accounts:
-            balances.addAccount(self.current_senderaccount, 0)
+            balances.add_account(self.current_senderaccount, 0)
         if self.current_receiveraccount not in all_accounts:
-            balances.addAccount(self.current_receiveraccount, 0)
+            balances.add_account(self.current_receiveraccount, 0)
 
         # Adding the transaction on db
-        transactions.addTransaction(self.current_date, self.current_senderaccount,
-                                    self.current_amount, self.current_receiveraccount,
-                                    self.currenttype, description=self.description_edit.text())
+        transactions.add_transaction(self.current_date, self.current_senderaccount,
+                                     self.current_amount, self.current_receiveraccount,
+                                     self.currenttype, description=self.description_edit.text())
 
     def handlechecks(self, state):
         """

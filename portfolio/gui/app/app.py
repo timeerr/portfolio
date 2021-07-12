@@ -16,45 +16,38 @@ from portfolio.gui.app.statusbar import StatusBar
 from portfolio.gui.app.mainwidget import MainWidget
 
 
-CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.config', 'portfolio')
-CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
-    '~'), '.config', 'portfolio', 'config.ini')
-
-
 class MainWindow(QMainWindow):
-
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle(self.tr("Portfolio"))
         self.showMaximized()
-        #self.setGeometry(500, 300, 1000, 600)
 
         self.welcomewidget = WelcomeWidget(self)
         self.welcomewidget.portfolioselected.selected.connect(
             self.endWelcomeWidget)
-        # self.welcomewidget.continue_bttn.clicked.connect(self.endWelcomeWidget)
         self.setCentralWidget(self.welcomewidget)
 
     def endWelcomeWidget(self, portfolioname):
-        """ 
-        When the user selects a portfolio, the welcomewidget closes 
+        """
+        When the user selects a portfolio, the welcomewidget closes.
         Parameters:
             - portfolioname: name of portfolio to be opened
         """
         self.setWindowTitle(portfolioname)
         self.setCentralWidget(MainWidget(self))
+
         self.welcomewidget.deleteLater()
+
         self.statusbar = StatusBar()
         self.setStatusBar(self.statusbar)
 
     def closeEvent(self, event):
         """Making sure that the database is properly updated before closing the app"""
-        # Before closeing, we update balances on balancehistory
         print("App Closed, updating database ...")
-        historicalbalances.addTodaysBalances()
-        costbasis.updateCostBasis()
-        chistoricalbalances.addTodaysBalances()
+        historicalbalances.add_todays_balances()
+        costbasis.update_cost_basis()
+        chistoricalbalances.add_todays_balances()
 
 
 class PreferencesSelection(QDialog):

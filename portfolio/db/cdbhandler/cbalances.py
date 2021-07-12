@@ -8,523 +8,292 @@ import os
 
 from portfolio.utils.prices import prices
 from portfolio.utils import confighandler
-
-PATH_TO_DB = os.path.join('database', 'cportfolio.db')
-
-
-def create_connection(path_to_db=PATH_TO_DB):
-    """Connects to the database on a certain path, returning the connection"""
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
+from portfolio.db.dbutils import DBHandler, create_connection_c as create_connection
 
 
-def addAccount(account, token, amount, _type, kyc, description):
+def add_account(account: str, token: str, amount: float, _type: str, kyc: str, description: str):
+    """ Adds account to database """
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
         add_account_query = """INSERT INTO 'cbalances'
             ('account','token','amount','type','kyc','description')
             VALUES (?,?,?,?,?,?);"""
-
         try:
             cursor.execute(add_account_query,
                            (account, token, amount, _type, kyc, description))
+            conn.commit()
             print("Added new account '{}' ('{}') on database".format(account, token))
-
+            return cursor.lastrowid
         except sqlite3.IntegrityError:
             print("Account ", account, " with token ",
                   token, "already exists")
-            return "Already Exists"
-
-        conn.commit()
-
-        return cursor.lastrowid
+        return None
 
 
-def deleteAccount(account_name, token_name):
+def delete_account(account_name: str, token_name: str):
+    """Deletes the account with name=account_name and token=token_name"""
     token_name = token_name.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        delete_account_query = """DELETE FROM cbalances WHERE account= '{}' AND token= '{}'""".format(
-            account_name, token_name)
-        cursor.execute(delete_account_query)
-
+        cursor.execute(
+            f"DELETE FROM cbalances WHERE account= '{account_name}' AND token= '{token_name}'")
         conn.commit()
 
 
-def editAccount(account_name, new_account_name=None, new_token_name=None):
-    conn = create_connection()
-
-    if new_token_name is not None:
-        new_token_name = new_token_name.lower()
-
-    with conn:
-        cursor = conn.cursor()
-
-        if new_account_name is not None:
-            edit_account_query = """UPDATE cbalances SET account = '{}' WHERE account = '{}' """.format(
-                new_account_name, account_name)
-            cursor.execute(edit_account_query)
-
-        if new_token_name is not None:
-            edit_token_query = """UPDATE cbalances SET token = '{}' WHERE token = '{}' """.format(
-                new_token_name, account_name)
-            cursor.execute(edit_token_query)
-
-        conn.commit()
+def edit_account(account_name: str, new_account_name: str = None, new_token_name: str = None):
+    raise NotImplementedError
 
 
-def getEntriesWithAccount(account):
+def get_entries_with_account(account: str):
     """Returns all entries from an account"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_account_query = "SELECT * FROM cbalances WHERE account= '{}'".format(
-            account)
-
-        cursor.execute(get_account_query)
-
-        result = cursor.fetchall()
-        return result
+        cursor.execute(f"SELECT * FROM cbalances WHERE account= '{account}'")
+        return cursor.fetchall()
 
 
-def getTokensFromAccount(account):
+def get_tokens_from_account(account: str):
     """Returns all tokens from an account"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_account_query = "SELECT token FROM cbalances WHERE account= '{}'".format(
-            account)
-
-        cursor.execute(get_account_query)
-
-        result = [i[0] for i in cursor.fetchall()]
-        return result
+        cursor.execute(
+            f"SELECT token FROM cbalances WHERE account= '{account}'")
+        return [i[0] for i in cursor.fetchall()]
 
 
-def getEntriesWithToken(token):
+def get_entries_with_token(token: str):
     """Returns all rows where a token is involved"""
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_token_query = "SELECT * FROM cbalances WHERE token= '{}'".format(
-            token)
-
-        cursor.execute(get_token_query)
-
-        result = cursor.fetchall()
-        return result
+        cursor.execute(f"SELECT * FROM cbalances WHERE token= '{token}'")
+        return cursor.fetchall()
 
 
-def getTotalTokenBalance(token):
+def get_total_token_balance(token: str):
     """Sums all token balances from all accounts"""
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_all_token_balances_query = """SELECT amount FROM cbalances WHERE token = '{}'""".format(
-            token)
-
-        cursor.execute(get_all_token_balances_query)
+        cursor.execute(
+            f"""SELECT amount FROM cbalances WHERE token = '{token}'""")
         result = cursor.fetchall()
-
-        totaltokenbalance = 0
-        for r in result:
-            totaltokenbalance += r[0]
-
-        return totaltokenbalance
+        return sum([r[0] for r in result])
 
 
-def getTotalTokenBalance_fiat(token):
+def get_total_token_balance_fiat(token: str):
     """
     Sums all token balances from all accounts
     Expressed in fiat"""
-    result_btc = getTotalTokenBalance(token)
-    return prices.btcToFiat(result_btc)
+    return prices.btc_to_fiat(get_total_token_balance(token))
 
 
-def getAllAccounts():
-    """Returns a listwith all accounts on cbalances"""
+def get_all_accounts():
+    """Returns a list with all accounts on cbalances"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_all_accounts_query = "SELECT account FROM cbalances"
-
-        cursor.execute(get_all_accounts_query)
-
-        result = cursor.fetchall()
-        result_no_duplicates = []
-
-        for r in result:
-            r = r[0]
-            if r not in result_no_duplicates:
-                result_no_duplicates.append(r)
-
-        return result_no_duplicates
+        cursor.execute("SELECT account FROM cbalances")
+        result = [d[0] for d in cursor.fetchall()]
+        return list(set(result))  # No duplicates
 
 
-def getAllAccountsWithToken():
+def get_all_accounts_with_token():
     """Returns a list with all (account,token) tuples on cbalances"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_all_accounts_query = "SELECT account,token FROM cbalances"
-
-        cursor.execute(get_all_accounts_query)
-
+        cursor.execute("SELECT account,token FROM cbalances")
         return cursor.fetchall()
 
 
-def getAllTokens():
+def get_all_tokens():
     """Returns a list with all tokens"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_all_tokens_query = "SELECT token FROM cbalances"
-        cursor.execute(get_all_tokens_query)
-
-        result = cursor.fetchall()
-        result_no_duplicates = []
-
-        for r in result:
-            r = r[0]
-            if r not in result_no_duplicates:
-                result_no_duplicates.append(r)
-
-        return result_no_duplicates
+        cursor.execute("SELECT token FROM cbalances")
+        result = [d[0] for d in cursor.fetchall()]
+        return list(set(result))  # No duplicates
 
 
-def getAllTokensWithAmount():
-    """Returns a dict with each full token balance from each token"""
+def get_all_tokens_with_amount():
+    """Returns tuples as (token, total token amount)"""
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_all_tokens_and_amounts_query = "SELECT token, amount FROM cbalances"
-        cursor.execute(get_all_tokens_and_amounts_query)
-
-        result = cursor.fetchall()
-        result_dict = {}
-        final_result = []
-        for r in result:
-            token = r[0]
-            amount = r[1]
-            if token in result_dict.keys():
-                result_dict[token] += amount
-            else:
-                result_dict[token] = amount
-
-        for r in result_dict:
-            final_result.append((r, result_dict[r]))
-
-        return final_result
-
-
-def getAllAccountsWithAmount():
-    """ Returns a dict with each full account balance """
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_all_accounts_and_amounts_query = "SELECT account, token,amount FROM cbalances"
-        cursor.execute(get_all_accounts_and_amounts_query)
-
-        result = cursor.fetchall()
-        result_dict = {}
-        final_result = []
-        for r in result:
-            account = r[0]
-            token = r[1]
-            amount = r[2]
-            amount_btc = float(prices.toBTC(token, amount))
-            if account in result_dict.keys():
-                # We add the amount to the account
-                result_dict[account] += amount_btc
-            else:
-                result_dict[account] = amount_btc
-
-        for r in result_dict:
-            final_result.append((r, result_dict[r]))
-
-        return final_result
-
-
-def getAllAccountsWithAmount_fiat():
-    """ Returns a dict with each full account balance """
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_all_accounts_and_amounts_query = "SELECT account, token,amount FROM cbalances"
-        cursor.execute(get_all_accounts_and_amounts_query)
-
-        result = cursor.fetchall()
-        result_dict = {}
-        final_result = []
-        for r in result:
-            account = r[0]
-            token = r[1]
-            amount = r[2]
-            amount_btc = float(prices.toBTC(token, amount))
-            amount_fiat = prices.btcToFiat(
-                amount_btc, confighandler.get_fiat_currency())
-            if account in result_dict.keys():
-                # We add the amount to the account
-                result_dict[account] += amount_fiat
-            else:
-                result_dict[account] = amount_fiat
-
-        for r in result_dict:
-            final_result.append((r, result_dict[r]))
-
-        return final_result
-
-
-def getAccountWithToken(account, token):
-    token = token.lower()
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_account_with_token_query = "SELECT * FROM cbalances WHERE token= '{}' AND account='{}'".format(
-            token, account)
-
-        cursor.execute(get_account_with_token_query)
-
-        result = cursor.fetchall()
-        if result == []:
-            return None
-        return result[0]
-
-
-def getAllEntries():
-    """Returns all entries on cbalances"""
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_all_accounts_query = "SELECT * FROM cbalances"
-
-        cursor.execute(get_all_accounts_query)
-
+        cursor.execute(
+            """SELECT token, SUM(amount) as sum_amount FROM cbalances GROUP BY token""")
         return cursor.fetchall()
 
 
-def updateBalance(account, token, newbalance):
+def get_all_accounts_with_amount():
+    """ Returns tuples as (account, total amount in btc)"""
+    conn = create_connection()
+    with conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """SELECT account,token,amount FROM cbalances """)
+        result = cursor.fetchall()
+        # Convert to BTC
+        accounts = {d[0]: 0 for d in result}
+        for r in result:
+            acc, token, amount = r
+            accounts[acc] += prices.to_btc(token, amount)
+        return [(acc, accounts[acc]) for acc in accounts]
+
+
+def get_all_accounts_with_amount_fiat():
+    """ Returns tuples as (account, total amount in fiat)"""
+    data = get_all_accounts_with_amount()
+    return [(d[0], prices.btc_to_fiat(d[1])) for d in data]
+
+
+def get_account_with_token(account: str, token: str):
+    """Returns data from a specific account-token combination"""
+    token = token.lower()
+    conn = create_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT * FROM cbalances WHERE token= '{token}' AND account='{account}'")
+        result = cursor.fetchall()
+        return result[0] if result != [] else None
+
+
+def get_all_entries():
+    """Returns all entries on cbalances"""
+    conn = create_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM cbalances")
+        return cursor.fetchall()
+
+
+def update_balance(account: str, token: str, newbalance: float):
     """ Changes balance for a specific account with a specific token """
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        update_balance_query = "UPDATE cbalances SET amount = {} WHERE account = '{}' AND token = '{}' ".format(newbalance,
-                                                                                                                account, token)
-        cursor.execute(update_balance_query)
-
+        cursor.execute(
+            f"UPDATE cbalances SET amount = {newbalance} WHERE account = '{account}' AND token = '{token}' ")
         conn.commit()
 
 
-def updateType(account, token, newtype):
+def update_type(account: str, token: str, newtype: str):
     """ Changes type for a specific account with a specific token """
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        update_type_query = "UPDATE cbalances SET type = '{}' WHERE account = '{}' AND token = '{}' ".format(newtype,
-                                                                                                             account, token)
-        cursor.execute(update_type_query)
-
+        cursor.execute(
+            f"UPDATE cbalances SET type = '{newtype}' \
+            WHERE account= '{account}' AND token = '{token}' ")
         conn.commit()
 
 
-def updateKYC(account, token, newkyc):
+def update_kyc(account: str, token: str, newkyc: str):
     """ Changes kyc for a specific account with a specific token """
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        update_kyc_query = "UPDATE cbalances SET kyc = '{}' WHERE account = '{}' AND token = '{}' ".format(newkyc,
-                                                                                                           account, token)
-        cursor.execute(update_kyc_query)
-
+        cursor.execute(
+            f"UPDATE cbalances SET kyc = '{newkyc}' WHERE account = '{account}' AND token = '{token}' ")
         conn.commit()
 
 
-def updateDescription(account, token, newdescription):
+def update_description(account: str, token: str, newdescription: str):
     """ Changes description for a specific account with a specific token """
     token = token.lower()
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        update_description_query = "UPDATE cbalances SET description = '{}' WHERE account = '{}' AND token = '{}' ".format(newdescription,
-                                                                                                                           account, token)
-        cursor.execute(update_description_query)
-
+        cursor.execute(
+            f"UPDATE cbalances SET description = '{newdescription}' WHERE account = '{account}' AND token = '{token}' ")
         conn.commit()
 
 
-def getType(account, token):
-    """ Returns the type of the account with a certain token """
-    token = token.lower()
+def _get(account: str, token: str, item: str):
+    """
+    Retuns a specific item from an entry with a certain account-token
+    combination
+    """
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_type_query = "SELECT type from cbalances WHERE account = '{}' AND token = '{}'".format(
-            account, token)
-
-        cursor.execute(get_type_query)
-
+        cursor.execute(
+            f"SELECT {item.lower()} from cbalances WHERE account = '{account}' AND token = '{token.lower()}'")
         try:
             return cursor.fetchall()[0][0]
         except IndexError:
-            raise IndexError(f"Could not find type of {account},{token}")
+            raise IndexError(f"Could not find {item} of {account},{token}")
 
 
-def getKYC(account, token):
-    """ Returns the kyc of the account with a certain token """
-    token = token.lower()
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_kyc_query = "SELECT kyc from cbalances WHERE account = '{}' AND token = '{}'".format(
-            account, token)
-
-        cursor.execute(get_kyc_query)
-
-        return cursor.fetchall()[0][0]
+def get_type(account: str, token: str):
+    """ Returns the type of the account with a certain token """
+    return _get(account, token, 'type')
 
 
-def getDescription(account, token):
+def get_kyc(account: str, token: str):
+    return _get(account, token, 'kyc')
+
+
+def get_description(account: str, token: str):
     """ Returns the description of the account with a certain token """
-    token = token.lower()
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_description_query = "SELECT description from cbalances WHERE account = '{}' AND token = '{}'".format(
-            account, token)
-
-        cursor.execute(get_description_query)
-
-        return cursor.fetchall()[0][0]
+    return _get(account, token, 'description')
 
 
-def getBalance(account, token):
+def get_balance(account: str, token: str):
     """ Returns the balance of the account with a certain token """
-    token = token.lower()
-    conn = create_connection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        get_balance_query = "SELECT amount FROM cbalances WHERE account = '{}' AND token = '{}'".format(
-            account, token)
-
-        cursor.execute(get_balance_query)
-
-        return cursor.fetchall()[0][0]
+    return _get(account, token, 'amount')
 
 
-def getTotalAccountBalance(account):
+def get_total_account_balance(account: str):
     """
     Returns the total balance from all tokens from a certain account
     expressed in btc
     """
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_total_account_balance = f"SELECT token,amount FROM cbalances WHERE account = '{account}'"
-        cursor.execute(get_total_account_balance)
-
+        cursor.execute(
+            f"SELECT token,amount FROM cbalances WHERE account = '{account}'")
         result = cursor.fetchall()
-
-        totalaacountbalance_btc = 0
-        for entry in result:
-            token = entry[0]
-            amount = entry[1]
-
-            totalaacountbalance_btc += prices.toBTC(token, amount)
-
-        return totalaacountbalance_btc
+        return sum([prices.to_btc(d[0], d[1]) for d in result])
 
 
-def getTotalAccountBalance_fiat(account):
+def get_total_account_balance_fiat(account):
     """
     Returns the total balance from all tokens from a certain account
     expressed in fiat
     """
-    totalaacountbalance_btc = getTotalAccountBalance(account)
-    return prices.btcToFiat(totalaacountbalance_btc, currency=confighandler.get_fiat_currency())
+    return prices.btc_to_fiat(get_total_account_balance(account))
 
 
-def getTotalBalanceAllAccounts():
+def get_total_balance_all_accounts():
     """
     Returns the sum of all the balances of all the accounts on this table
+    expressed in btc
     """
     conn = create_connection()
-
     with conn:
         cursor = conn.cursor()
-
-        get_total_balances_all_accs_query = "SELECT token,amount FROM cbalances"
-
-        cursor.execute(get_total_balances_all_accs_query)
-        result_list = cursor.fetchall()
-        cumsum = 0
-        for token, amount in result_list:
-            cumsum += prices.toBTC(token, amount)
-
-        return cumsum
+        cursor.execute("SELECT token,amount FROM cbalances")
+        return sum(prices.to_btc(d[0], d[1]) for d in cursor.fetchall())
 
 
-def getTotalBalanceAllAccounts_fiat():
+def get_total_balance_all_accounts_fiat():
     """
     Returns the sum of all the balances of all the accounts on this table
     """
-    return prices.btcToFiat(getTotalBalanceAllAccounts(), confighandler.get_fiat_currency())
+    return prices.btc_to_fiat(get_total_balance_all_accounts())

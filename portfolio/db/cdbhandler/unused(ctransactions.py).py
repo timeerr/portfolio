@@ -8,31 +8,17 @@ import sqlite3
 import os
 
 from portfolio.db.cdbhandler import cbalances
+from portfolio.db.dbutils import DBHandler, create_connection_c as create_connection
 
 
-PATH_TO_DB = os.path.join('database', 'cportfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-    return conn
-
-
-def addTransaction(date, account_send, token, amount, account_receive, depositwithdrawal):
-    conn = createConnection()
-
+def add_transaction(date, account_send: str, token: str, amount: float, account_receive: str, depositwithdrawal: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
         # If accounts do not exist, they get created
-        account_send_exists = cbalances.getAccountWithToken(
+        account_send_exists = cbalances.get_account_with_token(
             account_send, token)
-        account_receive_exists = cbalances.getAccountWithToken(
+        account_receive_exists = cbalances.get_account_with_token(
             account_receive, token)
         if account_send_exists == [] and account_receive_exists == []:
             print(
@@ -61,7 +47,7 @@ def addTransaction(date, account_send, token, amount, account_receive, depositwi
 
 
 def deleteTransaction(transactionid):
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -89,7 +75,7 @@ def deleteTransaction(transactionid):
 def getTransactions_All():
     """ Returns all transactions """
 
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -103,7 +89,7 @@ def getTransactions_All():
 def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1), senderaccount="All", receiveraccount="All"):
     """ Executing query to return rows with each result that satisfies the args """
 
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -128,7 +114,7 @@ def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime
 def getAllSenderAccounts():
     """ Returns all accounts that have been senders on the db """
 
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()
@@ -143,7 +129,7 @@ def getAllSenderAccounts():
 def getAllReceiverAccounts():
     """ Returns all receive accounts from db """
 
-    conn = createConnection()
+    conn = create_connection()
 
     with conn:
         cursor = conn.cursor()

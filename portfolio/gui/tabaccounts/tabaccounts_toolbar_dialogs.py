@@ -115,7 +115,7 @@ class EditAccountDialog(QDialog):
 
     def fillFields(self, account_name):
         """ Fill Form fields with current combobox selection """
-        account_balance = balances.getAccount(account_name)
+        account_balance = balances.get_account(account_name)
         if account_balance != []:
             account_balance = account_balance[1]
         self.name_change_field.setText(account_name)
@@ -125,8 +125,8 @@ class EditAccountDialog(QDialog):
         # Edit account on Database
         accountname = self.account_selection_combobox.currentText()
         new_accountname = self.name_change_field.text()
-        balances.editAccount(accountname, new_accountname)
-        costbasis.editCostBasis(accountname, new_accountname)
+        balances.edit_account(accountname, new_accountname)
+        costbasis.edit_cost_basis(accountname, new_accountname)
 
         self.customSignal.accountEdited.emit([
             self.account_selection_combobox.currentText(), self.name_change_field.text()])  # Triggered with name change info so that the account label can be changed from the outside
@@ -147,7 +147,7 @@ class RemoveAccountDialog(QDialog):
         # Account Name
         self.name = QLabel(self.tr("Account Name"))
         self.name_select = QComboBox()
-        for acc in balances.getAllAccounts():
+        for acc in balances.get_all_accounts():
             self.name_select.addItem(acc[0])
 
         self.formlayout.setWidget(0, self.formlayout.LabelRole, self.name)
@@ -206,7 +206,7 @@ class RemoveAccountWarning(QDialog):
 
     def removeAccount(self):
         # Remove from Database
-        balances.deleteAccount(self.selected_account)
+        balances.delete_account(self.selected_account)
 
         # Remove from GUI
         """ For now, it will be required to restart the app for the changes to take effect """

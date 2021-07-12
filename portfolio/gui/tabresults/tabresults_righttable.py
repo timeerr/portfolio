@@ -64,7 +64,7 @@ class RightTable(QTableWidget):
             ["id", self.tr("Date"), self.tr("Account"), self.tr("Strategy"), self.tr("Amount"), self.tr("Description")])
 
         # Get desired data from db
-        results_to_show = results.getResults_fromQuery(
+        results_to_show = results.get_results_from_query(
             start_date=startdate, end_date=enddate, strategy=strategy, account=account)
 
         # If the data is empty, we are done
@@ -130,7 +130,7 @@ class RightTable(QTableWidget):
 
         # Removing the rows from the table and the database
         for index, id_db in zip(selected_indexes_table, selected_ids):
-            results.deleteResult(id_db)
+            results.delete_result(id_db)
             self.removeRow(index)
 
         print("Removed rows with ids on db : ", selected_ids,
@@ -138,7 +138,7 @@ class RightTable(QTableWidget):
 
     def changeCellOnDatabase(self, row, column):
         """
-        When a Table Item is edited by the user, 
+        When a Table Item is edited by the user,
         we want to check if it fits the type
         and edit it on the database too
         """
@@ -172,8 +172,8 @@ class RightTable(QTableWidget):
             # The new text has to be a date
             try:
                 new_date = datetime.strptime(new_item_data, "%d-%m-%Y")
-                results.updateResult(
-                    database_entry_id, newdate=new_date.timestamp())
+                results.update_result(
+                    database_entry_id, new_date=new_date.timestamp())
 
             except ValueError:
                 error_mssg = QMessageBox()
@@ -183,7 +183,7 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset date to previous one
-                previous_date_timestamp = results.getResultDateById(
+                previous_date_timestamp = results.get_result_date_by_id(
                     database_entry_id)
                 previous_date_text = datetime.fromtimestamp(
                     previous_date_timestamp).strftime("%d-%m-%Y")
@@ -194,8 +194,8 @@ class RightTable(QTableWidget):
         # -------------- Account --------------------
         elif columnselected_name == self.tr("Account"):
             # The account has to be an existing one
-            all_accounts = [a[0] for a in balances.getAllAccounts()]
-            previous_account = results.getResultAccountById(
+            all_accounts = [a[0] for a in balances.get_all_accounts()]
+            previous_account = results.get_result_account_by_id(
                 database_entry_id)
 
             if new_item_data not in all_accounts:
@@ -213,21 +213,21 @@ class RightTable(QTableWidget):
             else:
                 # The data is good
                 # Change the result on the results table on the db
-                results.updateResult(
-                    database_entry_id, newaccount=new_item_data)
+                results.update_result(
+                    database_entry_id, new_account=new_item_data)
                 # Update the balance of the two accounts involved,
                 # according to the result amount
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     previous_account, - previous_amount)
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     new_item_data, previous_amount)
 
         # -------------- Strategy --------------------
         elif columnselected_name == self.tr("Strategy"):
             # The strategy has to be an existing one
-            previous_strategy = results.getResultStrategyById(
+            previous_strategy = results.get_result_strategy_by_id(
                 database_entry_id)
-            all_strategies = [s[0] for s in strategies.getAllStrategies()]
+            all_strategies = [s[0] for s in strategies.get_all_strategies()]
 
             if new_item_data not in all_strategies:
                 error_mssg = QMessageBox()
@@ -247,9 +247,9 @@ class RightTable(QTableWidget):
                     database_entry_id, newstrategy=new_item_data)
                 # Update the pnl of the two strategies involved,
                 # according to the result amount
-                strategies.updateStrategies_withNewResult(
+                strategies.update_strategies_with_new_result(
                     previous_strategy, - previous_amount)
-                strategies.updateStrategies_withNewResult(
+                strategies.update_strategies_with_new_result(
                     new_item_data, previous_amount)
 
         # -------------- Amount --------------------
@@ -258,19 +258,19 @@ class RightTable(QTableWidget):
             try:
                 new_item_data = int(new_item_data)
                 # Change the result on the results table of the db
-                results.updateResult(
-                    database_entry_id, newamount=new_item_data)
+                results.update_result(
+                    database_entry_id, new_amount=new_item_data)
                 # Update the balances and strategies with the difference
                 # between the old and the new result
                 diff_betweeen_results = new_item_data - previous_amount
-                account_involved = results.getResultAccountById(
+                account_involved = results.get_result_account_by_id(
                     database_entry_id)
-                strategy_involved = results.getResultStrategyById(
+                strategy_involved = results.get_result_strategy_by_id(
                     database_entry_id)
 
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     account_involved, diff_betweeen_results)
-                strategies.updateStrategies_withNewResult(
+                strategies.update_strategies_with_new_result(
                     strategy_involved, diff_betweeen_results)
 
             except Exception:
@@ -281,7 +281,7 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset to previous amount
-                previous_amount = results.getResultAmountById(
+                previous_amount = results.get_result_amount_by_id(
                     database_entry_id)
                 self.updatingdata_flag = True
                 new_item.setData(0, previous_amount)
@@ -290,8 +290,8 @@ class RightTable(QTableWidget):
         # -------------- Description --------------------
         elif columnselected_name == self.tr("Description"):
             # A description can be any data. So no checks
-            results.updateResult(
-                database_entry_id, newdescription=new_item_data)
+            results.update_result(
+                database_entry_id, new_description=new_item_data)
 
 
 class LineRemoved(QObject):

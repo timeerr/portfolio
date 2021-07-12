@@ -5,164 +5,109 @@ Handles all the input and output operations that use the balances table from por
 
 import sqlite3
 import os
+import logging
 
 from portfolio.db.fdbhandler import costbasis
-
-PATH_TO_DB = os.path.join('database', 'portfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    """Connects to the database on a certain path, returning the connection"""
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
+from portfolio.db.dbutils import create_connection_f as create_connection
 
 
-def addAccount(new_account, starting_amount):
-    conn = createConnection()
-
+def add_account(new_account: str, starting_amount: float):
+    """
+    Adds account to database.
+    If it already exists, skips.
+    """
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        add_account_query = """INSERT INTO 'balances'
+        query = """INSERT INTO 'balances'
             ('account','amount')
             VALUES (?,?);"""
-
         try:
-            cursor.execute(add_account_query,
+            cursor.execute(query,
                            (new_account, starting_amount))
-            print("Added new account '{}' on database".format(new_account))
+            logging.info(
+                "Added new account '{}' on database".format(new_account))
 
         except sqlite3.IntegrityError:
-            print("Account ", new_account, "already exists")
-            return "Already Exists"
-
+            logging.warning(f"Account {new_account} already exists")
+            return
         conn.commit()
-
-        # A new cost basis associated with this account has to be added
-        costbasis.addCostBasis(new_account, starting_amount)
-
-        return cursor.lastrowid
+    # A new cost basis associated with this account has to be added
+    costbasis.add_cost_basis(new_account, starting_amount)
 
 
-def deleteAccount(account_name):
-    conn = createConnection()
-
+def delete_account(account_name: str):
+    """Removes account from database"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        delete_account_query = """DELETE FROM balances WHERE account= '{}' """.format(
-            account_name)
-        cursor.execute(delete_account_query)
-
+        cursor.execute(f"DELETE FROM balances WHERE account= '{account_name}'")
         conn.commit()
 
 
-def editAccount(account_name, new_account_name):
-    conn = createConnection()
-
+def edit_account(account: str, new_name: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        edit_account_query = """UPDATE balances SET account = '{}' WHERE account = '{}' """.format(
-            new_account_name, account_name)
-        cursor.execute(edit_account_query)
-
+        cursor.execute(
+            f"UPDATE balances SET account = '{new_name}' WHERE account = '{account}' ")
         conn.commit()
 
 
-def updateBalances_withNewResult(account, amount):
-    """Adds the new result to the specific acccount involved, updating its balance"""
-    print("Updating balance from account ", account, " with amount ", amount)
-    conn = createConnection()
-
+def update_balances_with_new_result(account: str, amount: float):
+    """Adds the new result to the specific account involved, updating its balance"""
+    if isinstance(amount, str):
+        amount = int(
+            (round(float(amount[:-2]), 0)) if '.' in amount else amount)
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        currentbalance = getAccount(account)[1]
-        if isinstance(amount, str):
-            if '.' in amount:
-                amount = int(round(float(amount[:-2]), 0))
-            else:
-                amount = int(amount)
-
-        update_balance_with_new_result_query = "UPDATE balances SET amount = {} WHERE account = '{}'".format(
-            currentbalance+amount, account)
-        print(update_balance_with_new_result_query)
-
-        cursor.execute(update_balance_with_new_result_query)
-
+        current_balance = get_account(account)[1]
+        new_balance = current_balance + amount
+        cursor.execute(
+            f"UPDATE balances SET amount = {new_balance} WHERE account = '{account}'")
         conn.commit()
 
 
-def getAccount(account):
-    conn = createConnection()
-
+def get_account(account: str):
+    """Returns account entry"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_account_query = "SELECT * FROM balances WHERE account= '{}'".format(
-            account)
-
-        cursor.execute(get_account_query)
-
+        cursor.execute(f"SELECT * FROM balances WHERE account= '{account}'")
         result = cursor.fetchall()
-        if result == []:
-            return result
-        return result[0]
+        return result if result == [] else result[0]
 
 
-def getAccountBalance(account):
-    conn = createConnection()
+def get_account_balance(account: str):
+    """Returns account balance"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_account_query = "SELECT amount FROM balances WHERE account= '{}'".format(
-            account)
-
-        cursor.execute(get_account_query)
-
+        cursor.execute(
+            f"SELECT amount FROM balances WHERE account= '{account}'")
         result = cursor.fetchall()
-        return result[0][0]
+        return result[0][0] if result != [] else result
 
 
-def getAllAccounts():
-    conn = createConnection()
-
+def get_all_accounts():
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_all_accounts_query = "SELECT * FROM balances"
-
-        cursor.execute(get_all_accounts_query)
-
+        cursor.execute("SELECT * FROM balances")
         return cursor.fetchall()
 
 
-def getAllAccountNames():
-    return [i[0] for i in getAllAccounts()]
+def get_all_account_names():
+    return [i[0] for i in get_all_accounts()]
 
 
-def getTotalBalanceAllAccounts():
+def get_total_balance_all_accounts():
     """
     Returns the sum of all the balances of all the accounts on this table
     """
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_total_balances_all_accs_query = "SELECT amount FROM balances"
-
-        cursor.execute(get_total_balances_all_accs_query)
-        result_list = [i[0] for i in cursor.fetchall()]
-
-        # Computing the sum
-        result = sum(result_list)
-
-        return result
+        cursor.execute("SELECT amount FROM balances")
+        return sum([i[0] for i in cursor.fetchall()])

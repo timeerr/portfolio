@@ -2,161 +2,109 @@
 """
 Handles all the input and output operations that use the costbasis table from portfolio.db
 """
-
-import sqlite3
 import os
+import logging
+import sqlite3
 
 from portfolio.db.fdbhandler import transactions
-
-PATH_TO_DB = os.path.join('database', 'portfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
+from portfolio.db.dbutils import create_connection_f as create_connection
 
 
-def addCostBasis(new_account, starting_costbasis):
-    conn = createConnection()
+def add_cost_basis(new_account: str, starting_costbasis: float):
+    """ Adds new account with an initial costbasis """
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        add_cb_query = """INSERT INTO 'costbasis'
+        query = """INSERT INTO 'costbasis'
             ('account','amount')
             VALUES (?,?);"""
-
         try:
-            cursor.execute(add_cb_query,
+            cursor.execute(query,
                            (new_account, starting_costbasis))
-            print("Added new account's '{}' costbasis on database".format(new_account))
-
+            logging.info(
+                f"Added new account's '{new_account}' costbasis on database")
         except sqlite3.IntegrityError:
-            print("Account ", new_account, " cost basis already exists")
-            return "Already Exists"
-
-        conn.commit()
-
-        return cursor.lastrowid
-
-
-def editCostBasis(account_name, new_account_name):
-    conn = createConnection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        edit_account_query = """UPDATE costbasis SET account = '{}' WHERE account = '{}' """.format(
-            new_account_name, account_name)
-        cursor.execute(edit_account_query)
-
+            logging.warning(f"Account {new_account} cost basis already exists")
+            return
         conn.commit()
 
 
-def updateCostBasis_withNewTransaction(account, amount):
-    """Adds the new transaction to the specific account involved, updating its cost basis"""
-    conn = createConnection()
-
+def edit_cost_basis(new_name: str, account: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        currentbalance = getCostBasis(account)
-        if isinstance(amount, str):
-            if '.' in amount:
-                amount = int(round(float(amount[:-2]), 0))
-            else:
-                amount = int(amount)
-
-        update_cb_with_new_result_query = "UPDATE costbasis SET amount = {} WHERE account = '{}'".format(
-            currentbalance+amount, account)
-
-        cursor.execute(update_cb_with_new_result_query)
-
+        cursor.execute(
+            f"UPDATE costbasis SET account = '{new_name}' WHERE account = '{account}' ")
         conn.commit()
 
 
-def updateCostBasis():
-    """Reads all transactions, and sums deposits and withdrawal to update each account's cost basis"""
-
-    conn = createConnection()
-
+def update_cost_basis_with_new_transaction(account: str, amount: str):
+    """
+    Adds the new transaction to the specific
+    account involved, updating its cost basis
+    """
+    amount = int(round(float(amount[:-2]), 0) if '.' in amount else amount)
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
+        new_costbasis = get_cost_basis(account) + amount
+        cursor.execute(
+            f"UPDATE costbasis SET amount = {new_costbasis} WHERE account = '{account}'")
+        conn.commit()
 
-        # Getting current cost basis
-        all_transactions = transactions.getTransactions_All()
+
+def update_cost_basis():
+    """
+    Reads all transactions, and sums deposits
+    and withdrawals to update each account's cost basis
+    """
+    conn = create_connection()
+    with conn:
+        cursor = conn.cursor()
+        # Getting new cost basis
+        all_transactions = transactions.get_transactions_all()
         accounts_costbasis = {}
-
         for t in all_transactions:
-            sendaccount = t[2]
-            amount = t[3]
-            receiveaccount = t[4]
-
+            _, _, sendaccount, amount, receiveaccount, *_ = t
             if sendaccount not in accounts_costbasis.keys():
                 accounts_costbasis[sendaccount] = 0
             if receiveaccount not in accounts_costbasis.keys():
                 accounts_costbasis[receiveaccount] = 0
-
             accounts_costbasis[sendaccount] += -amount
             accounts_costbasis[receiveaccount] += amount
 
         # Updating table
-        insert_account_query = """INSERT INTO 'costbasis'
-        ('account', 'amount')
-        VALUES (?,?);"""
-        current_accounts_in_table = getCurrentAccountsInTable()
-
+        insert_query = "INSERT INTO 'costbasis' ('account', 'amount') VALUES (?,?);"
+        update_query = "UPDATE costbasis SET amount = ? WHERE account = ? "
+        current_accounts = get_all_accounts()
         for acc in accounts_costbasis:
-            if acc not in current_accounts_in_table:
-                # Adding new account data
-                cursor.execute(insert_account_query,
+            if acc not in current_accounts:
+                # Adding
+                cursor.execute(insert_query,
                                (acc, accounts_costbasis[acc]))
             else:
-                # Updating acount data
-                update_cost_basis_query = """UPDATE costbasis
-                    SET amount = ? 
-                    WHERE account = ? """
-                cursor.execute(update_cost_basis_query,
+                # Updating
+                cursor.execute(update_query,
                                (accounts_costbasis[acc], acc))
-
         conn.commit()
 
 
-def getCurrentAccountsInTable():
-    conn = createConnection()
-
+def get_all_accounts():
+    """Returns all accounts"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
         # Getting all accounts in table
-        get_accounts_query = """SELECT account from costbasis"""
-        cursor.execute(get_accounts_query)
-
-        accs = cursor.fetchall()
-        res = []
-        for acc in accs:
-            res.append(acc[0])
-
-        return res
+        cursor.execute("SELECT account from costbasis")
+        return [acc[0] for acc in cursor.fetchall()]
 
 
-def getCostBasis(account):
-    conn = createConnection()
-
+def get_cost_basis(account):
+    """Returns cost basis from an account"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_costbasis_query = """SELECT amount FROM costbasis WHERE account = '{}'""".format(
-            account)
-
-        cursor.execute(get_costbasis_query)
-
+        cursor.execute(
+            f"SELECT amount FROM costbasis WHERE account = '{account}'")
         res = cursor.fetchall()
-        if res == []:
-            return 0
-        return res[0][0]
+        return res[0][0] if res != [] else 0

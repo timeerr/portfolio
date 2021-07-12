@@ -22,7 +22,7 @@ class AccountsLayout(QScrollArea):
         super().__init__(*args, **kwargs)
 
         # Data
-        accounts = balances.getAllAccountNames()
+        accounts = balances.get_all_account_names()
 
         # This ScrollArea has one Widget with one Layout that stores rows with each account info
         self.widget = QWidget()
@@ -62,14 +62,14 @@ class AccountsLayout(QScrollArea):
         accbalance.setObjectName(str(accname))
         # So that we can find this balance label later by the account name
         # Getting the balance of the account from the db
-        balance = balances.getAccountBalance(acc_name)
+        balance = balances.get_account_balance(acc_name)
         accbalance.setText(str(balance) + " EUR")
         accbalance.setFont(AccountBalanceTextFont())
 
         # Cost Basis
         acccostbasis = QLabel()
         acccostbasis.setAlignment(Qt.AlignCenter)
-        acccostbasis.setText(str(costbasis.getCostBasis(acc_name)))
+        acccostbasis.setText(str(costbasis.get_cost_basis(acc_name)))
         acccostbasis.setFont(AccountBalanceTextFont())
 
         self.layout.addWidget(accname, row_number, 1)

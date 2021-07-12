@@ -5,7 +5,6 @@ from datetime import datetime
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
-from portfolio.db.dbhandler import results
 from portfolio.gui.tabresults.tabresults_leftlayout import LeftLayout
 from portfolio.gui.tabresults.tabresults_righttable import RightTable
 

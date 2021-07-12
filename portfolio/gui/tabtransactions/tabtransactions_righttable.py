@@ -68,7 +68,7 @@ class RightTable(QTableWidget):
         self.setHorizontalHeaderLabels(self.horizontalheaders)
 
         # Get desired data from db
-        transactions_to_show = transactions.getTransactions_fromQuery(
+        transactions_to_show = transactions.get_transactions_from_query(
             start_date=startdate, end_date=enddate, senderaccount=senderaccount, receiveraccount=receiveraccount)
 
         # If the data is empty, we are done
@@ -142,7 +142,7 @@ class RightTable(QTableWidget):
 
         # Removing the rows from the table and the database
         for index, id_db in zip(selected_indexes_table, selected_ids):
-            transactions.deleteTransaction(id_db)
+            transactions.delete_transaction(id_db)
             self.removeRow(index)
 
         print("Removed rows with ids on db : ", selected_ids,
@@ -165,7 +165,7 @@ class RightTable(QTableWidget):
         new_item_data = new_item.text()
         database_entry_id = self.item(row, 0).text()
 
-        previous_amount = transactions.getTransactionAmountById(
+        previous_amount = transactions.get_transaction_amount_by_id(
             database_entry_id)  # Useful for balance and costbasis adjustments later
         columnselected_name = self.horizontalHeaderItem(column).text()
         # Depending on from which column the item is, we check the data
@@ -185,7 +185,7 @@ class RightTable(QTableWidget):
             # The new text has to be a date
             try:
                 new_date = datetime.strptime(new_item_data, "%d-%m-%Y")
-                transactions.updateTransaction(
+                transactions.update_transaction(
                     database_entry_id, newdate=new_date.timestamp())
 
             except ValueError:
@@ -196,7 +196,7 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset date to previous one
-                previous_date_timestamp = transactions.getTransactionDateById(
+                previous_date_timestamp = transactions.get_transaction_date_by_id(
                     database_entry_id)
                 previous_date_text = datetime.fromtimestamp(
                     previous_date_timestamp).strftime("%d-%m-%Y")
@@ -207,8 +207,8 @@ class RightTable(QTableWidget):
         # -------------- Sender Account --------------------
         elif columnselected_name == self.tr("Sender Account"):
             # The account has to be an existing one
-            all_sender_accounts = [a[0] for a in balances.getAllAccounts()]
-            previous_sender_account = transactions.getTransactionSenderAccountById(
+            all_sender_accounts = [a[0] for a in balances.get_all_accounts()]
+            previous_sender_account = transactions.get_transaction_sender_account_by_id(
                 database_entry_id)
 
             if new_item_data not in all_sender_accounts:
@@ -226,32 +226,32 @@ class RightTable(QTableWidget):
             else:
                 # The data is good
                 # Change the transaction on the transactions table on the db
-                transactions.updateTransaction(
-                    database_entry_id, newsenderaccount=new_item_data)
+                transactions.update_transaction(
+                    database_entry_id, new_sender == new_item_data)
                 # Update the balance of the two accounts involved,
                 # according to the transactions amount
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     previous_sender_account,  previous_amount)
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     new_item_data, - previous_amount)
                 # Same with costbasis
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     previous_sender_account, previous_amount)
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     new_item_data, - previous_amount)
 
                 # If the sender account is now Cash, the transaction turns into a deposit
                 if new_item_data == "Cash":
-                    transactions.updateTransaction(
-                        database_entry_id, newtype=1)
+                    transactions.update_transaction(
+                        database_entry_id, new_d_or_w=1)
                     type_item = self.item(
                         row, self.horizontalheaders.index(self.tr("Type")))
                     type_item.setData(0, self.tr("Deposit"))
 
                 # If the sender account was Cash, the transaction turns into a transfer
                 elif previous_sender_account == "Cash":
-                    transactions.updateTransaction(
-                        database_entry_id, newtype=0)
+                    transactions.update_transaction(
+                        database_entry_id, new_d_or_w=0)
                     type_item = self.item(
                         row, self.horizontalheaders.index(self.tr("Type")))
                     type_item.setData(0, self.tr("Transfer"))
@@ -262,26 +262,26 @@ class RightTable(QTableWidget):
             try:
                 new_item_data = int(new_item_data)
                 # Change the transaction on the transactions table on the db
-                transactions.updateTransaction(
-                    database_entry_id, newamount=new_item_data)
+                transactions.update_transaction(
+                    database_entry_id, new_amount=new_item_data)
                 # Update the balances and strategies with the difference
                 # between the old and the new transaction
                 diff_betweeen_transactions = new_item_data - previous_amount
-                senderaccount_involved = transactions.getTransactionSenderAccountById(
+                senderaccount_involved = transactions.get_transaction_sender_account_by_id(
                     database_entry_id)
-                receiveraccount_involved = transactions.getTransactionReceiverAccountById(
+                receiveraccount_involved = transactions.get_transaction_receiver_account_by_id(
                     database_entry_id)
 
                 # Update the balance of the accounts involved,
                 # according to the new amount
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     senderaccount_involved, - diff_betweeen_transactions)
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     receiveraccount_involved, diff_betweeen_transactions)
                 # Same with costbasis
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     senderaccount_involved, - diff_betweeen_transactions)
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     receiveraccount_involved, diff_betweeen_transactions)
 
             except Exception:
@@ -292,7 +292,7 @@ class RightTable(QTableWidget):
                 error_mssg.exec_()
 
                 # Reset to previous amount
-                previous_amount = transactions.getTransactionAmountById(
+                previous_amount = transactions.get_transaction_amount_by_id(
                     database_entry_id)
                 self.updatingdata_flag = True
                 new_item.setData(0, previous_amount)
@@ -320,32 +320,32 @@ class RightTable(QTableWidget):
             else:
                 # The data is good
                 # Change the transaction on the transactions table on the db
-                transactions.updateTransaction(
-                    database_entry_id, newreceiveraccount=new_item_data)
+                transactions.update_transaction(
+                    database_entry_id, new_receiver=new_item_data)
                 # Update the balance of the two accounts involved,
                 # according to the transactions amount
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     previous_receiver_account,  - previous_amount)
-                balances.updateBalances_withNewResult(
+                balances.update_balances_with_new_result(
                     new_item_data, previous_amount)
                 # Same with costbasis
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     previous_receiver_account, - previous_amount)
-                costbasis.updateCostBasis_withNewTransaction(
+                costbasis.update_cost_basis_with_new_transaction(
                     new_item_data, previous_amount)
 
                 # If the receiver account is now Cash, the transaction turns into a withdrawal
                 if new_item_data == "Cash":
-                    transactions.updateTransaction(
-                        database_entry_id, newtype=-1)
+                    transactions.update_transaction(
+                        database_entry_id, new_d_or_w=-1)
                     type_item = self.item(
                         row, self.horizontalheaders.index(self.tr("Type")))
                     type_item.setData(0, self.tr("Withdrawal"))
 
                 # If the receiver account was Cash, the transaction turns into a transfer
                 elif previous_receiver_account == "Cash":
-                    transactions.updateTransaction(
-                        database_entry_id, newtype=0)
+                    transactions.update_transaction(
+                        database_entry_id, new_d_or_w=0)
                     type_item = self.item(
                         row, self.horizontalheaders.index(self.tr("Type")))
                     type_item.setData(0, self.tr("Transfer"))
@@ -353,7 +353,7 @@ class RightTable(QTableWidget):
         # -------------- Description --------------------
         elif columnselected_name == self.tr("Description"):
             # A description can be any data. So no checks
-            transactions.updateTransaction(
+            transactions.update_transaction(
                 database_entry_id, newdescription=new_item_data)
 
 

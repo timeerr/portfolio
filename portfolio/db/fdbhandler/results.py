@@ -8,277 +8,182 @@ import os
 from datetime import datetime
 
 from portfolio.db.fdbhandler import balances, strategies
+from portfolio.db.dbutils import create_connection_f as create_connection
 
 
-PATH_TO_DB = os.path.join('database', 'portfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
-
-
-def addResult(date, account, strategy, amount, description=""):
-    conn = createConnection()
-
+def add_result(date, account: str, strategy: str, amount: str, description: str = ""):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        account_exists = balances.getAccount(account)
-        if account_exists == []:
+        account_exists = balances.get_account(account) != []
+        if not account_exists:
             # Create new account
-            balances.addAccount(account, 0)
-        strategy_exists = strategies.getStrategy(strategy)
-        if strategy_exists == []:
+            balances.add_account(account, 0)
+        strategy_exists = strategies.get_strategy(strategy) != []
+        if not strategy_exists:
             # Create new strategy
-            # Markettype defaults as "None"
-            strategies.addStrategy(strategy, 'None')
+            strategies.add_strategy(strategy, 'None')
 
-        add_result_query = """INSERT INTO 'results'
+        query = """INSERT INTO 'results'
             ('date','account', 'strategy', 'amount', 'description')
             VALUES (?,?,?,?,?);"""
-        cursor.execute(add_result_query, (date, account,
-                                          strategy, amount, description))
-
+        cursor.execute(query,
+                       (date, account, strategy, amount, description))
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table with the new result
-        balances.updateBalances_withNewResult(account, amount)
-        strategies.updateStrategies_withNewResult(strategy, amount)
+    # Finally, we update the previous balance on the balances table with the new result
+    balances.update_balances_with_new_result(account, amount)
+    strategies.update_strategies_with_new_result(strategy, amount)
 
 
-def deleteResult(resultid):
-    conn = createConnection()
-
+def delete_result(resultid):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
         # First, we need to select the result so that we know the amount and the account involved
         # as we'll need to update the balances table aswell
-        select_result_query = """SELECT account,amount FROM results WHERE id= %d""" % resultid
-        result = cursor.execute(
-            select_result_query).fetchall()
-        account_from_result = result[0][0]
-        amount_from_result = result[0][1]
-
+        cursor.execute(
+            f"SELECT account,amount FROM results WHERE id= {resultid}")
+        account_from_result, amount_from_result = cursor.fetchall()[0]
         # Now, we delete the result from the results table on the database
-        delete_result_query = """DELETE FROM results WHERE id= %d""" % resultid
-        cursor.execute(delete_result_query)
-
+        cursor.execute(f"DELETE FROM results WHERE id= {resultid}")
         conn.commit()
 
-        # Finally, we update the previous balance on the balances table
-        # taking the removal of the result into consideration
-        balances.updateBalances_withNewResult(
-            account_from_result, -amount_from_result)
+    # Finally, we update the previous balance on the balances table
+    # taking the removal of the result into consideration
+    balances.update_balances_with_new_result(
+        account_from_result, - amount_from_result)
 
 
-def updateResult(resultid, newdate=None, newaccount=None, newstrategy=None, newamount=None, newdescription=None):
+def update_result(resultid, new_date=None, new_account=None,
+                  new_strategy=None, new_amount=None, new_description=None):
     """
     Updates a result entry
     Note that it does not update the balances or strategies, etc.
-    Meaning that if you change the result of an account,
+    meaning that if you change the result of an account,
     the account balance of the balances table won't be updated here
     """
     resultid = int(resultid)
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        # First, we select the current result data, in case some of it does not need to be updated
-        current_result_query = """ SELECT * FROM results WHERE id= %d """ % resultid
-        cursor.execute(current_result_query)
-        r = cursor.fetchall()  # Here we get the actual row. Now we have to disect it
-
-        currentdate = r[0][1]
-        currentaccount = r[0][2]
-        currentstrategy = r[0][3]
-        currentamount = r[0][4]
-        currentdescription = r[0][5]
+        # First, we get the current result data,
+        # in case some of it doesn't need to be updated
+        cursor.execute(f" SELECT * FROM results WHERE id= {resultid}")
+        date, acc, strgy, amt, descr, *_ = cursor.fetchall()[0]
 
         # Now we check which new data has to be updated. If it does not, it stays the same
-        if newdate is None:
-            newdate = currentdate
-        if newaccount is None:
-            newaccount = currentaccount
-        if newstrategy is None:
-            newstrategy = currentstrategy
-        if newamount is None:
-            newamount = currentamount
-        if newdescription is None:
-            newdescription = currentdescription
+        new_date = date if new_date is None else new_date
+        new_account = acc if new_account is None else new_account
+        new_strategy = strgy if new_strategy is None else new_strategy
+        new_amount = amt if new_amount is None else new_amount
+        new_description = descr if new_description is None else new_description
 
-        update_result_query = """UPDATE results
-            SET date = ? ,
-                account = ? ,
-                strategy = ?,
-                amount = ?,
-                description = ?
-                WHERE id = ?
-        """
-
-        cursor.execute(update_result_query, (newdate, newaccount,
-                                             newstrategy, newamount, newdescription, resultid))
+        cursor.execute(f"""UPDATE results
+                SET date = {new_date} ,
+                account = {new_account} ,
+                strategy = {new_strategy},
+                amount = {new_amount},
+                description = {new_description}
+                WHERE id = {resultid}""")
         conn.commit()
 
 
-def getCurrentAccounts():
+def get_current_accounts():
     """ Returns all accounts """
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_account_query = """SELECT DISTINCT account FROM results"""
-        cursor.execute(get_account_query)
-
-        accs = cursor.fetchall()
-        result = []
-
-        for a in accs:
-            result.append(a[0])
-
-        return result
+        cursor.execute("SELECT DISTINCT account FROM results")
+        return [acc[0] for acc in cursor.fetchall()]
 
 
-def getResult_all():
+def get_result_all():
     """ Returns all results """
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_all = """SELECT * FROM results"""
-
-        cursor.execute(get_results_all)
+        cursor.execute("SELECT * FROM results")
         return cursor.fetchall()
 
 
-def getResultById(_id):
-    """
-    Returns the result with a specific id
-    """
-    conn = createConnection()
+def get_result_by_id(_id):
+    """Returns the result with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_by_id_query = "SELECT * FROM results WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_results_by_id_query)
+        cursor.execute(f"SELECT * FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getResultDateById(_id):
-    """
-    Returns the result's date with a specific id
-    """
-    conn = createConnection()
+def get_result_date_by_id(_id):
+    """Returns the result's date with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_date_by_id_query = "SELECT date FROM results WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_results_date_by_id_query)
+        cursor.execute(f"SELECT date FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getResultAccountById(_id):
-    """
-    Returns the result's account with a specific id
-    """
-    conn = createConnection()
+def get_result_account_by_id(_id):
+    """Returns the result's account with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_account_by_id_query = "SELECT account FROM results WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_results_account_by_id_query)
+        cursor.execute(f"SELECT account FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getResultStrategyById(_id):
-    """
-    Returns the result's strategy with a specific id
-    """
-    conn = createConnection()
+def get_result_strategy_by_id(_id):
+    """Returns the result's strategy with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_strategy_by_id_query = "SELECT strategy FROM results WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_results_strategy_by_id_query)
+        cursor.execute(f"SELECT strategy FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getResultAmountById(_id):
-    """
-    Returns the result's amount with a specific id
-    """
-    conn = createConnection()
+def get_result_amount_by_id(_id):
+    """Returns the result's amount with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_results_amount_by_id_query = "SELECT amount FROM results WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_results_amount_by_id_query)
+        cursor.execute("SELECT amount FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getResults_fromQuery(start_date=datetime(1980, 1, 1), end_date=datetime(3000, 1, 1),
-                         strategy="All", account="All"):
+def get_results_from_query(start_date: datetime = datetime(1980, 1, 1),
+                           end_date: datetime = datetime(3000, 1, 1),
+                           strategy="All", account="All"):
     """
-    Executing query to return rows with certain start&end dates + account.
+    Returns rows with certain start&end dates + account.
     Dates get passed as datetimes
     """
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
 
-        get_results_query = "SELECT * FROM results WHERE date>={} AND date<={}".format(
-            start_date.timestamp(), end_date.timestamp())
-        account_query_addon = """ AND account = '{}'""".format(account)
-        strategy_query_addon = """ AND STRATEGY = '{}'""".format(strategy)
+        query = "SELECT * FROM results"
+        if start_date == end_date == None and account == strategy == "All":
+            return cursor.execute(query).fetchall()
+        start_date = start_date.timestamp()
+        end_date = end_date.timestamp()
 
-        if start_date == end_date == None and account == "All" and strategy == "All":
-            return cursor.execute("SELECT * FROM results").fetchall()
-
+        query += f" WHERE date>={start_date} AND date<={end_date}"
         if account != "All":
-            get_results_query += account_query_addon
+            query += f" AND account = '{account}'"
         if strategy != "All":
-            get_results_query += strategy_query_addon
-        cursor.execute(get_results_query)
+            query += f" AND STRATEGY = '{strategy}'"
 
+        cursor.execute(query)
         return cursor.fetchall()
 
 
-def getStrategiesFromAccount(account):
-    """
-    Searchs for all the strategies where an account is involved
-    """
-    conn = createConnection()
-
+def get_strategies_from_account(account: str):
+    """Searchs for all the strategies where an account is involved"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_strategies_from_acc_query = "SELECT strategy FROM results WHERE account = '{}'".format(
-            account)
-
-        result = cursor.execute(get_strategies_from_acc_query)
-
-        return set([i[0] for i in result])
+        cursor.execute(
+            "SELECT strategy FROM results WHERE account = '{account}'")
+        return set([i[0] for i in cursor.fetchall()])

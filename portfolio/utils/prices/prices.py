@@ -102,7 +102,7 @@ def updateCustomPrice(token, price_in_btc):
         json.dump(coinprices, f, ensure_ascii=False, indent=4)
 
 
-def toBTC(token, amount):
+def to_btc(token, amount):
     """ Reads coinprices.json and returns the token expressed in btc terms """
     token = token.lower()
     with open(coinprices_path) as f:
@@ -165,7 +165,7 @@ def symbolToId_CoinGeckoList(symbol):
             return []
 
 
-def btcToFiat(amount, currency="EUR"):
+def btc_to_fiat(amount, currency="EUR"):
     """Converts btc amount to fiat using btcfiat.json file"""
     with open(btctofiat_path) as f:
         f = json.load(f)

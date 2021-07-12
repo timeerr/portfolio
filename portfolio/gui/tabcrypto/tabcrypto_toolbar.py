@@ -180,7 +180,7 @@ class AddAccountDialog(QDialog):
             # The token already exists
             account = self.name_edit.text()
 
-            if (account, token) in cbalances.getAllAccountsWithToken():
+            if (account, token) in cbalances.get_all_accounts_with_token():
                 # Account already exists
                 mssg = QMessageBox()
                 mssg.setText(
@@ -193,8 +193,8 @@ class AddAccountDialog(QDialog):
             _type = self.type_edit.currentText()
             kyc = self.kyc_edit.currentText()
             description = self.descr_edit.text()
-            cbalances.addAccount(account, token, amount,
-                                 _type, kyc, description)
+            cbalances.add_account(account, token, amount,
+                                  _type, kyc, description)
 
             self.updatecryptosignal.updated.emit()
             self.close()
@@ -214,7 +214,7 @@ class RemoveAccountDialog(QDialog):
 
         # Account Selection
         self.acc_select = QComboBox()
-        self.acc_select.addItems(cbalances.getAllAccounts())
+        self.acc_select.addItems(cbalances.get_all_accounts())
         self.acc_select.currentTextChanged.connect(self.showTokens)
 
         # Token Selection
@@ -239,7 +239,7 @@ class RemoveAccountDialog(QDialog):
         self.token_select_wrapper = QWidget()
         self.token_select_lyt = QGridLayout()
 
-        tokens = cbalances.getTokensFromAccount(account)
+        tokens = cbalances.get_tokens_from_account(account)
         for i, token in enumerate(tokens):
             token_select = QCheckBox()
             token_select.setText(token.upper())
@@ -258,7 +258,7 @@ class RemoveAccountDialog(QDialog):
         acc = self.acc_select.currentText()
         for token_select in self.token_checkboxes:
             if token_select.isChecked():
-                cbalances.deleteAccount(
+                cbalances.delete_account(
                     acc, token_select.text())
 
         mssg_box = QMessageBox(self)
@@ -266,7 +266,7 @@ class RemoveAccountDialog(QDialog):
         mssg_box.exec_()
 
         self.acc_select.clear()
-        self.acc_select.addItems(cbalances.getAllAccounts())
+        self.acc_select.addItems(cbalances.get_all_accounts())
         self.close()
 
 
@@ -405,7 +405,7 @@ class UpdateAllAccountsDialog(QDialog):
         self.layout = QVBoxLayout()
 
         # All account names:
-        self.accnames = cbalances.getAllAccounts()
+        self.accnames = cbalances.get_all_accounts()
 
         # Account
         self.account_lyt = QHBoxLayout()
@@ -571,13 +571,13 @@ class UpdateAllAccountsDialog(QDialog):
         tokenname = self.tokens.currentText()
 
         # Updating Type
-        cbalances.updateType(accname, tokenname, self.type.currentText())
+        cbalances.update_type(accname, tokenname, self.type.currentText())
         # Updating KYC
-        cbalances.updateKYC(accname, tokenname, self.kyc.currentText())
+        cbalances.update_kyc(accname, tokenname, self.kyc.currentText())
         # Updating balance
-        cbalances.updateBalance(accname, tokenname, self.newbalance.value())
+        cbalances.update_balance(accname, tokenname, self.newbalance.value())
         # Updating Description
-        cbalances.updateDescription(accname, tokenname, self.descr.text())
+        cbalances.update_description(accname, tokenname, self.descr.text())
 
         self.updateWithAccInfo(accname, tokenname)
 
@@ -593,21 +593,21 @@ class UpdateAllAccountsDialog(QDialog):
         """
         self.tokens.clear()
         tokens_from_acc = [i.upper()
-                           for i in cbalances.getTokensFromAccount(accountname)]
+                           for i in cbalances.get_tokens_from_account(accountname)]
         self.tokens.addItems(tokens_from_acc)
 
     def updateWithAccInfo(self, accname, tokenname):
         if tokenname != "":
             accname = self.accounts.currentText()
             # Type
-            self.type.setCurrentText(cbalances.getType(accname, tokenname))
+            self.type.setCurrentText(cbalances.get_type(accname, tokenname))
             # KYC
-            self.kyc.setCurrentText(cbalances.getKYC(accname, tokenname))
+            self.kyc.setCurrentText(cbalances.get_kyc(accname, tokenname))
             # Description
-            self.descr.setText(cbalances.getDescription(accname, tokenname))
+            self.descr.setText(cbalances.get_description(accname, tokenname))
             # Previous Balance
             self.prevbalance.setText(
-                str(cbalances.getBalance(accname, tokenname)))
+                str(cbalances.get_balance(accname, tokenname)))
             # Set New Balance same as previous at start
             self.newbalance.setValue(float(self.prevbalance.text()))
 

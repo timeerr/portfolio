@@ -3,103 +3,79 @@
 Handles all the input and output operations that use the transactions table from portfolio.db
 """
 
+import os
+import logging
 from datetime import datetime
 import sqlite3
-import os
 
 from portfolio.db.fdbhandler import balances, costbasis
+from portfolio.db.dbutils import create_connection_f as create_connection
 
 
-PATH_TO_DB = os.path.join('database', 'portfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
-
-
-def addTransaction(date, account_send, amount, account_receive, depositwithdrawal, description=""):
-    conn = createConnection()
-
+def add_transaction(date, account_send: str, amount: float,
+                    account_receive: str, depositwithdrawal: str,
+                    description: str = ""):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
 
         # If accounts do not exist, they get created
-        account_send_exists = balances.getAccount(account_send)
-        account_receive_exists = balances.getAccount(account_receive)
-        if account_send_exists == []:
-            balances.addAccount(account_send, 0)
-        if account_receive_exists == []:
-            balances.addAccount(account_receive, 0)
+        acc_send_exists = balances.get_account(account_send) != []
+        acc_receive_exists = balances.get_account(account_receive) != []
+        if not acc_send_exists:
+            balances.add_account(account_send, 0)
+        if not acc_receive_exists:
+            balances.add_account(account_receive, 0)
 
-        # Amount part
-        if depositwithdrawal not in [0, 1, -1]:
-            raise TypeError(
+        # Check args
+        if depositwithdrawal not in (0, 1, -1):
+            raise ValueError(
                 "deposit/withdrawal must be 1/-1, respectively, or 0 if normal trnasfer")
-        if isinstance(amount, str):
-            amount = int(float(amount))
-        elif isinstance(amount, float):
-            amount = int(round(amount, 0))
+        amount = int(amount)
 
-        # Finally, adding transaction on db
-        add_transaction_query = """INSERT INTO 'transactions'
-        ('date', 'account_send', 'amount', 'account_receive', 'depositwithdrawal','description')
+        # Add
+        query = """INSERT INTO 'transactions'
+        ('date', 'account_send', 'amount', 'account_receive',
+         'depositwithdrawal','description')
         VALUES (?,?,?,?,?,?)"""
-
-        cursor.execute(add_transaction_query, (date, account_send,
-                                               amount, account_receive, depositwithdrawal, description))
+        cursor.execute(query,
+                       (date, account_send, amount,
+                        account_receive, depositwithdrawal, description))
         conn.commit()
 
     # Finally, we update the account balance on the balance and costbasis tables
     # Sender account
-    balances.updateBalances_withNewResult(account_send, -amount)
-    balances.updateBalances_withNewResult(account_receive, amount)
-    costbasis.updateCostBasis_withNewTransaction(account_send, -amount)
-    costbasis.updateCostBasis_withNewTransaction(account_receive, amount)
+    balances.update_balances_with_new_result(account_send, -amount)
+    balances.update_balances_with_new_result(account_receive, amount)
+    costbasis.update_cost_basis_with_new_transaction(account_send, -amount)
+    costbasis.update_cost_basis_with_new_transaction(account_receive, amount)
 
 
-def deleteTransaction(transactionid):
-    conn = createConnection()
-
+def delete_transaction(transactionid):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        # First, we need to select the result
+        # First, we need to get it
         # so that we know the amount and the account involved,
         # as we new to update the balances table aswell
-        select_transaction_query = """SELECT account_send, account_receive, amount FROM transactions WHERE id= %d""" % transactionid
-        result = cursor.execute(
-            select_transaction_query).fetchall()
-        print(result)
-        account_send = result[0][0]
-        account_receive = result[0][1]
-        amount_from_transaction = result[0][2]
-
+        select_query = f"SELECT account_send, account_receive, amount FROM transactions WHERE id= {transactionid}"
+        result = cursor.execute(select_query).fetchall()[0]
+        sender, receiver, amount, *_ = result
         # Now, we delete the result from the results table on the database
-        delete_transaction_query = """DELETE FROM transactions WHERE id= %d""" % transactionid
-        cursor.execute(delete_transaction_query)
-
+        cursor.execute(f"DELETE FROM transactions WHERE id= {transactionid}")
         conn.commit()
-
         # Finally, we update the previous balance on the balances and cost basis tables,
         # taking the removal of the transaction into consideration
-        balances.updateBalances_withNewResult(
-            account_send, amount_from_transaction)
-        balances.updateBalances_withNewResult(
-            account_receive, -amount_from_transaction)
-        costbasis.updateCostBasis_withNewTransaction(
-            account_send, amount_from_transaction)
-        costbasis.updateCostBasis_withNewTransaction(
-            account_receive, - amount_from_transaction)
+        balances.update_balances_with_new_result(sender, amount)
+        balances.update_balances_with_new_result(receiver, -amount)
+        costbasis.update_cost_basis_with_new_transaction(sender, amount)
+        costbasis.update_cost_basis_with_new_transaction(receiver, - amount)
 
 
-def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamount=None, newreceiveraccount=None, newtype=None, newdescription=None):
+def update_transaction(transactionid,
+                       new_date=None, new_sender: str = None,
+                       new_amount: float = None, new_receiver: str = None,
+                       new_d_or_w: float = None, new_description: str = None):
     """
     Updates a transaction entry
     Note that it does not update the balances or strategies, etc.
@@ -107,195 +83,131 @@ def updateTransaction(transactionid, newdate=None, newsenderaccount=None, newamo
     the account balance+costbasis of the balances+costbasis tables won't be updated here
     """
     transactionid = int(transactionid)
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
         # First, we select the current result data, in case some of it does not need to be updated
-        current_transaction_query = """ SELECT * FROM transactions WHERE id= %d """ % transactionid
-        cursor.execute(current_transaction_query)
-        r = cursor.fetchall()  # Here we get the actual row. Now we have to disect it
+        cursor.execute(
+            f" SELECT * FROM transactions WHERE id= {transactionid}")
+        r = cursor.fetchall()[0]
+        date, sender, amt, receiver, _type, d_or_w, descr, *_ = r
 
-        currentdate = r[0][1]
-        currentsenderaccount = r[0][2]
-        currentamount = r[0][3]
-        currentreceiveraccount = r[0][4]
-        currenttype = r[0][5]
-        currentdescription = r[0][6]
+        new_date = date if new_date is None else new_date
+        new_sender = sender if new_sender is None else new_sender
+        new_amount = amt if new_amount is None else new_amount
+        new_receiver = receiver if new_receiver is None else new_receiver
+        new_d_or_w = d_or_w if new_d_or_w is None else new_d_or_w
+        new_description = descr if new_description is None else new_description
 
-        # Now we check which new data has to be updated. If it does not, it stays the same
-        if newdate is None:
-            newdate = currentdate
-        if newsenderaccount is None:
-            newsenderaccount = currentsenderaccount
-        if newamount is None:
-            newamount = currentamount
-        if newreceiveraccount is None:
-            newreceiveraccount = currentreceiveraccount
-        if newtype is None:
-            newtype = currenttype
-        if newdescription is None:
-            newdescription = currentdescription
-
-        update_transaction_query = """UPDATE transactions
-            SET date = ? ,
-                account_send = ? ,
-                amount = ?,
-                account_receive = ?,
-                depositwithdrawal = ?,
-                description = ?
-                WHERE id = ?
-        """
-
-        cursor.execute(update_transaction_query, (newdate, newsenderaccount,
-                                                  newamount, newreceiveraccount, newtype, newdescription, transactionid))
+        cursor.execute(f"""UPDATE transactions
+                SET date = {new_date} ,
+                account_send = {new_sender} ,
+                amount = {new_amount},
+                account_receive = {new_receiver},
+                depositwithdrawal = {new_d_or_w},
+                description = {new_description}
+                WHERE id = {transactionid}""")
         conn.commit()
-        print("Updated ", r, " Changed to", (newdate, newsenderaccount,
-                                             newamount, newreceiveraccount, newtype, newdescription))
+        logging.info(
+            f"Updated {r} \nChanged to {new_date}{new_sender}{new_amount}{new_receiver}{new_d_or_w}{new_description}")
 
 
-def getTransactions_All():
+def get_transactions_all():
     """ Returns all transactions """
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transactions_all = """SELECT * FROM transactions"""
-
-        cursor.execute(get_transactions_all)
+        cursor.execute("SELECT * FROM transactions")
         return cursor.fetchall()
 
 
-def getTransactionById(_id):
-    """
-    Returns the transaction with a specific id
-    """
-    conn = createConnection()
+def get_transaction_by_id(_id):
+    """Returns the transaction with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transaction_by_id_query = "SELECT * FROM transactions WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_transaction_by_id_query)
+        cursor.execute(f"SELECT * FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getTransactionAmountById(_id):
-    """
-    Returns the transaction's amount with a specific id
-    """
-    conn = createConnection()
+def get_transaction_amount_by_id(_id):
+    """Returns the transaction's amount with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transaction_amount_by_id_query = "SELECT amount FROM transactions WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_transaction_amount_by_id_query)
+        cursor.execute(f"SELECT amount FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getTransactionDateById(_id):
-    """
-    Returns the transaction's date with a specific id
-    """
-    conn = createConnection()
+def get_transaction_date_by_id(_id):
+    """Returns the transaction's date with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transaction_date_by_id_query = "SELECT date FROM transactions WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_transaction_date_by_id_query)
+        cursor.execute(f"SELECT date FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getTransactionSenderAccountById(_id):
-    """
-    Returns the transaction's sender account with a specific id
-    """
-    conn = createConnection()
+def get_transaction_sender_account_by_id(_id):
+    """Returns the transaction's sender account with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transaction_senderaccount_by_id_query = "SELECT account_send FROM transactions WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_transaction_senderaccount_by_id_query)
+        cursor.execute(
+            f"SELECT account_send FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getTransactionReceiverAccountById(_id):
-    """
-    Returns the transaction's receive account with a specific id
-    """
-    conn = createConnection()
+def get_transaction_receiver_account_by_id(_id):
+    """Returns the transaction's receive account with a specific id"""
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_transaction_receiveraccount_by_id_query = "SELECT account_receive FROM transactions WHERE id = {}".format(
-            _id)
-
-        cursor.execute(get_transaction_receiveraccount_by_id_query)
+        cursor.execute(
+            f"SELECT account_receive FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
 
 
-def getTransactions_fromQuery(start_date=datetime(1900, 1, 1), end_date=datetime(3000, 1, 1),
-                              senderaccount="All", receiveraccount="All"):
-    """ Executing query to return rows with each result that satisfies the args """
-
-    conn = createConnection()
-
+def get_transactions_from_query(start_date=datetime(1900, 1, 1),
+                                end_date=datetime(3000, 1, 1),
+                                senderaccount="All", receiveraccount="All"):
+    """
+    Return rows with each result
+    that satisfies the args
+    """
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
 
-        get_transactions_query = f"SELECT * FROM transactions WHERE date>={start_date.timestamp()} AND date<={end_date.timestamp()}"
+        query = "SELECT * FROM transactions"
+        if start_date == end_date == None and senderaccount == receiveraccount == "All":
+            return cursor.execute(query).fetchall()
+        start_date = start_date.timestamp()
+        end_date = end_date.timestamp()
 
-        senderaccount_query_addon = """ AND account_send = '{}'""".format(
-            senderaccount)
-        receiveraccount_query_addon = """ AND account_receive = '{}'""".format(
-            receiveraccount)
-
+        query += f" WHERE date>={start_date} AND date<={end_date}"
         if senderaccount != "All":
-            get_transactions_query += senderaccount_query_addon
+            query += f" AND account_send = '{senderaccount}'"
         if receiveraccount != "All":
-            get_transactions_query += receiveraccount_query_addon
+            query += f" AND account_receive = '{receiveraccount}'"
 
-        cursor.execute(get_transactions_query)
-
+        cursor.execute(query)
         return cursor.fetchall()
 
 
-def getAllSenderAccounts():
+def get_all_sender_accounts():
     """ Returns all send accounts from db """
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_all_senders_query = """ SELECT account_send FROM transactions """
-
-        cursor.execute(get_all_senders_query)
-
+        cursor.execute(" SELECT account_send FROM transactions ")
         return cursor.fetchall()
 
 
-def getAllReceiverAccounts():
+def get_all_receiver_accounts():
     """ Returns all receive accounts from db """
-
-    conn = createConnection()
-
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_all_receivers_query = """ SELECT account_receive FROM transactions """
-
-        cursor.execute(get_all_receivers_query)
-
+        cursor.execute(" SELECT account_receive FROM transactions ")
         return cursor.fetchall()

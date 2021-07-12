@@ -44,7 +44,7 @@ class FilterLayout(QVBoxLayout):
             lambda checked: self.handleCheck(self.all_bttn, checked))
         self.fiataccount_buttons_lyt.addWidget(self.all_bttn)
 
-        for acc in balances.getAllAccountNames():
+        for acc in balances.get_all_account_names():
             bttn = FilterAccountOrStrategyButton('fiat', acc)
             bttn.clicked.connect(self.sendQuery)
             self.fiataccount_buttons_lyt.addWidget(bttn)
@@ -73,7 +73,7 @@ class FilterLayout(QVBoxLayout):
             lambda checked: self.handleCheck(self.all_cbttn, checked))
         self.cryptoaccount_buttons_lyt.addWidget(self.all_cbttn)
 
-        for cacc in cbalances.getAllAccounts():
+        for cacc in cbalances.get_all_accounts():
             bttn = FilterAccountOrStrategyButton('crypto', cacc)
             bttn.clicked.connect(self.sendQuery)
             self.cryptoaccount_buttons_lyt.addWidget(bttn)
@@ -90,7 +90,7 @@ class FilterLayout(QVBoxLayout):
         self.filter_period_wrapper = QWidget()
         self.filter_period_wrapper.setMaximumHeight(150)
         self.filter_period_layout = QVBoxLayout()
-        self.filter_period_layout.setSpacing(0)
+        self.filter_period_layout.setSpacing(10)
 
         # Labels
         self.filter_period_labels_layout = QHBoxLayout()
@@ -176,7 +176,7 @@ class FilterLayout(QVBoxLayout):
         self.sendQuery()
 
     def sendQuery(self):
-        """ 
+        """
         Parses all filters, and structures a query dictionary,
         then returns it
         """
@@ -203,7 +203,6 @@ class FilterLayout(QVBoxLayout):
         self.query_data['enddate'] = datetime(
             enddate.year(), enddate.month(), enddate.day()).timestamp()
 
-        print(self.query_data)
         self.querysignal.newquery.emit(self.query_data)
 
     def set_ytd(self):
@@ -257,9 +256,7 @@ class FilterModeButton(QPushButton):
 
 
 class FilterAccountOrStrategyButton(QPushButton):
-    """
-    buttontype in ('fiat','crypto','all')
-    """
+    """ buttontype in ('fiat','crypto','all') """
 
     def __init__(self, buttontype, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -498,7 +495,7 @@ class QueryResultsWidget(QFrame):
         wealthbyday_list = list(wealthbyday.values())
         import pandas as pd
         wbd = pd.Series(wealthbyday_list)
-        drawdown = (100*(- max(1-(wbd/wbd.cummax()))))
+        drawdown = (100*(- max(1 - (wbd/wbd.cummax()))))
         import math
         if math.isnan(drawdown) is False:
             drawdown = int(drawdown)

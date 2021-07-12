@@ -46,7 +46,7 @@ class AddResultsForm(QVBoxLayout):
         self.label2 = QLabel(self.tr("Account"))
         self.label2.setFixedWidth(80)
         self.account_select = QComboBox()
-        currentaccounts = [a[0] for a in balances.getAllAccounts()]
+        currentaccounts = [a[0] for a in balances.get_all_accounts()]
         self.account_select.addItems(currentaccounts)
 
         self.line2 = QHBoxLayout()
@@ -59,7 +59,7 @@ class AddResultsForm(QVBoxLayout):
         self.strategy_select = QComboBox()
         self.strategy_select.setEditable(True)
         self.strategy_select.setDuplicatesEnabled(False)
-        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        currentstrategies = [i[0] for i in strategies.get_all_strategies()]
         self.strategy_select.addItems(currentstrategies)
 
         self.line3 = QHBoxLayout()
@@ -135,7 +135,7 @@ class AddResultsForm(QVBoxLayout):
         self.account_select.clear()
         self.strategy_select.clear()
 
-        currentaccounts = [a[0] for a in balances.getAllAccounts()]
+        currentaccounts = [a[0] for a in balances.get_all_accounts()]
         self.account_select.addItems(currentaccounts)
         currentstrategies = [i[0] for i in strategies.getAllStrategies()]
         self.strategy_select.addItems(currentstrategies)
@@ -162,7 +162,7 @@ class AdjustResultNewBalanceDialog(QDialog):
 
         print("Opening Adjust Balance Dialog from account {}".format(account))
         # Data
-        previous_balance = balances.getAccountBalance(account)
+        previous_balance = balances.get_account_balance(account)
         # UI
         self.setFixedSize(250, 250)
 
@@ -190,7 +190,8 @@ class AdjustResultNewBalanceDialog(QDialog):
         self.label2.setMinimumWidth(60)
         self.label2.setMaximumWidth(60)
         self.account_select = QComboBox()
-        self.account_select.addItems([i[0] for i in balances.getAllAccounts()])
+        self.account_select.add_items(
+            [i[0] for i in balances.get_all_accounts()])
         self.account_select.setCurrentText(account)
         # Whenever an account is changed, we change the previousbalance
         self.account_select.currentTextChanged.connect(self.updateWithAccount)
@@ -304,7 +305,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         Updates the result field as the difference between
         the previous and new balance
         """
-        previousbalance = balances.getAccountBalance(
+        previousbalance = balances.get_account_balance(
             self.account_select.currentText())
         newbalance = self.new_balance.value()
 
@@ -316,7 +317,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         """
         Updates the rest of fields with the new account that has been selected
         """
-        previous_balance = balances.getAccountBalance(account)
+        previous_balance = balances.get_account_balance(account)
         self.previous_balance.setText(str(previous_balance))
         self.new_balance.setValue(previous_balance)
 
@@ -331,8 +332,8 @@ class AdjustResultNewBalanceDialog(QDialog):
         amount = self.result.text().split(" ")[0]
 
         print("Added result: ", date, account, amount)
-        results.addResult(date, account, strategy,
-                          amount, description=description)
+        results.add_result(date, account, strategy,
+                           amount, description=description)
 
         # Set self.previous_balance with the new balance
         self.previous_balance.setText(str(self.new_balance.value()))

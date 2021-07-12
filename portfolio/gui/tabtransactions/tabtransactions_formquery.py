@@ -45,7 +45,7 @@ class TransactionsQueryForm(QFormLayout):
         self.senderaccount_select.setEditable(True)
         self.senderaccount_select.setDuplicatesEnabled(False)
         currentsenderaccounts = [a[0]
-                                 for a in transactions.getAllSenderAccounts()]
+                                 for a in transactions.get_all_sender_accounts()]
         self.senderaccount_select.addItems(currentsenderaccounts)
 
         self.setWidget(2, self.LabelRole, self.label3)
@@ -58,7 +58,7 @@ class TransactionsQueryForm(QFormLayout):
         self.receiveraccount_select.setEditable(True)
         self.receiveraccount_select.setDuplicatesEnabled(False)
         currentreceiveraccounts = [a[0]
-                                   for a in transactions.getAllReceiverAccounts()]
+                                   for a in transactions.get_all_receiver_accounts()]
         self.receiveraccount_select.addItems(currentreceiveraccounts)
 
         self.setWidget(3, self.LabelRole, self.label4)

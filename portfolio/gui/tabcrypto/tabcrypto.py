@@ -91,7 +91,7 @@ class TabCrypto(QWidget):
         self.setLayout(self.mainlayout)
 
         # ---- Initialization ----
-        DATABASE_TOKENS = [i.upper() for i in cbalances.getAllTokens()]
+        DATABASE_TOKENS = [i.upper() for i in cbalances.get_all_tokens()]
         # Checking if there is remote data avaliable
         prices.initialize_prices()
         if 'coingeckoids.json' not in os.listdir('prices'):
@@ -171,14 +171,14 @@ class TabCrypto(QWidget):
             # Token mode
             self.description.select_mode.setText("Token")
             self.description.select_token_or_account.clear()
-            DATABASE_TOKENS = [i.upper() for i in cbalances.getAllTokens()]
+            DATABASE_TOKENS = [i.upper() for i in cbalances.get_all_tokens()]
             self.description.select_token_or_account.addItems(DATABASE_TOKENS)
             self.tokenpiechart.allMode()
         elif self.description.mode == 2:
             # Account mode
             self.description.select_mode.setText("Account")
             self.description.select_token_or_account.clear()
-            DATABASE_ACCOUNTS = cbalances.getAllAccounts()
+            DATABASE_ACCOUNTS = cbalances.get_all_accounts()
             self.description.select_token_or_account.addItems(
                 DATABASE_ACCOUNTS)
             self.accountpiechart.allMode()
@@ -280,12 +280,12 @@ class DescriptionLayout(QWidget):
 
         self.token_or_account_name.setText(self.tr("All Coins"))
         totalbalancebtc, totalbalancefiat = 0, 0
-        DATABASE_TOKENS = cbalances.getAllTokens()
+        DATABASE_TOKENS = cbalances.get_all_tokens()
         for t in DATABASE_TOKENS:
-            tokenbalance = cbalances.getTotalTokenBalance(t)
-            tokenbalance_btc = prices.toBTC(t, tokenbalance)
+            tokenbalance = cbalances.get_total_token_balance(t)
+            tokenbalance_btc = prices.to_btc(t, tokenbalance)
             totalbalancebtc += tokenbalance_btc
-            totalbalancefiat += prices.btcToFiat(
+            totalbalancefiat += prices.btc_to_fiat(
                 tokenbalance_btc, currency=self.FIAT_CURRENCY)
         self.token_or_account_balance.hide()
         self.token_or_account_balance_btc.setText(
@@ -315,15 +315,15 @@ class DescriptionLayout(QWidget):
             token_name[0].upper()+token_name[1:])
 
         # Updating token balances
-        tokenbalance = round(cbalances.getTotalTokenBalance(tokensymbol), 6)
+        tokenbalance = round(cbalances.get_total_token_balance(tokensymbol), 6)
         self.token_or_account_balance.setText(
             str(tokenbalance)+' '+tokensymbol)
         self.token_or_account_balance.show()
-        tokenbalancebtc = round(prices.toBTC(tokensymbol, tokenbalance), 8)
+        tokenbalancebtc = round(prices.to_btc(tokensymbol, tokenbalance), 8)
         self.token_or_account_balance_btc.setText(str(tokenbalancebtc)+" BTC")
         if tokensymbol in ["BTC", "btc"]:
             self.token_or_account_balance_btc.setText("")
-        tokenbalancefiat = prices.btcToFiat(tokenbalancebtc)
+        tokenbalancefiat = prices.btc_to_fiat(tokenbalancebtc)
         self.token_or_account_balance_fiat.setText(
             str(tokenbalancefiat) + " {}".format(self.FIAT_CURRENCY.upper()))
 
@@ -336,14 +336,14 @@ class DescriptionLayout(QWidget):
         self.token_or_account_name.setText(accountname)
 
         # Updating account balances
-        acc_token_balances = cbalances.getEntriesWithAccount(accountname)
+        acc_token_balances = cbalances.get_entries_with_account(accountname)
         total_in_btc = 0
         for atb in acc_token_balances:
             token = atb[1]
             amount = atb[2]
-            amount_btc = prices.toBTC(token, amount)
+            amount_btc = prices.to_btc(token, amount)
             total_in_btc += amount_btc
-        total_in_fiat = prices.btcToFiat(
+        total_in_fiat = prices.btc_to_fiat(
             total_in_btc, currency=self.FIAT_CURRENCY)
         total_in_btc = round(total_in_btc, 8)
         total_in_fiat = int(round(total_in_fiat, 0))
@@ -402,7 +402,7 @@ class BalancesTable(QTableWidget):
             ['Account', 'Balance ({})'.format(token),
              'Balance(BTC)', 'Balance ({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
 
-        rows_to_insert = cbalances.getEntriesWithToken(token)
+        rows_to_insert = cbalances.get_entries_with_token(token)
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Account
@@ -443,7 +443,7 @@ class BalancesTable(QTableWidget):
             ['Token', 'Balance', 'Balance(BTC)',
              'Balance({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
 
-        rows_to_insert = cbalances.getEntriesWithAccount(account)
+        rows_to_insert = cbalances.get_entries_with_account(account)
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Token
@@ -453,12 +453,12 @@ class BalancesTable(QTableWidget):
             item.setData(0, row[2])
             self.setItem(numrow, 1, item)
             # Balance (BTC)
-            balance_in_btc = prices.toBTC(row[1], row[2])
+            balance_in_btc = prices.to_btc(row[1], row[2])
             item = QTableWidgetItem()
             item.setData(0, balance_in_btc)
             self.setItem(numrow, 2, item)
             # Balance (Fiat)
-            balance_in_fiat = prices.btcToFiat(
+            balance_in_fiat = prices.btc_to_fiat(
                 balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
@@ -486,7 +486,7 @@ class BalancesTable(QTableWidget):
         self.setHorizontalHeaderLabels(
             ['Account', 'Token', 'Balance', 'Balance(BTC)',
              'Balance({})'.format(self.FIAT_CURRENCY), 'Type', 'KYC', 'Description'])
-        rows_to_insert = cbalances.getAllEntries()
+        rows_to_insert = cbalances.get_all_entries()
 
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
@@ -499,12 +499,12 @@ class BalancesTable(QTableWidget):
             item.setData(0, row[2])
             self.setItem(numrow, 2, item)
             # Balance(BTC)
-            balance_in_btc = prices.toBTC(row[1], row[2])
+            balance_in_btc = prices.to_btc(row[1], row[2])
             item = QTableWidgetItem()
             item.setData(0, balance_in_btc)
             self.setItem(numrow, 3, item)
             # Balance (Fiat)
-            balance_in_fiat = prices.btcToFiat(
+            balance_in_fiat = prices.btc_to_fiat(
                 balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
@@ -546,7 +546,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.setHorizontalHeaderLabels(
             ['Date', 'Account', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
 
-        rows_to_insert = chistoricalbalances.getEntriesWithToken(token)
+        rows_to_insert = chistoricalbalances.get_entries_with_token(token)
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Date
@@ -583,7 +583,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.setHorizontalHeaderLabels(
             ['Date', 'Token', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
 
-        rows_to_insert = chistoricalbalances.getEntriesWithAccount(account)
+        rows_to_insert = chistoricalbalances.get_entries_with_account(account)
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Date
@@ -624,7 +624,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.setHorizontalHeaderLabels(
             ['Date', 'Account', 'Token', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
 
-        rows_to_insert = chistoricalbalances.getAllEntries()
+        rows_to_insert = chistoricalbalances.get_all_entries()
         self.setRowCount(len(rows_to_insert))
         for numrow, row in enumerate(rows_to_insert):
             # Date
@@ -713,7 +713,7 @@ class AccountPieChart(QChartView):
 
     def updateWithToken(self, token):
         """ Updates series with all accounts that have a certain token """
-        entries_with_token = cbalances.getEntriesWithToken(token)
+        entries_with_token = cbalances.get_entries_with_token(token)
 
         self.series.clear()
         for entry in entries_with_token:
@@ -725,7 +725,7 @@ class AccountPieChart(QChartView):
     def allMode(self):
         """Updates series with all accounts"""
         self.series.clear()
-        data = cbalances.getAllAccountsWithAmount()
+        data = cbalances.get_all_accounts_with_amount()
 
         for d in data:
             account = d[0]
@@ -740,7 +740,7 @@ class AccountPieChart(QChartView):
         """
         for slce in self.series.slices():
             slce.setLabel("{} {}% ({})".format(
-                slce.label(), int(100*slce.percentage()), str(prices.toBTC(token, slce.value())) + " BTC"))
+                slce.label(), int(100*slce.percentage()), str(prices.to_btc(token, slce.value())) + " BTC"))
             slce.setLabelPosition(QPieSlice.LabelInsideNormal)
             # slce.setLabelPosition(QPieSlice.LabelOutside)
             slce.setLabelColor(QColor('white'))
@@ -815,25 +815,25 @@ class TokenPieChart(QChartView):
 
     def updateWithAccount(self, account):
         """Changes the series so that only tokens from a certain account are shown"""
-        entries_with_account = cbalances.getEntriesWithAccount(account)
+        entries_with_account = cbalances.get_entries_with_account(account)
 
         self.series.clear()
         for entry in entries_with_account:
             token = entry[1].upper()
             amount = entry[2]
-            amount_btc = prices.toBTC(token, amount)
+            amount_btc = prices.to_btc(token, amount)
             self.series.append(token, amount_btc)
         self.showSliceLabels()
 
     def allMode(self):
         """Changes the series to show all tokens"""
         self.series.clear()
-        data = cbalances.getAllTokensWithAmount()
+        data = cbalances.get_all_tokens_with_amount()
 
         for d in data:
             token = d[0].upper()
             amount = d[1]
-            total_in_btc = prices.toBTC(token, amount)
+            total_in_btc = prices.to_btc(token, amount)
             self.series.append(token, total_in_btc)
         self.showSliceLabels()
         self.hideLittleSlices()
@@ -925,12 +925,12 @@ class BalanceHistoryChartView(QChartView):
         # Get data
         if selectiontype == 'token':
             assert(name is not None)
-            data = chistoricalbalances.getBalancesWithTokenTuple(name)
+            data = chistoricalbalances.get_balances_with_token_tuple(name)
         elif selectiontype == 'account':
             assert(name is not None)
-            data = chistoricalbalances.getBalancesWithAccountTuple(name)
+            data = chistoricalbalances.get_balances_with_account_tuple(name)
         elif selectiontype == 'all':
-            data = chistoricalbalances.getBalancesByDayTuple()
+            data = chistoricalbalances.get_balances_by_day_tuple()
         # Separate balance_btc from balance_fiat
         dates, balances_btc, balances_fiat = [], [], []
         for date in data:
@@ -953,16 +953,16 @@ class BalanceHistoryChartView(QChartView):
         if selectiontype == "all":
             # Append current balances
             self.btcseries.append(currentdate,
-                                  cbalances.getTotalBalanceAllAccounts())
+                                  cbalances.get_total_balance_all_accounts())
             self.fiatseries.append(currentdate,
-                                   cbalances.getTotalBalanceAllAccounts_fiat())
+                                   cbalances.get_total_balance_all_accounts_fiat())
         elif name != '':
             if selectiontype == "account":
                 # Append current balances
                 self.btcseries.append(
-                    currentdate, cbalances.getTotalAccountBalance(name))
+                    currentdate, cbalances.get_total_account_balance(name))
                 self.fiatseries.append(
-                    currentdate, cbalances.getTotalAccountBalance_fiat(name))
+                    currentdate, cbalances.get_total_account_balance_fiat(name))
             elif selectiontype == "token":
                 pass
 

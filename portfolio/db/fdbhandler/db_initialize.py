@@ -6,6 +6,8 @@ This module creates the table that holds all info about trading/investing accoun
 import sqlite3
 import os
 
+from portfolio.db.dbutils import DBHandler
+
 
 def create_tables(path_to_db):
     conn = sqlite3.connect(path_to_db)
@@ -19,9 +21,8 @@ def create_tables(path_to_db):
         amount integer NOT NULL,
         description text,
         FOREIGN KEY (strategy)
-            REFERENCES strategies (strategy)
+        REFERENCES strategies (strategy)
     )"""
-    # Date is stored as UNIX time
 
     strategies_table_query = """CREATE TABLE IF NOT EXISTS strategies(
         strategy text PRIMARY KEY,
@@ -61,19 +62,17 @@ def create_tables(path_to_db):
             REFERENCES balances (account)
     )"""
 
-    # Inserting tables
-    cursor.execute(results_table_query)
-    cursor.execute(strategies_table_query)
-    cursor.execute(transactions_table_query)
-    cursor.execute(balances_table_query)
-    cursor.execute(balancehistory_table_query)
-    cursor.execute(costbasis_table_query)
-
-    # Closing db
+    queries = (results_table_query, strategies_table_query,
+               transactions_table_query, balances_table_query,
+               balancehistory_table_query, costbasis_table_query)
+    for q in queries:
+        cursor.execute(q)
     conn.close()
 
 
-if 'database' not in os.listdir():
-    os.mkdir('database')
-path_to_db = os.path.join('database', 'portfolio.db')
-create_tables(path_to_db)
+def initialize():
+    if 'database' not in os.listdir():
+        os.mkdir('database')
+
+    path_to_db = DBHandler.F_PATH_TO_DB
+    create_tables(path_to_db)

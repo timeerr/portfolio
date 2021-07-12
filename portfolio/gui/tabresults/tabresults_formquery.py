@@ -41,7 +41,7 @@ class ResultsQueryForm(QFormLayout):
         # Third line: Account selection
         self.label3 = QLabel(self.tr("Account"))
         self.account_select = QComboBox()
-        all_accounts = balances.getAllAccountNames()
+        all_accounts = balances.get_all_account_names()
         self.account_select.addItem("All")
         self.account_select.addItems(all_accounts)
 
@@ -51,7 +51,7 @@ class ResultsQueryForm(QFormLayout):
         # Fourth Line: Strategy Selection
         self.label4 = QLabel(self.tr("Strategy"))
         self.strategy_select = QComboBox()
-        all_strategies = strategies.getAllStrategyNames()
+        all_strategies = strategies.get_all_strategy_names()
         self.strategy_select.addItem("All")
         self.strategy_select.addItems(all_strategies)
 

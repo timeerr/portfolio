@@ -3,173 +3,108 @@
 Handles all the input and output operations that use the strategies table from portfolio.db
 """
 
-import sqlite3
 import os
 from datetime import datetime
+import logging
+import sqlite3
 
 from portfolio.db.fdbhandler import balances
+from portfolio.db.dbutils import create_connection_f as create_connection
 
 
-PATH_TO_DB = os.path.join('database', 'portfolio.db')
-
-
-def createConnection(path_to_db=PATH_TO_DB):
-    conn = None
-
-    try:
-        conn = sqlite3.connect(path_to_db)
-    except sqlite3.OperationalError as e:
-        print(e, path_to_db)
-
-    return conn
-
-
-def addStrategy(new_strategy, markettype):
-    conn = createConnection()
-
+def add_strategy(strategy: str, markettype: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        add_account_query = """INSERT INTO 'strategies'
-            ('strategy','markettype','amount')
-            VALUES (?,?,?);"""
-
+        query = "INSERT INTO strategies ('strategy','markettype','amount') VALUES (?,?,?);"
         try:
-            cursor.execute(add_account_query,
-                           (new_strategy, markettype, 0))
-            print("Added new account '{}' on database".format(new_strategy))
-
+            cursor.execute(query,
+                           (strategy, markettype, 0))
+            logging.info(f"Added new strategy '{strategy}' on database")
         except sqlite3.IntegrityError:
-            print("Account ", new_strategy, "already exists on database")
-            return "Already Exists"
-
-        conn.commit()
-
-        return cursor.lastrowid
-
-
-def deleteStrategy(strategy_name):
-    conn = createConnection()
-
-    with conn:
-        cursor = conn.cursor()
-
-        delete_strategy_query = """DELETE FROM strategies WHERE strategy= '{}' """.format(
-            strategy_name)
-        cursor.execute(delete_strategy_query)
-
+            logging.warning(
+                f"Strategy {strategy} already exists on database")
         conn.commit()
 
 
-def editStrategyName(strategy_name, new_strategy_name):
-    conn = createConnection()
-
+def delete_strategy(strategy_name: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        edit_strategy_query = """UPDATE strategies SET strategy = '{}' WHERE strategy = '{}' """.format(
-            new_strategy_name, strategy_name)
-        cursor.execute(edit_strategy_query)
-
+        cursor.execute(
+            f"DELETE FROM strategies WHERE strategy= '{strategy_name}' ")
         conn.commit()
 
 
-def editStrategyType(strategy_type, new_strategy_type):
-    conn = createConnection()
-
+def edit_strategy_name(strategy: str, new_name: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        edit_strategy_query = """UPDATE strategies SET markettype = '{}' WHERE markettype = '{}' """.format(
-            new_strategy_type, strategy_type)
-        cursor.execute(edit_strategy_query)
-
+        cursor.execute(
+            f"UPDATE strategies SET strategy = '{new_name}' WHERE strategy = '{strategy}' ")
         conn.commit()
 
 
-def updateStrategies_withNewResult(strategy, amount):
-    """Adds the new result to the specific strategy involved, updating its balance"""
-    conn = createConnection()
-
+def edit_strategy_type(_type: str, new_type: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        currentbalance = getStrategyBalance(strategy)
-        if isinstance(amount, str):
-            if '.' in amount:
-                amount = int(round(float(amount[:-2]), 0))
-            else:
-                amount = int(amount)
-
-        update_strategy_with_new_result_query = "UPDATE strategies SET amount = {} WHERE strategy = '{}'".format(
-            currentbalance+amount, strategy)
-        print(update_strategy_with_new_result_query)
-
-        cursor.execute(update_strategy_with_new_result_query)
-
+        cursor.execute(
+            f"UPDATE strategies SET markettype = '{_type}' WHERE markettype = '{new_type}' ")
         conn.commit()
 
 
-def getStrategy(strategy):
-    conn = createConnection()
-
+def update_strategies_with_new_result(strategy: str, amount: float):
+    """
+    Adds the new result to the specific
+    strategy involved, updating its balance
+    """
+    amount = int(round(float(amount[:-2]), 0) if '.' in amount else amount)
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
+        new_balance = get_strategy_balance(strategy) + amount
+        cursor.execute(
+            f"UPDATE strategies SET amount = {new_balance} WHERE strategy = '{strategy}'")
+        conn.commit()
 
-        get_strategy_query = "SELECT * FROM strategies WHERE strategy= '{}'".format(
-            strategy)
 
-        cursor.execute(get_strategy_query)
-
+def get_strategy(strategy: str):
+    conn = create_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT * FROM strategies WHERE strategy= '{strategy}'")
         result = cursor.fetchall()
-        if result == []:
-            return result
-        return result[0]
+        return result if result == [] else result[0]
 
 
-def getStrategyBalance(strategy):
-    conn = createConnection()
+def get_strategy_balance(strategy: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_strategy_query = "SELECT amount FROM strategies WHERE strategy= '{}'".format(
-            strategy)
-
-        cursor.execute(get_strategy_query)
-
+        cursor.execute(
+            f"SELECT amount FROM strategies WHERE strategy= '{strategy}'")
         result = cursor.fetchall()
-        if result == []:
-            return result
-        return result[0][0]
+        return result if result == [] else result[0][0]
 
 
-def getStrategyMarketType(strategy):
-    conn = createConnection()
+def get_strategy_market_type(strategy: str):
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_strategy_markettype_query = "SELECT markettype FROM strategies WHERE strategy = '{}'".format(
-            strategy
-        )
-
-        cursor.execute(get_strategy_markettype_query)
-
-        result = cursor.fetchall()
-        return result[0][0]
+        cursor.execute(
+            f"SELECT markettype FROM strategies WHERE strategy = '{strategy}'")
+        return cursor.fetchall()[0][0]
 
 
-def getAllStrategies():
-    conn = createConnection()
-
+def get_all_strategies():
+    conn = create_connection()
     with conn:
         cursor = conn.cursor()
-
-        get_all_strategies_query = "SELECT * FROM strategies"
-
-        cursor.execute(get_all_strategies_query)
-
+        cursor.execute("SELECT * FROM strategies")
         return cursor.fetchall()
 
 
-def getAllStrategyNames():
-    return [i[0] for i in getAllStrategies()]
+def get_all_strategy_names():
+    return [i[0] for i in get_all_strategies()]

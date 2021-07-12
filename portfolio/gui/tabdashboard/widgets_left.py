@@ -14,8 +14,8 @@ from PyQt5.QtCore import QEasingCurve, QPoint, QSize, pyqtProperty, pyqtSignal, 
 from portfolio.utils import confighandler
 from portfolio.db import dbhandler
 from portfolio.utils.prices import prices
-from portfolio.db.fdbhandler import balances, historicalbalances, strategies, results
-from portfolio.db.cdbhandler import cbalances, chistoricalbalances
+from portfolio.db.fdbhandler import balances
+from portfolio.db.cdbhandler import cbalances
 from portfolio.gui.tabdashboard.charts import TotalWealthHistoryChartView, LastMonthsHistogram, TotalEquityChartView
 from portfolio.gui.tabdashboard.charts import DistributionPieChart
 
@@ -57,9 +57,9 @@ class TotalWealthWidget(QFrame):
         self.amountlyt.setSpacing(0)
 
         # - Amount Label -
-        totalwealth_portfolio = balances.getTotalBalanceAllAccounts()
-        totalwealth_cportfolio = prices.btcToFiat(
-            cbalances.getTotalBalanceAllAccounts())
+        totalwealth_portfolio = balances.get_total_balance_all_accounts()
+        totalwealth_cportfolio = prices.btc_to_fiat(
+            cbalances.get_total_balance_all_accounts())
         totalwealth_amount = int(
             totalwealth_portfolio + totalwealth_cportfolio)
         self.amount_label = QLabel(str(totalwealth_amount))
@@ -85,13 +85,13 @@ class TotalWealthWidget(QFrame):
 
         # - Chart -
         self.chart = TotalWealthHistoryChartView()
-        data = dbhandler.get_totalWealthByDay()
+        data = dbhandler.get_wealth_by_day()
         self.chart.setupChartWithData(data)
 
         # - Percentage -
         # The percentage is the difference between the first balance history and the last one
-        first_balance = dbhandler.get_firstBalance()
-        last_balance = dbhandler.get_lastBalance()
+        first_balance = dbhandler.get_first_balance()
+        last_balance = dbhandler.get_last_balance()
 
         if first_balance != 0:
             percentage = ((last_balance/first_balance)-1)*100
@@ -215,7 +215,7 @@ class LastMonthWidget(QFrame):
 
         # ------ Chart --------
         self.lastmonthchart = TotalWealthHistoryChartView(self)
-        data = dbhandler.get_totalWealthByDay_LastMonth()
+        data = dbhandler.get_total_wealth_by_day_current_month()
         self.lastmonthchart.setupChartWithData(data)
 
         self.layout.addWidget(self.header)
@@ -301,7 +301,7 @@ class TotalEquityWidget(QFrame):
 
         # ------ Chart
         self.chart = TotalEquityChartView()
-        data = dbhandler.get_totalWealthByDay()
+        data = dbhandler.get_wealth_by_day()
         self.chart.setupChartWithData(data)
 
         self.layout.addWidget(self.chart)
