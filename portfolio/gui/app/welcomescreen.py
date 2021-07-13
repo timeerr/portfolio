@@ -147,12 +147,10 @@ class WelcomeWidget(QWidget):
         the main app is opened, it takes the data from that directory
         """
         for bttn in self.buttons:
-            print(bttn.isChecked())
             if bttn.isChecked() is True:
                 path = bttn.objectName().split(";")[0]
                 name = bttn.objectName().split(";")[1]
                 os.chdir(path)
-                print("changed to ", path)
 
         # Initialize databases
         from portfolio.db.fdbhandler import db_initialize

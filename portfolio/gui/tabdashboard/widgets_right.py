@@ -468,7 +468,7 @@ class QueryResultsWidget(QFrame):
                          ["enddate"]    = end date in timestamp
         """
         FIAT_CURRENCY = confighandler.get_fiat_currency()
-        wealthbyday = dbhandler.getWealthByDay(
+        wealthbyday = dbhandler.get_wealth_by_day(
             query['fiataccs'], query['cryptoaccs'], query['startdate'], query['enddate'])
 
         if len(wealthbyday) == 0:
@@ -477,7 +477,7 @@ class QueryResultsWidget(QFrame):
             self.endbalance.setText(f"0 {FIAT_CURRENCY.upper()}")
             self.drawdown.setText(f"0 %")
             self.drawdown_fiat.setText(f"0 {FIAT_CURRENCY.upper()}")
-            wealthbyday = dbhandler.getWealthByDay(
+            wealthbyday = dbhandler.get_wealth_by_day(
                 fiataccs=None, cryptoaccs=None, startdate=query['startdate'], enddate=query['enddate'])
             self.chart.setupChartWithData(wealthbyday, linecolor='white')
             return
