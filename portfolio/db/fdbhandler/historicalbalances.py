@@ -34,7 +34,7 @@ def get_balances_by_day(fiataccs=None):
         cursor = conn.cursor()
         query = "SELECT date, balance FROM balancehistory"
         if fiataccs is not None:
-            query += f"WHERE account IN {fiataccs}"
+            query += f" WHERE account IN {tuple(fiataccs)}"
         cursor.execute(query)
 
         result = cursor.fetchall()

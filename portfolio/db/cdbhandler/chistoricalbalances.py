@@ -51,7 +51,7 @@ def get_balances_by_day_fiat(cryptoaccs=None):
         cursor = conn.cursor()
         query = f"SELECT date, balance_{fiat} FROM cbalancehistory"
         if cryptoaccs is not None:
-            query += f"WHERE account IN {cryptoaccs}"
+            query += f" WHERE account IN {tuple(cryptoaccs)}"
         cursor.execute(query)
 
         result = cursor.fetchall()
@@ -105,7 +105,7 @@ def get_balances_with_token_tuple(token: str):
     """
     data = get_balances_with_token(token)
     final = {d[0]: (0, 0) for d in data}
-    for entry in final:
+    for entry in data:
         date, btc, fiat = entry
         final[date] = (final[date][0]+btc, final[date][0]+fiat)
     return final
@@ -134,7 +134,7 @@ def get_balances_with_account_tuple(account: str):
             f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE account = '{account}'")
         data = cursor.fetchall()
     final = {d[0]: (0, 0) for d in data}
-    for entry in final:
+    for entry in data:
         date, btc, fiat = entry
         final[date] = (final[date][0]+btc, final[date][0]+fiat)
     return final
