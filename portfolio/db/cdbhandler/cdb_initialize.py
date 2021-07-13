@@ -55,5 +55,7 @@ def create_tables(path_to_db):
     conn.close()
 
 
-path_to_db = DBHandler.C_PATH_TO_DB
-create_tables(path_to_db)
+def initialize():
+    if 'database' not in os.listdir():
+        os.mkdir('database')
+    create_tables(DBHandler.C_PATH_TO_DB)

@@ -73,6 +73,4 @@ def create_tables(path_to_db):
 def initialize():
     if 'database' not in os.listdir():
         os.mkdir('database')
-
-    path_to_db = DBHandler.F_PATH_TO_DB
-    create_tables(path_to_db)
+    create_tables(DBHandler.F_PATH_TO_DB)
