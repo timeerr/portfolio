@@ -7,11 +7,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QMargins, QObject, pyqtSignal
 
-from portfolio.gui.ui_components.fonts import TitleFont
+from portfolio.gui.ui_components.fonts import TitleFont, DescriptionFont
 from portfolio.utils import confighandler
-
-CONFIG_FILE_PATH = os.path.join(os.path.expanduser(
-    '~'), '.config', 'portfolio', 'config.ini')
 
 
 class WelcomeWidget(QWidget):
@@ -20,6 +17,7 @@ class WelcomeWidget(QWidget):
     Here the user can add/remove portfolios, and select which one they want to access.
     Once one is selected, it closes.
     """
+    portfolioselected = pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,20 +25,33 @@ class WelcomeWidget(QWidget):
         self.layout = QVBoxLayout()
 
         # -----High container------
-        self.label = QLabel(self.tr("Welcome"))
-        self.label.setMaximumHeight(200)
-        self.label.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-        self.label.setFont(TitleFont())
-        self.layout.addWidget(self.label, alignment=Qt.AlignBottom)
+        wrapper_lyt = QVBoxLayout()
+        wrapper_lyt.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        wrapper_lyt.setSpacing(0)
+
+        self.title = QLabel(self.tr("Welcome"))
+        self.title.setMaximumHeight(200)
+        self.title.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.title.setFont(TitleFont())
+        wrapper_lyt.addWidget(self.title, alignment=Qt.AlignBottom)
+
+        self.subtitle = QLabel(
+            self.tr("Select to open a portfolio, or create a new one"))
+        self.subtitle.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.subtitle.setFont(DescriptionFont())
+        wrapper_lyt.addWidget(self.subtitle, alignment=Qt.AlignBottom)
+
+        self.layout.addLayout(wrapper_lyt)
 
         # -------Low container-------
-        self.portoflios_container = QVBoxLayout()
-        self.portoflios_container.setAlignment(Qt.AlignBottom)
+        self.portfolios_container = QVBoxLayout()
+        self.portfolios_container.setAlignment(Qt.AlignBottom)
         self.buttons = []
-        self.setupPortfolios()
-        self.layout.addLayout(self.portoflios_container)
+        self.setup_portfolios()
+        self.layout.addLayout(self.portfolios_container)
 
-        self.add_portfolio_bttn = QPushButton(self.tr("Add New Portfolio"))
+        self.add_portfolio_bttn = QPushButton(self.tr("Add Portfolio"))
+        self.add_portfolio_bttn.setStyleSheet("font: bold; font-size:15px")
         self.add_portfolio_bttn.setFixedSize(175, 30)
         self.add_portfolio_bttn.clicked.connect(self.addNewPortfolio)
         self.layout.addWidget(self.add_portfolio_bttn,
@@ -48,47 +59,42 @@ class WelcomeWidget(QWidget):
 
         self.setLayout(self.layout)
 
-        # Custom Signal
-        self.portfolioselected = PortfolioSelected()
-
-    def setupPortfolios(self):
+    def setup_portfolios(self):
         """
-        Displays all the portfolios that the user has added 
+        Displays all the portfolios that the user has added
         """
 
         # First, we get all the current portfolio directories
         portfolios = confighandler.get_portfolios()
 
-        for portfolio_name in portfolios:
-            portfolio_path = portfolios[portfolio_name]
+        for name in portfolios:
+            portfolio_path = portfolios[name]
             portfolio_version = confighandler.get_database_version(
                 portfolio_path)
 
             portfolio_lyt = QHBoxLayout()
             portfolio_lyt.setAlignment(Qt.AlignHCenter)
 
-            portfolio_label = QLabel(portfolio_name)
-            font = QFont()
-            font.setBold(True)
-            font.setFamily('Noto Sans')
-            portfolio_label.setFont(font)
-            portfolio_label.setFixedWidth(120)
-            portfolio_lyt.addWidget(portfolio_label)
+            go_to_portfolio_bttn = QPushButton(name)
+            go_to_portfolio_bttn.setFixedWidth(100)
+            go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
+            go_to_portfolio_bttn.setObjectName(
+                portfolio_path+";"+name)
+            go_to_portfolio_bttn.setCheckable(True)
+            go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
+            self.buttons.append(go_to_portfolio_bttn)
+            portfolio_lyt.addWidget(go_to_portfolio_bttn)
 
             portfolio_path_label = QLabel(portfolio_path)
-            portfolio_path_label.setFixedWidth(300)
+            font = QFont()
+            font.setWeight(QFont.Light)
+            portfolio_path_label.setFont(font)
+            portfolio_path_label.setFixedWidth(500)
             portfolio_lyt.addWidget(portfolio_path_label)
 
             portfolio_version_label = QLabel(portfolio_version)
             portfolio_version_label.setFixedWidth(50)
             portfolio_lyt.addWidget(portfolio_version_label)
-
-            go_to_portfolio_bttn = QPushButton(self.tr("Open"))
-            go_to_portfolio_bttn.setFixedWidth(100)
-            go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-            go_to_portfolio_bttn.setObjectName(
-                portfolio_path+";"+portfolio_name)
-            go_to_portfolio_bttn.setCheckable(True)
 
             # If the database has a version that is superior to the one
             # on the app, hide open button
@@ -96,12 +102,7 @@ class WelcomeWidget(QWidget):
                 go_to_portfolio_bttn.hide()
                 portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
 
-            self.buttons.append(go_to_portfolio_bttn)
-
-            go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
-            portfolio_lyt.addWidget(go_to_portfolio_bttn)
-
-            self.portoflios_container.addLayout(portfolio_lyt)
+            self.portfolios_container.addLayout(portfolio_lyt)
 
     def addPortfolioLyt(self, name, location):
         """
@@ -132,7 +133,7 @@ class WelcomeWidget(QWidget):
         go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
         portfolio_lyt.addWidget(go_to_portfolio_bttn)
 
-        self.portoflios_container.addLayout(portfolio_lyt)
+        self.portfolios_container.addLayout(portfolio_lyt)
 
     def addNewPortfolio(self):
         """
@@ -150,14 +151,16 @@ class WelcomeWidget(QWidget):
             if bttn.isChecked() is True:
                 path = bttn.objectName().split(";")[0]
                 name = bttn.objectName().split(";")[1]
-                os.chdir(path)
+                os.chdir(path)  # Change location to portfolio
 
         # Initialize databases
         from portfolio.db.fdbhandler import db_initialize
         from portfolio.db.cdbhandler import cdb_initialize
+        db_initialize.initialize()
+        cdb_initialize.initialize()
 
         # Emit open portfolio signal
-        self.portfolioselected.selected.emit(name)
+        self.portfolioselected.emit(name)
 
 
 class AddPortfolioDialog(QDialog):
@@ -228,7 +231,3 @@ class AddPortfolioDialog(QDialog):
         self.parent().addPortfolioLyt(name, location)
 
         self.close()
-
-
-class PortfolioSelected(QObject):
-    selected = pyqtSignal(str)
