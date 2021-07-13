@@ -4,8 +4,15 @@ import os
 from datetime import datetime
 
 from portfolio.utils.date_handler import next_month_date
-from portfolio.db.fdbhandler import balances, historicalbalances, results
+from portfolio.db.fdbhandler import balances, historicalbalances, results, costbasis
 from portfolio.db.cdbhandler import cbalances, chistoricalbalances
+
+
+def handle_close():
+    """ Updates everything on both databases prior to app close """
+    historicalbalances.add_todays_balances()
+    chistoricalbalances.add_todays_balances()
+    costbasis.update_cost_basis()
 
 
 def get_wealth_by_day(fiataccs=None, cryptoaccs=None,

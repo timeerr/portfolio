@@ -24,10 +24,8 @@ def initial_setup():
     CONFIG_PATH = getConfigPath()
     if 'portfolio' not in os.listdir(user_config_dir()):
         os.mkdir(CONFIG_PATH)
-
     if 'config.ini' not in os.listdir(CONFIG_PATH):
         create_config_file()
-
     migrate_version()
 
 
