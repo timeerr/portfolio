@@ -19,17 +19,15 @@ from portfolio.db.cdbhandler import cbalances, chistoricalbalances
 from portfolio.gui.ui_components.fonts import TitleFont, TokenBalanceFont
 from portfolio.utils.prices import prices
 from portfolio.gui.tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
-from portfolio.utils import confighandler
+from portfolio.utils import confighandler, resource_gatherer
 
-CONFIG_FILE_PATH = confighandler.getConfigPath()
-RESOURCES_PATH = confighandler.getUserDataPath()
+CONFIG_FILE_PATH = confighandler.get_config_path()
 
 
 class TabCrypto(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.setWindowTitle("Crypto")
 
         # UI
@@ -224,8 +222,7 @@ class DescriptionLayout(QWidget):
         self.select_mode = QPushButton("All")
         self.select_mode.setMaximumWidth(150)
         self.select_mode.setIcon(
-            QIcon(QPixmap(os.path.join(RESOURCES_PATH, 'switch.svg'))))
-
+            resource_gatherer.get_resource_QIcon('switch.svg'))
         self.select_token_or_account_lyt.addWidget(
             self.select_token_or_account)
         self.select_token_or_account_lyt.addWidget(self.select_mode)

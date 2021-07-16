@@ -9,9 +9,7 @@ import os
 import time
 
 from portfolio.gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
-from portfolio.utils import confighandler
-
-RESOURCES_PATH = confighandler.getUserDataPath()
+from portfolio.utils import confighandler, resource_gatherer
 
 
 class AccountsToolBar(QToolBar):
@@ -31,7 +29,7 @@ class AccountsToolBar(QToolBar):
 
         # Edit Account Action
         """
-        Still not ready for use. Things like icon changing and how to handle 
+        Still not ready for use. Things like icon changing and how to handle
         previous results/transactions from the account have to be considered
         """
 #        self.editaccount_action = QAction(self.tr("Edit Account"), self)
@@ -40,7 +38,7 @@ class AccountsToolBar(QToolBar):
 #        self.editaccount_action.triggered.connect(self.editAccountActionClick)
 #        self.addAction(self.editaccount_action)
 
-        #self.edit_account_dialog = EditAccountDialog()
+        # self.edit_account_dialog = EditAccountDialog()
 
         # Remove Account Action
         self.removeaccount_action = QAction(self.tr("Remove Account"), self)
@@ -62,7 +60,7 @@ class AccountsToolBar(QToolBar):
         # Refresh Action
         self.refresh_action = QAction(self.tr("Refresh"), self)
         self.refresh_action.setIcon(
-            QIcon(os.path.join(RESOURCES_PATH, 'refresh.png')))
+            resource_gatherer.get_resource_QIcon('refresh.png'))
         self.refresh_action.setStatusTip(
             self.tr("Refresh all accounts to reflect changes"))
         self.addAction(self.refresh_action)

@@ -3,6 +3,7 @@
 import os
 import configparser
 import sqlite3
+import logging
 from datetime import datetime
 
 from appdirs import user_config_dir, user_data_dir
@@ -17,7 +18,7 @@ def get_config_path():
     return user_config_dir('portfolio')
 
 
-def getUserDataPath():
+def get_user_data_path():
     return user_data_dir('portfolio')
 
 
@@ -143,32 +144,26 @@ def add_portfolio(name, location):
 # ----------------------------------------------------
 def migrate_version():
     """
-    Checks the current version, and executes all necessary migration scripts
+    Checks the current version, and executes
+    all necessary migration scripts
     """
-
     # ----------- App Migration ----------
-    if get_version() == "None":
+    if get_version() in ("None", "0.0.1"):
         pass
-    if get_version() == "0.0.1":
-        pass
-
     # ----------- Database Migration ----------
     db_paths = get_portfolios().values()
-
     for path in db_paths:
         db_version = str(get_database_version(path))
-
-        # Migration from no version to version 0.0.1
         if db_version == "None":
-            print("Updating to version ", VERSION)
+            logging.info("Updating to version ", VERSION)
             update_timestamps_from_db_to_ints(path)
         if db_version == "0.0.1":
-            print("Updating to version ", VERSION)
+            logging.info("Updating to version ", VERSION)
             add_balance_fiat_to_cportfoliodb(path)
         if db_version < VERSION:
             add_version_to_databases()
         if db_version > VERSION:
-            print(
+            logging.info(
                 path, " database's version is ahead of current app version. update app required")
     set_version()
 
@@ -246,9 +241,8 @@ def add_balance_fiat_to_cportfoliodb(path):
     Adds a column on cportfolio's cbalancehistory table
     by converting each balance_btc to its fiat value on each entry's date
     """
-    print("Updating databases")
-
-    print("Adding balance_fiat history to cbalancehistory on ", path)
+    logging.info("Updating databases")
+    logging.info("Adding balance_fiat history to cbalancehistory on ", path)
     # cportfolio.db
     cportfoliodb_path = os.path.join(path, "database", "cportfolio.db")
     conn = sqlite3.connect(cportfoliodb_path)
@@ -310,31 +304,25 @@ def add_balance_fiat_to_cportfoliodb(path):
         try:
             cursor.execute(add_column_query.format('eur'))
         except Exception as e:
-            print(e)
+            logging.error(e)
         try:
             cursor.execute(add_column_query.format('usd'))
         except Exception as e:
-            print(e)
+            logging.error(e)
         try:
             cursor.execute(add_column_query.format('jpy'))
         except Exception as e:
-            print(e)
+            logging.error(e)
         # If it fails, it already exists assumed (connection errors will be detected later)
 
         # Fill columns with history
         fill_balance_fiat_query = "UPDATE cbalancehistory SET balance_{} = {} WHERE id={}"
-
         for balance_fiat in balances_fiat:
-            _id = balance_fiat[0]
-            balance_eur = balance_fiat[1]
-            balance_usd = balance_fiat[2]
-            balance_jpy = balance_fiat[3]
-
+            _id, balance_eur, balance_usd, balance_jpy, *_ = balance_fiat
             cursor.execute(fill_balance_fiat_query.format(
                 'eur', balance_eur, _id))
             cursor.execute(fill_balance_fiat_query.format(
                 'usd', balance_usd, _id))
             cursor.execute(fill_balance_fiat_query.format(
                 'jpy', balance_jpy, _id))
-
         conn.commit()

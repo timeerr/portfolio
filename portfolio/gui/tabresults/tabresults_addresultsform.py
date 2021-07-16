@@ -11,8 +11,6 @@ from portfolio.utils import confighandler
 from portfolio.db.fdbhandler import balances, results, strategies
 from portfolio.gui.ui_components.fonts import TitleFont
 
-RESOURCES_PATH = confighandler.getUserDataPath()
-
 
 class AddResultsForm(QVBoxLayout):
     """

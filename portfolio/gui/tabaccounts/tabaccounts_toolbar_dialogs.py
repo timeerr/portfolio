@@ -7,9 +7,7 @@ import os
 
 from portfolio.db.fdbhandler import balances, costbasis
 from portfolio.utils import confighandler
-
-
-RESOURCES_PATH = confighandler.getUserDataPath()
+from portfolio.utils import resource_gatherer
 
 
 class AddAccountDialog(QDialog):
@@ -178,8 +176,8 @@ class RemoveAccountWarning(QDialog):
         self.warning_lyt_top = QHBoxLayout()
 
         self.icon = QLabel()
-        pxmp = QPixmap(os.path.join(RESOURCES_PATH, "warning.svg")
-                       ).scaledToHeight(40)
+        pxmp = resource_gatherer.get_resource_QPixmap(
+            'warning.svg').scaledToHeight(40)
         self.icon.setPixmap(pxmp)
         self.warningtext = QLabel(
             self.tr("Are you sure? \nThis cannot be undone"))
