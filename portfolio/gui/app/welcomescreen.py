@@ -144,7 +144,7 @@ class WelcomeWidget(QWidget):
 
     def goToPortfolio(self):
         """
-        Changes the program location to the portfolio path, so that when 
+        Changes the program location to the portfolio path, so that when
         the main app is opened, it takes the data from that directory
         """
         for bttn in self.buttons:

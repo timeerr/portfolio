@@ -9,10 +9,11 @@ from appdirs import user_config_dir, user_data_dir
 
 from portfolio.utils.prices import prices
 
+
 VERSION = "0.0.2"
 
 
-def getConfigPath():
+def get_config_path():
     return user_config_dir('portfolio')
 
 
@@ -20,8 +21,12 @@ def getUserDataPath():
     return user_data_dir('portfolio')
 
 
+CONFIG_PATH = get_config_path()
+CONFIG_FILE_PATH = os.path.join(get_config_path(), 'config.ini')
+
+
 def initial_setup():
-    CONFIG_PATH = getConfigPath()
+    CONFIG_PATH = get_config_path()
     if 'portfolio' not in os.listdir(user_config_dir()):
         os.mkdir(CONFIG_PATH)
     if 'config.ini' not in os.listdir(CONFIG_PATH):
@@ -30,7 +35,6 @@ def initial_setup():
 
 
 def create_config_file():
-    CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
     with open(CONFIG_FILE_PATH, 'w') as cf:
         config = configparser.ConfigParser()
 
@@ -46,10 +50,6 @@ def create_config_file():
         config.set('INFO', 'version', VERSION)
 
         config.write(cf)
-
-
-CONFIG_PATH = getConfigPath()
-CONFIG_FILE_PATH = os.path.join(getConfigPath(), 'config.ini')
 
 
 def get_version():
@@ -141,7 +141,6 @@ def add_portfolio(name, location):
 # ----------------------------------------------------
 # ------------- Version Migration --------------------
 # ----------------------------------------------------
-
 def migrate_version():
     """
     Checks the current version, and executes all necessary migration scripts
