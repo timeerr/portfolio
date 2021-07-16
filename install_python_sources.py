@@ -2,37 +2,40 @@
 
 import os
 import shutil
+import logging
 
 
 def install_dependencies():
-    os.system("pip3 install appdirs")
     os.system("pip3 install .")
 
 
 def initialize():
     from portfolio.utils import confighandler
     from appdirs import user_data_dir
+
     confighandler.initial_setup()
-    CONFIG_PATH = confighandler.getConfigPath()
+
+    # Translation
+    CONFIG_PATH = confighandler.get_config_path()
     for file in os.listdir():
         if ".qm" in file:
             source = os.path.join(file)
             dest = os.path.join(CONFIG_PATH, file)
             shutil.copy(source, dest)
-            print("Moved ", source, "translation to ", dest)
+            logging.info("Moved %s translation to %s", source, dest)
 
     RESOURCES_PATH = confighandler.getUserDataPath()
     if 'portfolio' in os.listdir(user_data_dir()):
-        # Deleting previous folder
-        print("Deleting ", RESOURCES_PATH)
+        logging.info("Deleting previous resources: %s", RESOURCES_PATH)
         shutil.rmtree(RESOURCES_PATH)
     # Copy resources to RESOURCES_PATH
     shutil.copytree(os.path.join('resources'), RESOURCES_PATH)
-    print("Created resources folder on ", RESOURCES_PATH)
     for file in os.listdir(RESOURCES_PATH):
         if ".py" in file:
             os.remove(os.path.join(RESOURCES_PATH, file))
+    logging.info("Created resources folder on %s", RESOURCES_PATH)
 
 
-install_dependencies()
-initialize()
+if __name__ == "__main__":
+    install_dependencies()
+    initialize()
