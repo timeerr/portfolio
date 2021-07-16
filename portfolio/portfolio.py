@@ -11,7 +11,7 @@ import logging
 import qdarkstyle
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import QTranslator
 
 from portfolio.utils import confighandler
@@ -22,8 +22,14 @@ logging.basicConfig(level=logging.INFO)
 
 def main():
     """Main function"""
-    app = QApplication(sys.argv)
+    try:
+        from PyQt5.QtWinExtras import QtWin
+        myappid = 'timeerr.portfolio.0-0-1'
+        QtWin.setCurrentProcessExplicitAppUserModelID(myappid)
+    except ImportError:
+        pass
 
+    app = QApplication(sys.argv)
     # ----- Internationalization ------
     # If a language hasn't been selected yet, we ask the user for one
     confighandler.initial_setup()
@@ -46,6 +52,8 @@ def main():
     defaultfont = QFont()
     defaultfont.setFamily('Roboto')
     app.setFont(defaultfont)
+    # Icon
+    app.setWindowIcon(QIcon('resources/icon_64.png'))
 
     # ---- Execution ----
     window = MainWindow()
