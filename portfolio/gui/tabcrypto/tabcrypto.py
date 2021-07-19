@@ -352,8 +352,6 @@ class DescriptionLayout(QWidget):
 
     def updateDataFiles(self):
         """Calls coingecko's API and writes btcfiat.json, coinlist.json, coinprices.json"""
-        self.parent().parent().parent().parent().parent(
-        ).statusbar.showMessage(self.tr("Updating data..."))
         updatingdata_mssg = QDialog(self)
         updatingdata_lyt = QVBoxLayout()
         text = QLabel(self.tr("Updating data. Please wait..."))
@@ -363,8 +361,6 @@ class DescriptionLayout(QWidget):
         prices.updateCoingeckoPrices()
         prices.updateCoinListFile()
         prices.updateBTCToFiat()
-        self.parent().parent().parent().parent().parent(
-        ).statusbar.showMessage(self.tr("Data Updated!"))
         updatingdata_mssg.close()
 
 
