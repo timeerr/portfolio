@@ -23,7 +23,6 @@ class WelcomeWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.layout = QVBoxLayout()
-
         # -----High container------
         wrapper_lyt = QVBoxLayout()
         wrapper_lyt.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
@@ -60,78 +59,48 @@ class WelcomeWidget(QWidget):
         self.setLayout(self.layout)
 
     def setup_portfolios(self):
-        """
-        Displays all the portfolios that the user has added
-        """
-
+        """ Displays all the portfolios that the user has added """
         # First, we get all the current portfolio directories
         portfolios = confighandler.get_portfolios()
-
+        # Iterate and populate
         for name in portfolios:
-            portfolio_path = portfolios[name]
-            portfolio_version = confighandler.get_database_version(
-                portfolio_path)
+            path = portfolios[name]
+            self.addPortfolioLyt(name, path)
 
-            portfolio_lyt = QHBoxLayout()
-            portfolio_lyt.setAlignment(Qt.AlignHCenter)
-
-            go_to_portfolio_bttn = QPushButton(name)
-            go_to_portfolio_bttn.setFixedWidth(100)
-            go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-            go_to_portfolio_bttn.setObjectName(
-                portfolio_path+";"+name)
-            go_to_portfolio_bttn.setCheckable(True)
-            go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
-            self.buttons.append(go_to_portfolio_bttn)
-            portfolio_lyt.addWidget(go_to_portfolio_bttn)
-
-            portfolio_path_label = QLabel(portfolio_path)
-            font = QFont()
-            font.setWeight(QFont.Light)
-            portfolio_path_label.setFont(font)
-            portfolio_path_label.setFixedWidth(500)
-            portfolio_lyt.addWidget(portfolio_path_label)
-
-            portfolio_version_label = QLabel(portfolio_version)
-            portfolio_version_label.setFixedWidth(50)
-            portfolio_lyt.addWidget(portfolio_version_label)
-
-            # If the database has a version that is superior to the one
-            # on the app, hide open button
-            if portfolio_version > confighandler.get_version():
-                go_to_portfolio_bttn.hide()
-                portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
-
-            self.portfolios_container.addLayout(portfolio_lyt)
-
-    def addPortfolioLyt(self, name, location):
+    def addPortfolioLyt(self, name: str, path: str):
         """
         Displays new portfolio
         """
+        db_version = confighandler.get_version()
+
         portfolio_lyt = QHBoxLayout()
         portfolio_lyt.setAlignment(Qt.AlignHCenter)
 
-        portfolio_name = QLabel(name)
-        font = QFont()
-        font.setBold(True)
-        font.setFamily('Noto Sans')
-        portfolio_name.setFont(font)
-        portfolio_name.setFixedWidth(120)
-        portfolio_lyt.addWidget(portfolio_name)
-
-        portfolio_path = QLabel(location)
-        portfolio_path.setFixedWidth(300)
-        portfolio_lyt.addWidget(portfolio_path)
-
-        go_to_portfolio_bttn = QPushButton(self.tr("Open"))
+        go_to_portfolio_bttn = QPushButton(name)
         go_to_portfolio_bttn.setFixedWidth(100)
         go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-        go_to_portfolio_bttn.setObjectName(location+";"+name)
+        go_to_portfolio_bttn.setObjectName(path+";"+name)
         go_to_portfolio_bttn.setCheckable(True)
-        self.buttons.append(go_to_portfolio_bttn)
-
         go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
+        self.buttons.append(go_to_portfolio_bttn)
         portfolio_lyt.addWidget(go_to_portfolio_bttn)
+
+        portfolio_path_label = QLabel(path)
+        font = QFont()
+        font.setWeight(QFont.Light)
+        portfolio_path_label.setFont(font)
+        portfolio_path_label.setFixedWidth(500)
+        portfolio_lyt.addWidget(portfolio_path_label)
+
+        portfolio_version_label = QLabel(db_version)
+        portfolio_version_label.setFixedWidth(50)
+        portfolio_lyt.addWidget(portfolio_version_label)
+
+        # If the database has a version that is superior to the one
+        # on the app, hide open button
+        if db_version > confighandler.get_version():
+            go_to_portfolio_bttn.hide()
+            portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
 
         self.portfolios_container.addLayout(portfolio_lyt)
 
@@ -220,14 +189,13 @@ class AddPortfolioDialog(QDialog):
         self.location_select_dialog.exec_()
 
     def addNewPortfolio(self):
-        """
-        Adds new portfolio info on config.ini file,
-        and displays the new portfolio on the welcomewidget
-        """
+        """ Creates new portfolio data and UI entry """
         name = self.portfolioname_edit.text()
         location = self.portfoliolocation.text()
 
+        # Data
         confighandler.add_portfolio(name, location)
+        # UI
         self.parent().addPortfolioLyt(name, location)
 
         self.close()
