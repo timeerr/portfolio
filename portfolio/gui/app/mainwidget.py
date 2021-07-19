@@ -11,7 +11,7 @@ from portfolio.gui.tabresults.tabresults import TabResults
 from portfolio.gui.tabdashboard.dashboard import TabDashboard
 
 
-class MainWidget(QWidget):
+class MainWidget(QTabWidget):
     """
     The Widget which contains all tabs and subwidgets
     It will handle all functionalities between tabs aswell.
@@ -19,35 +19,30 @@ class MainWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.tabwidget = QTabWidget(self)
+        # -------- UI ---------
         # self.tabwidget.setDocumentMode(True)
-        self.tabwidget.setMovable(True)
-
+        self.setMovable(True)
+        # -------- Content ---------
         # Tab1 : Dashboard
         self.tabdashboard = TabDashboard(self)
-        self.tabwidget.addTab(self.tabdashboard, self.tabdashboard.windowIcon(),
-                              self.tabdashboard.windowTitle())
+        self.addTab(self.tabdashboard, self.tabdashboard.windowIcon(),
+                    self.tabdashboard.windowTitle())
         # Tab2 : Results
         self.tabresults = TabResults(self)
-        self.tabwidget.addTab(self.tabresults, self.tabresults.windowIcon(),
-                              self.tabresults.windowTitle())
+        self.addTab(self.tabresults, self.tabresults.windowIcon(),
+                    self.tabresults.windowTitle())
         # Tab3 : Accounts
         self.tabaccounts = TabAccounts(self)
-        self.tabwidget.addTab(self.tabaccounts, self.tabaccounts.windowIcon(),
-                              self.tabaccounts.windowTitle())
+        self.addTab(self.tabaccounts, self.tabaccounts.windowIcon(),
+                    self.tabaccounts.windowTitle())
         # Tab4 : Transactions
         self.tabtransactions = TabTransactions(self)
-        self.tabwidget.addTab(self.tabtransactions, self.tabtransactions.windowIcon(),
-                              self.tabtransactions.windowTitle())
+        self.addTab(self.tabtransactions, self.tabtransactions.windowIcon(),
+                    self.tabtransactions.windowTitle())
         # Tab 5 : Crypto
         self.tabcrypto = TabCrypto(self)
-        self.tabwidget.addTab(
+        self.addTab(
             self.tabcrypto, self.tabcrypto.windowIcon(), self.tabcrypto.windowTitle())
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.tabwidget)
-        self.setLayout(layout)
 
         # --------------- Functionality between Tabs --------------
         # Whenever a result is removed, we update tabaccounts
@@ -66,11 +61,18 @@ class MainWidget(QWidget):
 
         # Whenever a crypto account is added/modified we update tabcrypto
         self.tabcrypto.toolbar.addaccount_dialog.updatecryptosignal.updated.connect(
-            self.updateTabCrypto)
+            self.refreshTabCrypto)
 
-    def updateTabCrypto(self):
-        """refreshes TabCrypto completely"""
+    def refreshTabCrypto(self):
+        """Refreshes TabCrypto completely"""
         self.tabcrypto.deleteLater()
         self.tabcrypto = TabCrypto(self)
-        self.tabwidget.addTab(
+        self.addTab(
             self.tabcrypto, self.tabcrypto.windowIcon(), self.tabcrypto.windowTitle())
+
+    def refreshTabDashboard(self):
+        """Refreshes TabDashboard completely"""
+        self.tabdashboard.deleteLater()
+        self.tabdashboard = TabDashboard(self)
+        self.addTab(
+            self.tabdashboard, self.tabdashboard.windowIcon(), self.tabdashboard.windowTitle())
