@@ -192,10 +192,8 @@ class AddPortfolioDialog(QDialog):
         """ Creates new portfolio data and UI entry """
         name = self.portfolioname_edit.text()
         location = self.portfoliolocation.text()
-
         # Data
         confighandler.add_portfolio(name, location)
         # UI
         self.parent().addPortfolioLyt(name, location)
-
         self.close()

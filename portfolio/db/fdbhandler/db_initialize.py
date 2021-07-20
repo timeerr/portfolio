@@ -70,7 +70,12 @@ def create_tables(path_to_db):
     conn.close()
 
 
-def initialize():
+def initialize(path=None):
+    prev_cwd = os.getcwd()  # To return later
+    if path is None:
+        path = prev_cwd
+    os.chdir(path)
     if 'database' not in os.listdir():
         os.mkdir('database')
     create_tables(DBHandler.F_PATH_TO_DB)
+    os.chdir(prev_cwd)  # Come back

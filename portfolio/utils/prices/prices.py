@@ -7,13 +7,20 @@ from datetime import datetime
 
 coingeckoids_path = os.path.join('prices', 'coingeckoids.json')
 coinprices_path = os.path.join('prices', 'coinprices.json')
-btctofiat_path = os.path.join('prices', 'btctofiat.json')
+BTC_TO_FIAT_NAME = 'btctofiat.json'
+btctofiat_path = os.path.join('prices', BTC_TO_FIAT_NAME)
 customprices_path = os.path.join('prices', 'customprices.json')
 
 
-def initialize_prices():
+def initialize_prices(path=None):
+    prev_cwd = os.getcwd()  # To return later
+    if path is None:
+        path = prev_cwd
+    os.chdir(path)
     if 'prices' not in os.listdir():
         os.mkdir('prices')
+    os.chdir(prev_cwd)
+    # TODO: Decorator to go to path and return to use here and in db initializations
 
 
 def updateCoinListFile():
@@ -41,15 +48,13 @@ def updateBTCToFiat():
     """ Writes btc in several fiat terms """
     with open(btctofiat_path, 'w', encoding='utf-8') as f:
         btcfiat_rate = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur%2Cusd%2Cjpy%2Ccad%2Caud%2Cchf").json()
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur%2Cusd%2Cjpy%2Ccad%2Caud%2Cchf")
+        btcfiat_rate = btcfiat_rate.json()
         json.dump(btcfiat_rate, f, ensure_ascii=False, indent=4)
-
-        f.close()
 
 
 def updateCoingeckoPrices():
     """ Reads coinprices and updates prices that use coingecko's api """
-
     with open(coinprices_path) as f:
         scheduled_tokens = []
         coinprices = json.load(f)
@@ -167,6 +172,8 @@ def symbolToId_CoinGeckoList(symbol):
 
 def btc_to_fiat(amount, currency="EUR"):
     """Converts btc amount to fiat using btcfiat.json file"""
+    if 'prices' not in os.listdir() or BTC_TO_FIAT_NAME not in os.listdir('prices'):
+        updateBTCToFiat()
     with open(btctofiat_path) as f:
         f = json.load(f)
         return(round(amount * f['bitcoin'][currency.lower()], 2))

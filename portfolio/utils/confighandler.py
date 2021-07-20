@@ -10,8 +10,9 @@ from appdirs import user_config_dir, user_data_dir
 
 from portfolio.utils.prices import prices
 
-
 VERSION = "0.0.2"
+
+PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
 
 def get_config_path():
@@ -130,11 +131,25 @@ def set_fiat_currency(fiat_currency):
 
 
 def add_portfolio(name, location):
+    # ---- Create data ----
+    if PORTFOLIO_DATABASE_DIR_NAME not in os.listdir(location):
+        os.mkdir(os.path.join(location, 'database'))
+    # Create version file
+    VERSION_FILE_PATH = os.path.join(location, 'database', 'version.txt')
+    with open(VERSION_FILE_PATH, 'w') as vf:
+        vf.write(get_version())
+    # Create databases
+    from portfolio.db.cdbhandler import cdb_initialize
+    from portfolio.db.fdbhandler import db_initialize
+    db_initialize.initialize(path=location)
+    cdb_initialize.initialize(path=location)
+    from portfolio.utils.prices import prices
+    prices.initialize_prices(path=location)
+
+    # ---- Add to config file ----
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
-
     config.set('PORTFOLIODATA PATHS', name, location)
-
     with open(CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
 
