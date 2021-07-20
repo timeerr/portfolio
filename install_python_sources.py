@@ -24,7 +24,7 @@ def initialize():
             shutil.copy(source, dest)
             logging.info("Moved %s translation to %s", source, dest)
 
-    RESOURCES_PATH = confighandler.getUserDataPath()
+    RESOURCES_PATH = confighandler.get_user_data_path()
     if 'portfolio' in os.listdir(user_data_dir()):
         logging.info("Deleting previous resources: %s", RESOURCES_PATH)
         shutil.rmtree(RESOURCES_PATH)
