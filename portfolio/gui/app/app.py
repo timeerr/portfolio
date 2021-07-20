@@ -20,19 +20,17 @@ logger = logger.get_logger()
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # UI
+        # Layout
         self.setWindowTitle(self.tr("Portfolio"))
-        self.showMaximized()
-
         self.welcomewidget = WelcomeWidget(self)
         self.setCentralWidget(self.welcomewidget)
-
+        # UI
+        self.showMaximized()
         # Functionality
         self.welcomewidget.portfolioselected.connect(
             self.endWelcomeWidget)
 
-    def endWelcomeWidget(self, portfolioname):
+    def endWelcomeWidget(self, portfolioname: str):
         """
         When the user selects a portfolio, the welcomewidget closes.
         Parameters:
@@ -40,7 +38,7 @@ class MainWindow(QMainWindow):
         """
         # Remove Welcome Screen
         self.welcomewidget.deleteLater()
-        # Set Portfolio
+        # Set portfolio as new central widget
         self.setWindowTitle(portfolioname)
         self.setCentralWidget(MainWidget(self))
         # Add Status Bar
@@ -49,6 +47,8 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Making sure that the database is properly updated before closing the app"""
+        if type(self.centralWidget()) == WelcomeWidget:
+            return
         logger.info("App Closed, updating database ...")
         dbhandler.handle_close()
 
