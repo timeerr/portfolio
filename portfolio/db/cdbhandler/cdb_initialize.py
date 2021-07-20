@@ -42,7 +42,10 @@ def create_tables(path_to_db):
         date timestamp NOT NULL,
         token text NOT NULL,
         balance integer NOT NULL,
-        balance_btc integer NOT NULL
+        balance_btc integer NOT NULL,
+        balance_eur integer NOT NULL,
+        balance_usd integer NOT NULL,
+        balance_jpy integer NOT NULL
     )"""
 
     # Inserting tables
