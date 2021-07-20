@@ -155,10 +155,10 @@ def migrate_version():
     for path in db_paths:
         db_version = str(get_database_version(path))
         if db_version == "None":
-            logging.info("Updating to version ", VERSION)
+            logging.info("Updating to version %s", VERSION)
             update_timestamps_from_db_to_ints(path)
         if db_version == "0.0.1":
-            logging.info("Updating to version ", VERSION)
+            logging.info("Updating to version %s", VERSION)
             add_balance_fiat_to_cportfoliodb(path)
         if db_version < VERSION:
             add_version_to_databases()
@@ -242,7 +242,7 @@ def add_balance_fiat_to_cportfoliodb(path):
     by converting each balance_btc to its fiat value on each entry's date
     """
     logging.info("Updating databases")
-    logging.info("Adding balance_fiat history to cbalancehistory on ", path)
+    logging.info("Adding balance_fiat history to cbalancehistory on %s", path)
     # cportfolio.db
     cportfoliodb_path = os.path.join(path, "database", "cportfolio.db")
     conn = sqlite3.connect(cportfoliodb_path)
