@@ -381,6 +381,7 @@ class NewTokenDialog(QDialog):
             self.currentprice.clear()
             self.currentprice.setReadOnly(False)
 
+        self.handleIdSelected(self.select_id.currentText())
         self.currentprice.show()
 
     def handleIdSelected(self, _id):
