@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 from PyQt5.QtWidgets import QDateEdit, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QSpinBox, QDialog, QFrame, QSpinBox, QLineEdit, QComboBox, QMessageBox
-from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtCore import Qt, QMargins, pyqtSignal
 from PyQt5.QtGui import QFont, QIcon
 
 from portfolio.utils import confighandler
@@ -16,6 +16,7 @@ class AddResultsForm(QVBoxLayout):
     """
     Form with several entries to add a result on the database
     """
+    resultAdded = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,9 +116,7 @@ class AddResultsForm(QVBoxLayout):
         self.date_edit.setDate(datetime.now())
 
     def insertResult(self):
-        """
-        Insert current form state as a result on the database
-        """
+        """ Insert current form state as a result on the database """
         current_date = datetime(
             self.date_edit.date().year(), self.date_edit.date(
             ).month(), self.date_edit.date().day()).timestamp()
@@ -135,8 +134,10 @@ class AddResultsForm(QVBoxLayout):
 
         currentaccounts = [a[0] for a in balances.get_all_accounts()]
         self.account_select.addItems(currentaccounts)
-        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        currentstrategies = [i[0] for i in strategies.get_all_strategies()]
         self.strategy_select.addItems(currentstrategies)
+
+        self.resultAdded.emit()
 
     def showAdjustDialog(self):
         """
@@ -320,9 +321,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         self.new_balance.setValue(previous_balance)
 
     def addResult(self):
-        """
-        Insert current form state as a result on the database
-        """
+        """ Insert current form state as a result on the database """
         date = datetime.strptime(self.date.text(), "%d/%m/%Y").timestamp()
         account = self.account_select.currentText()
         strategy = self.strategy_select.currentText()
