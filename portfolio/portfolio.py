@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import QTranslator
 
-from portfolio.utils import confighandler
+from portfolio.utils import confighandler, resource_gatherer
 from portfolio.gui.app.app import MainWindow, PreferencesSelection
 
 logging.basicConfig(level=logging.INFO)
@@ -50,14 +50,14 @@ def main():
         app.installTranslator(translator)
 
     # ------- Style ---------
-    # Dark Theme
+    # Dark Style Theme
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     # Font
     defaultfont = QFont()
     defaultfont.setFamily('Roboto')
     app.setFont(defaultfont)
     # Icon
-    app.setWindowIcon(QIcon('resources/icon_64.png'))
+    app.setWindowIcon(resource_gatherer.get_resource_QIcon('icon_64.png'))
 
     # ---- Execution ----
     window = MainWindow()
