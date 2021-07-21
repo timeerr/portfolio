@@ -27,8 +27,8 @@ class RightTable(QTableWidget):
     Table dynamically showing results
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # Custom Menu
         self.setContextMenuPolicy(Qt.CustomContextMenu)

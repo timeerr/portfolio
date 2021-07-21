@@ -52,7 +52,7 @@ class WelcomeWidget(QWidget):
         self.add_portfolio_bttn = QPushButton(self.tr("Add Portfolio"))
         self.add_portfolio_bttn.setStyleSheet("font: bold; font-size:15px")
         self.add_portfolio_bttn.setFixedSize(175, 30)
-        self.add_portfolio_bttn.clicked.connect(self.addNewPortfolio)
+        self.add_portfolio_bttn.clicked.connect(self.openAddPortfolioDialog)
         self.layout.addWidget(self.add_portfolio_bttn,
                               alignment=Qt.AlignCenter)
 
@@ -68,22 +68,20 @@ class WelcomeWidget(QWidget):
             self.addPortfolioLyt(name, path)
 
     def addPortfolioLyt(self, name: str, path: str):
-        """
-        Displays new portfolio
-        """
+        """ Displays new portfolio """
         db_version = confighandler.get_version()
 
         portfolio_lyt = QHBoxLayout()
         portfolio_lyt.setAlignment(Qt.AlignHCenter)
 
-        go_to_portfolio_bttn = QPushButton(name)
-        go_to_portfolio_bttn.setFixedWidth(100)
-        go_to_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-        go_to_portfolio_bttn.setObjectName(path+";"+name)
-        go_to_portfolio_bttn.setCheckable(True)
-        go_to_portfolio_bttn.toggled.connect(self.goToPortfolio)
-        self.buttons.append(go_to_portfolio_bttn)
-        portfolio_lyt.addWidget(go_to_portfolio_bttn)
+        open_portfolio_bttn = QPushButton(name)
+        open_portfolio_bttn.setFixedWidth(100)
+        open_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
+        open_portfolio_bttn.setObjectName(path+";"+name)
+        open_portfolio_bttn.setCheckable(True)
+        open_portfolio_bttn.toggled.connect(self.goToPortfolio)
+        self.buttons.append(open_portfolio_bttn)
+        portfolio_lyt.addWidget(open_portfolio_bttn)
 
         portfolio_path_label = QLabel(path)
         font = QFont()
@@ -99,15 +97,13 @@ class WelcomeWidget(QWidget):
         # If the database has a version that is superior to the one
         # on the app, hide open button
         if db_version > confighandler.get_version():
-            go_to_portfolio_bttn.hide()
+            open_portfolio_bttn.hide()
             portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
 
         self.portfolios_container.addLayout(portfolio_lyt)
 
-    def addNewPortfolio(self):
-        """
-        Opens a Dialog to add a new portfolio, on a new directory
-        """
+    def openAddPortfolioDialog(self):
+        """ Opens a Dialog to add a new portfolio, on a new directory """
         addportfolio_dlg = AddPortfolioDialog(self)
         addportfolio_dlg.exec_()
 
@@ -169,31 +165,19 @@ class AddPortfolioDialog(QDialog):
 
         self.setLayout(self.layout)
 
-        # Data
-        self.current_newlocation = ''
-
     def setPortolioLocation(self, newlocation):
         self.portfoliolocation.setText(newlocation)
 
     def openLocationSelectionDialog(self):
-        """
-        Displays a Dialog to select a directory for the new portfolio
-        """
-        self.location_select_dialog = QFileDialog()
-        self.location_select_dialog.setFileMode(
-            QFileDialog.FileMode.DirectoryOnly)
-
-        self.location_select_dialog.fileSelected.connect(
-            self.setPortolioLocation)
-
-        self.location_select_dialog.exec_()
+        """ Displays a Dialog to select a directory for the new portfolio """
+        location_select_dialog = QFileDialog()
+        location_select_dialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
+        location_select_dialog.fileSelected.connect(self.setPortolioLocation)
+        location_select_dialog.exec_()
 
     def addNewPortfolio(self):
         """ Creates new portfolio data and UI entry """
-        name = self.portfolioname_edit.text()
-        location = self.portfoliolocation.text()
-        # Data
-        confighandler.add_portfolio(name, location)
-        # UI
-        self.parent().addPortfolioLyt(name, location)
+        name, location = self.portfolioname_edit.text(), self.portfoliolocation.text()
+        confighandler.add_portfolio(name, location)  # Data
+        self.parent().addPortfolioLyt(name, location)  # UI
         self.close()

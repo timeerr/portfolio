@@ -11,7 +11,6 @@ from portfolio.utils.prices import prices
 from portfolio.utils.appdirs import user_config_dir, user_data_dir
 
 VERSION = "0.0.2"
-
 PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
 
@@ -28,7 +27,6 @@ CONFIG_FILE_PATH = os.path.join(get_config_path(), 'config.ini')
 
 
 def initial_setup():
-    CONFIG_PATH = get_config_path()
     if 'portfolio' not in os.listdir(user_config_dir()):
         os.mkdir(CONFIG_PATH)
     if 'config.ini' not in os.listdir(CONFIG_PATH):
@@ -131,7 +129,8 @@ def set_fiat_currency(fiat_currency):
 
 
 def add_portfolio(name, location):
-    # ---- Create data ----
+    """ Creates all required data on the selected location to make a portfolio """
+    # Create required folders
     if PORTFOLIO_DATABASE_DIR_NAME not in os.listdir(location):
         os.mkdir(os.path.join(location, 'database'))
     # Create version file
