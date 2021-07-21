@@ -2,6 +2,7 @@
 """
 The Toolbar from Tabcrypto, with all of its actions and functionality.
 """
+import logging
 
 from PyQt5.QtWidgets import QPushButton, QDialog, QToolBar, QAction, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt5.QtWidgets import QLineEdit, QLabel, QFormLayout, QDoubleSpinBox, QComboBox, QFrame, QCheckBox, QGridLayout, QWidget, QListWidget
@@ -297,14 +298,14 @@ class NewTokenDialog(QDialog):
 
         # Since there could be multiple tokens with the same symbol,
         # the user will have to select one of them from their id
-        self.select_token_by_id = QComboBox()
-        self.select_token_by_id.hide()
-        self.layout.addWidget(self.select_token_by_id)
+        self.select_id = QComboBox()
+        self.select_id.hide()
+        self.layout.addWidget(self.select_id)
         # If the new token has a custom price, the user has to add an id manually
-        self.manual_token_id = QLineEdit()
-        self.manual_token_id.setPlaceholderText("Token full name")
-        self.manual_token_id.hide()
-        self.layout.addWidget(self.manual_token_id)
+        self.manual_id = QLineEdit()
+        self.manual_id.setPlaceholderText("Token full name")
+        self.manual_id.hide()
+        self.layout.addWidget(self.manual_id)
 
         # Displaying the current price for the new token
         self.currentprice = QLineEdit("")
@@ -326,25 +327,23 @@ class NewTokenDialog(QDialog):
         """
         Writes new token info on prices folder
         """
-        token = self.tokenname
-
-        method = self.method.currentText()
-
+        token, method = self.tokenname, self.method.currentText()
         try:
             if method == self.tr('Coingecko'):
                 method = 'coingecko'
-                _id = self.select_token_by_id.currentText()
+                _id = self.select_id.currentText()
                 price = float(self.currentprice.text().split(" ")[0])
             elif method == self.tr('Custom Price'):
                 method = 'custom'
-                _id = self.manual_token_id.text()
+                _id = self.manual_id.text()
                 price = float(self.currentprice.text())
             prices.addTokenPrice(token, method, _id, price)
-
             self.close()
 
-        except Exception as e:
-            print(e)
+        except Exception:
+            import traceback
+            logging.warning(
+                f"Couldn't add token price \nError: {traceback.format_exc()}")
             error_mssg = QMessageBox()
             error_mssg.setIcon(QMessageBox.Critical)
             error_mssg.setText(
@@ -353,20 +352,19 @@ class NewTokenDialog(QDialog):
 
     def handleMethodChanged(self, method):
         """ Depending on the method, we display different things """
-
-        if method == self.tr('Coingecko'):
+        if method == 'Coingecko':
+            self.manual_id.hide()  # Not needed
             # Checking if there are multiple tokens for a certain symbol
             possibleids = prices.symbolToId_CoinGeckoList(self.tokenname)
             if len(possibleids) == 0:
-                self.select_token_by_id.addItem(
+                self.select_id.addItem(
                     self.tr("No ids for that token name"))
             for tokenid in possibleids:
-                self.select_token_by_id.addItem(tokenid)
+                self.select_id.addItem(tokenid)
 
-            self.manual_token_id.hide()
-            self.select_token_by_id.currentTextChanged.connect(
+            self.select_id.currentTextChanged.connect(
                 self.handleIdSelected)
-            self.select_token_by_id.show()
+            self.select_id.show()
 
             self.currentprice.setReadOnly(True)
             self.currentprice.setText(
@@ -374,10 +372,10 @@ class NewTokenDialog(QDialog):
 
         elif method == self.tr('Custom Price'):
             # We add a field to put the current price
-            self.select_token_by_id.clear()
-            self.select_token_by_id.hide()
-            self.manual_token_id.setText("")
-            self.manual_token_id.show()
+            self.select_id.clear()
+            self.select_id.hide()
+            self.manual_id.setText("")
+            self.manual_id.show()
             self.currentprice.clear()
             self.currentprice.setReadOnly(False)
 

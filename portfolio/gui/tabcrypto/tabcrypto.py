@@ -7,6 +7,7 @@ history and more.
 
 import json
 import os
+import logging
 from datetime import datetime
 
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout
@@ -117,7 +118,7 @@ class TabCrypto(QWidget):
         """
         if self.description.mode == 0:
             # All mode
-            print("Selection changed to ", selection)
+            logging.debug("Selection changed to %s", selection)
             self.tokenbalances.updateWithAll()
             self.historicalbalances.updateWithAll()
             self.description.allMode()
@@ -127,7 +128,7 @@ class TabCrypto(QWidget):
 
         elif self.description.mode == 1:
             # Token mode
-            print("Token changed to ", selection)
+            logging.debug("Token changed to %s", selection)
             self.tokenbalances.updateWithToken(selection)
             self.historicalbalances.updateWithToken(selection)
             self.accountpiechart.updateWithToken(selection)
@@ -137,7 +138,7 @@ class TabCrypto(QWidget):
                 'token', name=selection.lower())
 
         elif self.description.mode == 2:
-            print("Account changed to ", selection)
+            logging.debug("Account changed to %s", selection)
             # Account mode
             self.tokenbalances.updateWithAccount(selection)
             self.historicalbalances.updateWithAccount(selection)
@@ -303,8 +304,8 @@ class DescriptionLayout(QWidget):
             token_name = prices.symbolToId(tokensymbol)
         except KeyError:
             # Not in Coingecko's list
-            print("Selected symbol {} is not in coingecko's stored list".format(
-                tokensymbol))
+            logging.warning(
+                f"Selected symbol {tokensymbol} is not in coingecko's stored list")
             token_name = tokensymbol
 
         # Updating token info
