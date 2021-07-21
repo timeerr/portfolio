@@ -20,8 +20,12 @@ from portfolio.gui.app.app import MainWindow, PreferencesSelection
 logging.basicConfig(level=logging.INFO)
 
 
+def check_saved():
+    if confighandler.get_language() == 'None' or confighandler.get_fiat_currency() == 'None':
+        sys.exit()
+
+
 def main():
-    """Main function"""
     try:
         from PyQt5.QtWinExtras import QtWin
         myappid = 'timeerr.portfolio.0-0-1'
@@ -36,8 +40,8 @@ def main():
     if confighandler.get_language() == 'None' or confighandler.get_fiat_currency() == 'None':
         # Select language for the first time
         preferences_dlg = PreferencesSelection()
+        preferences_dlg.finished.connect(check_saved)
         preferences_dlg.exec_()
-
     selected_language = confighandler.get_language()
     if selected_language != 'en':
         translator = QTranslator()
