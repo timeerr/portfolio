@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QMargins, QObject, pyqtSignal
 
-from portfolio.gui.ui_components.fonts import TitleFont, DescriptionFont
+from portfolio.gui.ui_components.fonts import SuperTitleFont, DescriptionFont
 from portfolio.utils import confighandler
 
 
@@ -31,7 +31,7 @@ class WelcomeWidget(QWidget):
         self.title = QLabel(self.tr("Welcome"))
         self.title.setMaximumHeight(200)
         self.title.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-        self.title.setFont(TitleFont())
+        self.title.setFont(SuperTitleFont())
         wrapper_lyt.addWidget(self.title, alignment=Qt.AlignBottom)
 
         self.subtitle = QLabel(

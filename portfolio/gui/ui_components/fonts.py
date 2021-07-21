@@ -3,10 +3,17 @@
 from PyQt5.QtGui import QFont
 
 
-class TitleFont(QFont):
+class SuperTitleFont(QFont):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setPointSize(80)
+        self.setBold(True)
+
+
+class TitleFont(QFont):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setPointSize(40)
         self.setBold(True)
 
 
