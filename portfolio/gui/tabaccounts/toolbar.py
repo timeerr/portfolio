@@ -24,21 +24,11 @@ class AccountsToolBar(QToolBar):
         self.addaccount_action.triggered.connect(self.addAccountActionClick)
         self.addAction(self.addaccount_action)
 
-        self.add_account_dialog = AddAccountDialog()
+        self.add_account_dialog = AddAccountDialog(self)
         self.add_account_dialog.setVisible(False)
 
         # Edit Account Action
-        """
-        Still not ready for use. Things like icon changing and how to handle
-        previous results/transactions from the account have to be considered
-        """
-#        self.editaccount_action = QAction(self.tr("Edit Account"), self)
-#        self.editaccount_action.setStatusTip(
-#            self.tr("Change account balance/info"))
-#        self.editaccount_action.triggered.connect(self.editAccountActionClick)
-#        self.addAction(self.editaccount_action)
-
-        # self.edit_account_dialog = EditAccountDialog()
+        # TODO
 
         # Remove Account Action
         self.removeaccount_action = QAction(self.tr("Remove Account"), self)
@@ -49,6 +39,7 @@ class AccountsToolBar(QToolBar):
         self.addAction(self.removeaccount_action)
 
         self.remove_account_dialog = RemoveAccountDialog(self)
+        self.remove_account_dialog.setVisible(False)
 
         # Spacer
         empty = QWidget()
@@ -66,7 +57,7 @@ class AccountsToolBar(QToolBar):
         self.addAction(self.refresh_action)
 
     def addAccountActionClick(self, event):
-        "To add an accounts, a dialog will be displayed with a form"
+        "To add an account, a dialog will be displayed with a form"
         self.add_account_dialog.setVisible(True)
 
     def editAccountActionClick(self, event):

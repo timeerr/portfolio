@@ -10,21 +10,22 @@ import shutil
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QScrollArea
 from PyQt5.QtWidgets import QGridLayout, QLabel, QMenu, QDialog, QPushButton, QFileDialog
 from PyQt5.QtGui import QPixmap, QCursor
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, pyqtSignal
 
 from portfolio.gui.ui_components.fonts import AccountBalanceTextFont, AccountBalanceHeaderFont
 from portfolio.db.fdbhandler import balances, costbasis
 
 
 class AccountsLayout(QScrollArea):
+    """
+    This ScrollArea has one Widget with one Layout that stores
+    rows with each account info
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Data
-        accounts = balances.get_all_account_names()
-
-        # This ScrollArea has one Widget with one Layout that stores rows with each account info
+        # ---- Content ----
         self.widget = QWidget()
         self.layout = QGridLayout()
         self.layout.setAlignment(Qt.AlignCenter)
@@ -32,29 +33,37 @@ class AccountsLayout(QScrollArea):
         self.layout.setColumnMinimumWidth(2, 350)
 
         # Headers
-        self.setHeaders()
+        # Name
+        name_header = HeaderLabel(self.tr("Name"))
+        self.layout.addWidget(name_header, 0, 1)
+        # Balance
+        balance_header = HeaderLabel(self.tr("Balance (EUR)"))
+        self.layout.addWidget(balance_header, 0, 2)
+        # Cost Basis
+        costbasis_header = HeaderLabel(self.tr("Cost Basis"))
+        self.layout.addWidget(costbasis_header, 0, 3)
 
         # Account Rows
-        self.accrowwidgets = {}  # Here we'll store all balance objects to edit them if needed
+        accounts = balances.get_all_account_names()
         for row_number, accname in enumerate(accounts):
             # First row is aleady taken (headers)
             self.addAccountRow(accname, row_number+1)
 
-        # UI Tweaks
+        # ---- UI ----
         self.layout.setVerticalSpacing(40)
 
         self.widget.setLayout(self.layout)
         self.setWidget(self.widget)
 
     def addAccountRow(self, acc_name, row_number):
-        row_maxheight = 90
+        MAXHEIGHT = 90
 
         # Account Name
         accname = QLabel(acc_name)
         accname.setAlignment(Qt.AlignCenter)
         accname.setFont(AccountBalanceTextFont())
         accname.setObjectName("accname")
-        accname.setMaximumHeight(row_maxheight)
+        accname.setMaximumHeight(MAXHEIGHT)
 
         # Account Balance
         accbalance = QLabel()
@@ -76,38 +85,13 @@ class AccountsLayout(QScrollArea):
         self.layout.addWidget(accbalance, row_number, 2)
         self.layout.addWidget(acccostbasis, row_number, 3)
 
-        # Storing the widget inside a well structured dictionary will enable editing later
-        if accname not in self.accrowwidgets.keys():
-            self.accrowwidgets[accname] = {}
-
-        self.accrowwidgets[accname]['name'] = accname
-        self.accrowwidgets[accname]['balance'] = accbalance
-        self.accrowwidgets[accname]['costbasis'] = acccostbasis
-
-    def setHeaders(self):
-        # "Name" Header
-        name_header = HeaderLabel(self.tr("Name"))
-
-        # "Balance" Header
-        balance_header = HeaderLabel(self.tr("Balance (EUR)"))
-
-        # "Cost Basis" Header
-        costbasis_header = HeaderLabel(self.tr("Cost Basis"))
-
-        self.layout.addWidget(name_header, 0, 1)
-        self.layout.addWidget(balance_header, 0, 2)
-        self.layout.addWidget(costbasis_header, 0, 3)
-
 
 class HeaderLabel(QLabel):
     """A header indicating what a column is about"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # "Name" Header
         self.setFont(AccountBalanceHeaderFont())
-        # self.setStyleSheet("border: none ; color: rgb(128,02,168);")
         self.setMaximumHeight(15)
         self.setAlignment(Qt.AlignCenter)
 
@@ -117,7 +101,6 @@ class AccountIcon(QLabel):
 
     def __init__(self, account_icon_path, row_maxheight, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         # UI
         self.setObjectName("icon")
         pixmap = QPixmap(account_icon_path).scaledToHeight(row_maxheight)
@@ -156,6 +139,7 @@ class AccountIcon(QLabel):
 
 
 class ChangeIconDialog(QDialog):
+    iconchanged = pyqtSignal()
 
     def __init__(self, row_maxheight, account_icon_path, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -205,7 +189,7 @@ class ChangeIconDialog(QDialog):
             shutil.copyfile(self.imgpath, self.account_icon_path)
             self.change_pushbutton.setText(self.tr("Changed!"))
             # Emits signal to outside so that icon can be refreshed
-            self.changed.iconchanged.emit()
+            self.iconchanged.emit()
             self.close()
 
         else:
@@ -242,8 +226,3 @@ class ChangeIconDialog(QDialog):
             self.errorlabel = QLabel(self.tr("Has to be an image"))
             self.errorlabel.setAlignment(Qt.AlignCenter)
             self.dialog_layout.addWidget(self.errorlabel)
-
-
-class Communicate(QObject):
-    """Custom Signal"""
-    iconchanged = pyqtSignal()

@@ -1,12 +1,9 @@
 #!/usr/bin/python3
+
 from PyQt5.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QDialog, QPushButton, QLineEdit, QDoubleSpinBox, QFormLayout, QComboBox
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import pyqtSignal, QObject
 
-import os
-
 from portfolio.db.fdbhandler import balances, costbasis
-from portfolio.utils import confighandler
 from portfolio.utils import resource_gatherer
 
 
@@ -69,7 +66,7 @@ class EditAccountDialog(QDialog):
 
         # Account selection
         self.account_selection_combobox = QComboBox()
-        for acc in balances.getAllAccounts():
+        for acc in balances.get_all_accounts():
             self.account_selection_combobox.addItem(acc[0])
 
         # Edit account form
@@ -143,8 +140,7 @@ class RemoveAccountDialog(QDialog):
         # Account Name
         self.name = QLabel(self.tr("Account Name"))
         self.name_select = QComboBox()
-        for acc in balances.get_all_accounts():
-            self.name_select.addItem(acc[0])
+        self.set_combobox()
 
         self.formlayout.setWidget(0, self.formlayout.LabelRole, self.name)
         self.formlayout.setWidget(
@@ -159,6 +155,11 @@ class RemoveAccountDialog(QDialog):
         self.layout.addWidget(self.remove_bttn)
         self.setLayout(self.layout)
 
+    def set_combobox(self):
+        self.name_select.clear()
+        for acc in balances.get_all_accounts():
+            self.name_select.addItem(acc[0])
+
     def showWarning(self):
         self.close()
         selected_account = self.name_select.currentText()
@@ -167,6 +168,7 @@ class RemoveAccountDialog(QDialog):
 
 
 class RemoveAccountWarning(QDialog):
+    accountRemoved = pyqtSignal()
 
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -186,7 +188,7 @@ class RemoveAccountWarning(QDialog):
         # Remove button
         self.warning_bttn = QPushButton()
         self.warning_bttn.clicked.connect(
-            lambda: self.removeAccount())
+            self.removeAccount)
 
         self.warning_lyt.addLayout(self.warning_lyt_top)
         self.warning_lyt.addWidget(self.warning_bttn)
@@ -203,21 +205,8 @@ class RemoveAccountWarning(QDialog):
     def removeAccount(self):
         # Remove from Database
         balances.delete_account(self.selected_account)
-
-        # Remove from GUI
-        """ For now, it will be required to restart the app for the changes to take effect """
-
-        self.warning_lyt.addWidget(
-            QLabel("Done. Restart required for changes to take effect"))
-        close_bttn = QPushButton(self.tr("Close App"))
-
-        self.warning_lyt.addWidget(close_bttn)
-        close_bttn.clicked.connect(lambda: self.parent().parent().parent(
-        ).parent().parent().parent().parent().close())  # Closing MainWindow
-
-        # Deleting old widgets from layout
-        self.warningtext.deleteLater()
-        self.warning_bttn.deleteLater()
+        self.accountRemoved.emit()
+        self.close()
 
 
 # Custom Signals
