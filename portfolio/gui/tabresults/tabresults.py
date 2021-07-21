@@ -5,8 +5,8 @@ from datetime import datetime
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
-from portfolio.gui.tabresults.tabresults_leftlayout import LeftLayout
-from portfolio.gui.tabresults.tabresults_righttable import RightTable
+from portfolio.gui.tabresults.leftlayout import LeftLayout
+from portfolio.gui.tabresults.righttable import RightTable
 
 
 class TabResults(QSplitter):

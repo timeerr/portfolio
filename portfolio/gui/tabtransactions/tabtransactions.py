@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
 from PyQt5.QtCore import Qt, QMargins
 
 from portfolio.db.fdbhandler import transactions
-from portfolio.gui.tabtransactions.tabtransactions_leftlayout import LeftLayout
-from portfolio.gui.tabtransactions.tabtransactions_righttable import RightTable
+from portfolio.gui.tabtransactions.leftlayout import LeftLayout
+from portfolio.gui.tabtransactions.righttable import RightTable
 
 
 class TabTransactions(QSplitter):

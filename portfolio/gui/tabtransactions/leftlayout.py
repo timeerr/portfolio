@@ -4,21 +4,21 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QHBoxLayout
 from PyQt5.QtCore import Qt, QMargins, QDate
 
 from portfolio.gui.ui_components.fonts import TitleFont, SubtitleFont, DateButtonFont, UpdateButtonFont
-from portfolio.gui.tabresults.tabresults_formquery import ResultsQueryForm
-from portfolio.gui.tabresults.tabresults_addresultsform import AddResultsForm
+from portfolio.gui.tabtransactions.formquery import TransactionsQueryForm
+from portfolio.gui.tabtransactions.addtransactionsform import AddTransactionsForm
 
 
 class LeftLayout(QVBoxLayout):
     """
     Layout containing forms to interact with the table on the right
-    layout of tabresults
+    layout of tabtransactions
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Title
-        title = QLabel(self.tr("Results"))
+        title = QLabel(self.tr("Transactions"))
         title.setAlignment(Qt.AlignCenter)
         title.setMaximumHeight(50)
         title.setFont(TitleFont())
@@ -32,7 +32,7 @@ class LeftLayout(QVBoxLayout):
         self.addWidget(subtitle)
 
         # Form
-        self.form = ResultsQueryForm()
+        self.form = TransactionsQueryForm()
         self.addLayout(self.form)
 
         # Date shortcut buttons
@@ -62,8 +62,8 @@ class LeftLayout(QVBoxLayout):
         self.update_query_pushbutton.setFont(UpdateButtonFont())
         self.update_query_pushbutton.setMinimumHeight(30)
         self.update_query_pushbutton.setMaximumWidth(75)
-        # Wrap the pushbutton inside a layout,
-        # that gets inserted into our main leftlayout, so that we can center it properly
+        # Wrap the pushbutton inside a layout, that gets inserted into our
+        # main leftlayout, so that we can center it properly
         self.update_query_pushbutton_layout = QVBoxLayout()
         self.update_query_pushbutton_layout.addWidget(
             self.update_query_pushbutton, Qt.AlignVCenter)
@@ -74,10 +74,10 @@ class LeftLayout(QVBoxLayout):
         self.addLayout(self.update_query_pushbutton_layout)
 
         # Add results form
-        self.add_results_form = AddResultsForm()
-        self.add_results_form.setAlignment(Qt.AlignTop)
+        self.add_transactions_form = AddTransactionsForm()
+        self.add_transactions_form.setAlignment(Qt.AlignTop)
 
-        self.addLayout(self.add_results_form)
+        self.addLayout(self.add_transactions_form)
 
     def set_currentweek(self):
         dayofweek = QDate.currentDate().dayOfWeek()
@@ -88,7 +88,6 @@ class LeftLayout(QVBoxLayout):
 
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().addDays(days_to_prev_monday)))
-        self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
         self.update_query_pushbutton.click()
 
     def set_mtd(self):
@@ -97,14 +96,12 @@ class LeftLayout(QVBoxLayout):
 
         self.form.start_date_edit.setDate(
             QDate.currentDate().addDays(days_to_first_day_of_month))
-        self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
         self.update_query_pushbutton.click()
 
     def set_ytd(self):
         """Year to Date"""
         self.form.start_date_edit.setDate(
             QDate(QDate.currentDate().year(), 1, 1))
-        self.form.end_date_edit.setDate(QDate(QDate.currentDate()))
         self.update_query_pushbutton.click()
 
     def set_all(self):

@@ -19,7 +19,7 @@ from PyQt5.QtGui import QPainter, QBrush, QColor, QFont, QPixmap, QIcon
 from portfolio.db.cdbhandler import cbalances, chistoricalbalances
 from portfolio.gui.ui_components.fonts import TitleFont, TokenBalanceFont
 from portfolio.utils.prices import prices
-from portfolio.gui.tabcrypto.tabcrypto_toolbar import TabCryptoToolBar
+from portfolio.gui.tabcrypto.toolbar import TabCryptoToolBar
 from portfolio.utils import confighandler, resource_gatherer
 
 CONFIG_FILE_PATH = confighandler.get_config_path()

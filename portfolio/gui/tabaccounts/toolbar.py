@@ -8,7 +8,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 import os
 import time
 
-from portfolio.gui.tabaccounts.tabaccounts_toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
+from portfolio.gui.tabaccounts.toolbar_dialogs import AddAccountDialog, RemoveAccountDialog, EditAccountDialog
 from portfolio.utils import confighandler, resource_gatherer
 
 

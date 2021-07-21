@@ -7,8 +7,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QMargins, QSize, Qt
 
 from portfolio.gui.ui_components.fonts import TitleFont, AccountBalanceHeaderFont, AccountBalanceTextFont
-from portfolio.gui.tabaccounts.tabaccounts_toolbar import AccountsToolBar
-from portfolio.gui.tabaccounts.tabaccounts_layout import AccountsLayout
+from portfolio.gui.tabaccounts.toolbar import AccountsToolBar
+from portfolio.gui.tabaccounts.main_layout import AccountsLayout
 
 
 class TabAccounts(QWidget):
