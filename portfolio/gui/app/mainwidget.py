@@ -47,6 +47,11 @@ class MainWidget(QTabWidget):
         self.tabresults.leftlayout.add_results_form.insert_button.clicked.connect(
             self.tabaccounts.refreshBalances)
 
+        # Whenever an account is added, we refresh several widgets
+        self.tabaccounts.accounts_toolbar.add_account_dialog.accountAdded.connect(
+            self.updateWithNewAccount
+        )
+
         # Whenever a transaction is removed, we update tabaccounts
         self.tabtransactions.righttable.lineremoved.lineremoved.connect(
             self.tabaccounts.refreshBalances)
@@ -75,3 +80,10 @@ class MainWidget(QTabWidget):
         self.tabresults = TabResults(self)
         self.insertTab(1, self.tabresults, self.tabresults.windowTitle())
 
+    def updateWithNewAccount(self):
+        """
+        Updates several widgets that need to reflect a new account
+        that has just been added
+        """
+        self.refreshTabResults()
+        self.refreshTabDashboard()
