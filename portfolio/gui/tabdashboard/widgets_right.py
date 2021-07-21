@@ -261,9 +261,20 @@ class FilterAccountOrStrategyButton(QPushButton):
     def __init__(self, buttontype, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.setMinimumWidth(80)
+        if self.text() == "All":
+            font = QFont()
+            font.setPointSize(15)
+            font.setBold(True)
+            self.setFont(font)
+
         # Color selection
-        self.setColors()
-        color = self.colors[buttontype]
+        colors = {'fiat': "#E43E53",
+                  'crypto': "#3A634A",
+                  'strategy': '#273B4F',
+                  'allaccounts': '#3C556E',
+                  'allstrategies': '#3C556E'}
+        color = colors[buttontype]
 
         self.checkButtonType(buttontype)
 
@@ -285,20 +296,8 @@ class FilterAccountOrStrategyButton(QPushButton):
                            f"color: {color}"
                            "}"
                            )
-
-        if self.text() == "All":
-            font = QFont()
-            font.setPointSize(15)
-            font.setBold(True)
-            self.setFont(font)
-            self.setFixedWidth(20)
-
-            # Functionality
+        # Functionality
         self.setCheckable(True)
-
-    def setColors(self):
-        self.colors = {'fiat': "#E43E53", 'crypto': "#3A634A",
-                       'strategy': '#273B4F', 'allaccounts': '#3C556E', 'allstrategies': '#3C556E'}
 
     def checkButtonType(self, buttontype):
         assert(buttontype in ('fiat', 'crypto',
