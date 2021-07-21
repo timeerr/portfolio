@@ -126,8 +126,8 @@ class AddResultsForm(QVBoxLayout):
         current_amount = self.amount_select.text()[:-2]
         current_description = self.description_select.text()
 
-        results.addResult(current_date, current_account,
-                          current_strategy, current_amount, description=current_description)
+        results.add_result(current_date, current_account,
+                           current_strategy, current_amount, description=current_description)
 
         # Resetting Account and Strategy QComboBoxes
         self.account_select.clear()
@@ -272,7 +272,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         self.strategy_select = QComboBox()
         self.strategy_select.setEditable(True)
         self.strategy_select.setDuplicatesEnabled(False)
-        currentstrategies = [i[0] for i in strategies.getAllStrategies()]
+        currentstrategies = [i[0] for i in strategies.get_all_strategies()]
         self.strategy_select.addItems(currentstrategies)
 
         self.line6 = QHBoxLayout()
