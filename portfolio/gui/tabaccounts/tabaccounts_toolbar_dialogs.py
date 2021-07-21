@@ -11,6 +11,7 @@ from portfolio.utils import resource_gatherer
 
 
 class AddAccountDialog(QDialog):
+    accountAdded = pyqtSignal()
 
     def __init__(self, *agrs, **kwargs):
         super().__init__(*agrs, **kwargs)
@@ -47,17 +48,14 @@ class AddAccountDialog(QDialog):
         self.setLayout(self.layout)
         self.show()
 
-        # Signals
-        self.customSignal = SignalAccountAdded()
-
     def createAccount(self):
         self.current_form_state = (
             self.name_edit.text(), int(float(self.startingamount_edit.text()[:-4])))
 
-        balances.addAccount(
+        balances.add_account(
             self.current_form_state[0], self.current_form_state[1])
 
-        self.customSignal.accountAdded.emit()
+        self.accountAdded.emit()
         self.close()
 
 
@@ -225,7 +223,3 @@ class RemoveAccountWarning(QDialog):
 # Custom Signals
 class SignalEditAccount(QObject):
     accountEdited = pyqtSignal(list)
-
-
-class SignalAccountAdded(QObject):
-    accountAdded = pyqtSignal()

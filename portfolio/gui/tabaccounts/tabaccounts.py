@@ -32,6 +32,8 @@ class TabAccounts(QWidget):
         # Refresh
         self.accounts_toolbar.refresh_action.triggered.connect(
             self.refreshBalances)
+        self.accounts_toolbar.add_account_dialog.accountAdded.connect(
+            self.refreshBalances)
 
         # ----------Main Layout---------
         self.mainlayout.addWidget(self.accounts_toolbar)
