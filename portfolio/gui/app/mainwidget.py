@@ -62,12 +62,16 @@ class MainWidget(QTabWidget):
         """Refreshes TabCrypto completely"""
         self.tabcrypto.deleteLater()
         self.tabcrypto = TabCrypto(self)
-        self.addTab(
-            self.tabcrypto, self.tabcrypto.windowIcon(), self.tabcrypto.windowTitle())
+        self.insertTab(4, self.tabcrypto, self.tabcrypto.windowTitle())
 
     def refreshTabDashboard(self):
         """Refreshes TabDashboard completely"""
         self.tabdashboard.deleteLater()
         self.tabdashboard = TabDashboard(self)
-        self.addTab(
-            self.tabdashboard, self.tabdashboard.windowIcon(), self.tabdashboard.windowTitle())
+        self.insertTab(0, self.tabdashboard,  self.tabdashboard.windowTitle())
+
+    def refreshTabResults(self):
+        self.tabresults.deleteLater()
+        self.tabresults = TabResults(self)
+        self.insertTab(1, self.tabresults, self.tabresults.windowTitle())
+
