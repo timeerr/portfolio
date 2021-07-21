@@ -117,13 +117,6 @@ class WelcomeWidget(QWidget):
                 path = bttn.objectName().split(";")[0]
                 name = bttn.objectName().split(";")[1]
                 os.chdir(path)  # Change location to portfolio
-
-        # Initialize databases
-        from portfolio.db.fdbhandler import db_initialize
-        from portfolio.db.cdbhandler import cdb_initialize
-        db_initialize.initialize()
-        cdb_initialize.initialize()
-
         # Emit open portfolio signal
         self.portfolioselected.emit(name)
 
