@@ -25,24 +25,19 @@ class MainWidget(QTabWidget):
         # -------- Content ---------
         # Tab1 : Dashboard
         self.tabdashboard = TabDashboard(self)
-        self.addTab(self.tabdashboard, self.tabdashboard.windowIcon(),
-                    self.tabdashboard.windowTitle())
+        self.addTab(self.tabdashboard, self.tabdashboard.windowTitle())
         # Tab2 : Results
         self.tabresults = TabResults(self)
-        self.addTab(self.tabresults, self.tabresults.windowIcon(),
-                    self.tabresults.windowTitle())
+        self.addTab(self.tabresults, self.tabresults.windowTitle())
         # Tab3 : Accounts
         self.tabaccounts = TabAccounts(self)
-        self.addTab(self.tabaccounts, self.tabaccounts.windowIcon(),
-                    self.tabaccounts.windowTitle())
+        self.addTab(self.tabaccounts, self.tabaccounts.windowTitle())
         # Tab4 : Transactions
         self.tabtransactions = TabTransactions(self)
-        self.addTab(self.tabtransactions, self.tabtransactions.windowIcon(),
-                    self.tabtransactions.windowTitle())
+        self.addTab(self.tabtransactions, self.tabtransactions.windowTitle())
         # Tab 5 : Crypto
         self.tabcrypto = TabCrypto(self)
-        self.addTab(
-            self.tabcrypto, self.tabcrypto.windowIcon(), self.tabcrypto.windowTitle())
+        self.addTab(self.tabcrypto,  self.tabcrypto.windowTitle())
 
         # --------------- Functionality between Tabs --------------
         # Whenever a result is removed, we update tabaccounts
