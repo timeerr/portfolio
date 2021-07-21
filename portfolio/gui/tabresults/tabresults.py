@@ -37,6 +37,8 @@ class TabResults(QSplitter):
             self.updateRightLayout)
         self.leftlayout.add_results_form.insert_button.clicked.connect(
             self.updateRightLayout)
+        self.leftlayout.add_results_form.resultAdded.connect(
+            self.updateRightLayout)
 
         # ------Right Layout Widgets------
         self.righttable = RightTable()
@@ -50,7 +52,6 @@ class TabResults(QSplitter):
         self.insertWidget(1, self.rightlayout_widget)
 
     def updateRightLayout(self):
-
         # Getting current form state
         sd = datetime.strptime(
             self.leftlayout.form.start_date_edit.date().toString("dd.MM.yyyy"), "%d.%m.%Y")  # Y in caps because its expressed in 4 digits
@@ -63,5 +64,5 @@ class TabResults(QSplitter):
         self.righttable.setData(sd, ed, st, ac)
 
         # Show message on status bar with the new result info
-        self.parent().parent().parent().parent().statusBar().showMessage(
-            "".join([self.tr("Updated: "), str(ac), ' ', str(sd), str(ed)]), 5000)
+        # TODO: Pass statusBar properly to show message
+        # .showMessage( "".join([self.tr("Updated: "), str(ac), ' ', str(sd), str(ed)]), 5000)
