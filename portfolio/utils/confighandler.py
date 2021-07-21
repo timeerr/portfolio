@@ -6,9 +6,9 @@ import sqlite3
 import logging
 from datetime import datetime
 
-from appdirs import user_config_dir, user_data_dir
 
 from portfolio.utils.prices import prices
+from portfolio.utils.appdirs import user_config_dir, user_data_dir
 
 VERSION = "0.0.2"
 
