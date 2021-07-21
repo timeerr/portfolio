@@ -1,17 +1,19 @@
 #!/usr/bin/python3
 
+import sys
+import sys
 import os
 import shutil
 import logging
 
 
 def install_dependencies():
-    os.system("pip3 install .")
+    os.system(f"{sys.executable} -m pip install .")
 
 
 def initialize():
     from portfolio.utils import confighandler
-    from appdirs import user_data_dir
+    from portfolio.utils.appdirs import user_data_dir
 
     confighandler.initial_setup()
 
