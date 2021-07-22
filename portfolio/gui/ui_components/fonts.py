@@ -70,3 +70,12 @@ class TokenBalanceFont(QFont):
         super().__init__(*args, **kwargs)
         self.setFamily("Roboto")
         self.setPointSize(20)
+
+
+class ChartTitleFont(QFont):
+    def __init__(self, * args, fontsize=10, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setFamily('Roboto')
+        self.setPointSize(fontsize)
+        self.setBold(True)

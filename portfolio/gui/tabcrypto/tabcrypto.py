@@ -12,9 +12,11 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox, QPushButton, QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QAbstractItemView, QSplitter, QDialog
-from PyQt5.QtCore import Qt, QDateTime, QDate
+from PyQt5.QtCore import Qt, QDateTime, QDate, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QSplineSeries, QDateTimeAxis, QValueAxis
-from PyQt5.QtGui import QPainter, QBrush, QColor, QFont, QPixmap, QIcon
+from PyQt5.QtGui import QPainter, QBrush, QColor, QFont
+
+from PyQt5.QtCore import QThreadPool, QRunnable
 
 from portfolio.db.cdbhandler import cbalances, chistoricalbalances
 from portfolio.gui.ui_components.fonts import TitleFont, TokenBalanceFont
@@ -22,35 +24,38 @@ from portfolio.utils.prices import prices
 from portfolio.gui.tabcrypto.toolbar import TabCryptoToolBar
 from portfolio.utils import confighandler, resource_gatherer
 
-CONFIG_FILE_PATH = confighandler.get_config_path()
+FIAT_CURRENCY = confighandler.get_fiat_currency()
 
 
 class TabCrypto(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # ---- UI ----
         self.setWindowTitle("Crypto")
 
-        # UI
+        # ---- Content ----
         self.mainlayout = QVBoxLayout()
-        self.upperlayout = QHBoxLayout()
 
+        # -- Toolbar --
+        self.toolbar = TabCryptoToolBar(self)
+        self.mainlayout.addWidget(self.toolbar)
+
+        # -- Layout --
+        self.upperlayout = QHBoxLayout()
         # Token Description
         self.description = DescriptionLayout(self)
         self.upperlayout.addWidget(self.description)
-
         # Token transactions
         self.tokenbalances = BalancesTable(self)
         self.upperlayout.addWidget(self.tokenbalances)
-
         # Historical Balances Table
         self.historicalbalances = HistoricalBalancesTable(self)
         self.upperlayout.addWidget(self.historicalbalances)
+        self.mainlayout.addLayout(self.upperlayout)
 
-        # Data entries
-        self.toolbar = TabCryptoToolBar(self)
-
-        # Charts
+        # -- Charts --
         self.chart_lyt = QSplitter(self)
         self.chart_lyt.setHandleWidth(2)
         # Pie Charts
@@ -61,14 +66,15 @@ class TabCrypto(QWidget):
         self.piecharts_lyt.addWidget(self.accountpiechart)
         self.piecharts_wgt = QWidget()
         self.piecharts_wgt.setLayout(self.piecharts_lyt)
-
         self.chart_lyt.addWidget(self.piecharts_wgt)
-
         # Line Charts
         self.balancehistorychart = BalanceHistoryChartView()
         self.chart_lyt.addWidget(self.balancehistorychart)
+        self.mainlayout.addWidget(self.chart_lyt)
 
-        # Functionality
+        self.setLayout(self.mainlayout)
+
+        # ---- Functionality ----
         # When the select_mode button is clicked, we swith between modes
         self.description.select_mode.clicked.connect(
             lambda: self.updateSelectMode())
@@ -76,37 +82,29 @@ class TabCrypto(QWidget):
         self.description.select_token_or_account.currentTextChanged.connect(
             self.selectionChanged)
         # When prices data is updated, we refresh everything
-        self.description.updatedata.clicked.connect(
+        self.description.dataUpdated.connect(
             lambda: self.selectionChanged(self.description.select_token_or_account.currentText()))
-
-        # When an item of the tablewidget is double clicked, if it is an account or token
-        # we switch to that
+        # When an item of the tablewidget is double clicked, we switch to it
         self.tokenbalances.itemDoubleClicked.connect(
             self.updateWithDoubleClick)
 
-        self.mainlayout.addWidget(self.toolbar)
-        self.mainlayout.addLayout(self.upperlayout)
-        self.mainlayout.addWidget(self.chart_lyt)
-        self.setLayout(self.mainlayout)
-
         # ---- Initialization ----
-        DATABASE_TOKENS = [i.upper() for i in cbalances.get_all_tokens()]
         # Checking if there is remote data avaliable
         prices.initialize_prices()
         if 'coingeckoids.json' not in os.listdir('prices'):
-            prices.updateCoinListFile()
+            prices.update_coin_list_file()
         if 'coinprices.json' not in os.listdir('prices'):
             with open(os.path.join('prices', 'coinprices.json'), 'w') as f:
                 json.dump({}, f)
         if 'btctofiat.json' not in os.listdir('prices'):
-            prices.updateBTCToFiat()
+            prices.update_btc_to_fiat()
 
         # Checking that all the tokens from the database have prices
-        coinprices_tokens = prices.getAllTokens()
-        for token in DATABASE_TOKENS:
+        coinprices_tokens = prices.get_all_tokens()
+        for token in cbalances.get_all_tokens():
             token = token.lower()
             if token not in coinprices_tokens:
-                prices.addTokenPrice(token, 'custom', token, 0)
+                prices.add_token_price(token, 'custom', token, 0)
 
         # Initialize with "All"
         self.selectionChanged("All")
@@ -170,8 +168,8 @@ class TabCrypto(QWidget):
             # Token mode
             self.description.select_mode.setText("Token")
             self.description.select_token_or_account.clear()
-            DATABASE_TOKENS = [i.upper() for i in cbalances.get_all_tokens()]
-            self.description.select_token_or_account.addItems(DATABASE_TOKENS)
+            self.description.select_token_or_account.addItems(
+                [i.upper() for i in cbalances.get_all_tokens()])
             self.tokenpiechart.allMode()
         elif self.description.mode == 2:
             # Account mode
@@ -184,7 +182,8 @@ class TabCrypto(QWidget):
 
     def updateWithDoubleClick(self, item):
         """
-        It looks for the double clicked item and if it is an account or token, it switches the whole layout to that
+        It looks for the double clicked item and
+        if it is an account or token, it switches the whole layout to that
         """
         itemname = item.data(0)
         columname = (self.tokenbalances.horizontalHeaderItem(
@@ -201,8 +200,9 @@ class DescriptionLayout(QWidget):
     Displays the main information about the token or account, i.e. ,
     the name, balance in multiple denominators.
 
-    Also presents different buttons for the user to switch between accounts,etc.
+    Also shows different buttons for the user to switch between accounts,etc.
     """
+    dataUpdated = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -278,8 +278,7 @@ class DescriptionLayout(QWidget):
 
         self.token_or_account_name.setText(self.tr("All Coins"))
         totalbalancebtc, totalbalancefiat = 0, 0
-        DATABASE_TOKENS = cbalances.get_all_tokens()
-        for t in DATABASE_TOKENS:
+        for t in cbalances.get_all_tokens():
             tokenbalance = cbalances.get_total_token_balance(t)
             tokenbalance_btc = prices.to_btc(t, tokenbalance)
             totalbalancebtc += tokenbalance_btc
@@ -301,7 +300,7 @@ class DescriptionLayout(QWidget):
             return
 
         try:
-            token_name = prices.symbolToId(tokensymbol)
+            token_name = prices.symbol_to_id(tokensymbol)
         except KeyError:
             # Not in Coingecko's list
             logging.warning(
@@ -353,16 +352,33 @@ class DescriptionLayout(QWidget):
 
     def updateDataFiles(self):
         """Calls coingecko's API and writes btcfiat.json, coinlist.json, coinprices.json"""
-        updatingdata_mssg = QDialog(self)
+        self.updatingdata_mssg = QDialog(self)
         updatingdata_lyt = QVBoxLayout()
         text = QLabel(self.tr("Updating data. Please wait..."))
         updatingdata_lyt.addWidget(text)
-        updatingdata_mssg.setLayout(updatingdata_lyt)
-        updatingdata_mssg.show()
-        prices.updateCoingeckoPrices()
-        prices.updateCoinListFile()
-        prices.updateBTCToFiat()
-        updatingdata_mssg.close()
+        self.updatingdata_mssg.setLayout(updatingdata_lyt)
+        self.updatingdata_mssg.show()
+
+        # Run update on separate thread
+        update_data_process = UpdateData(self)
+        threadpool = QThreadPool.globalInstance()
+        threadpool.start(update_data_process)
+
+    def updated(self):
+        self.dataUpdated.emit()
+        self.updatingdata_mssg.close()
+
+
+class UpdateData(QRunnable):
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parent = parent
+
+    def run(self):
+        prices.update_coingecko_prices()
+        prices.update_coin_list_file()
+        prices.update_btc_to_fiat()
+        self.parent.updated()
 
 
 class BalancesTable(QTableWidget):
@@ -385,7 +401,7 @@ class BalancesTable(QTableWidget):
         self.verticalHeader().hide()
 
         # Selecting fiat currency
-        self.FIAT_CURRENCY = confighandler.get_fiat_currency().upper()
+        self.FIAT_CURRENCY = FIAT_CURRENCY.upper()
 
     def updateWithToken(self, token):
         """Only shows database entries where token=token"""
@@ -406,12 +422,12 @@ class BalancesTable(QTableWidget):
             item.setData(0, row[2])
             self.setItem(numrow, 1, item)
             # Balance (BTC)
-            balance_in_btc = prices.toBTC(row[1], row[2])
+            balance_in_btc = prices.to_btc(row[1], row[2])
             item = QTableWidgetItem()
             item.setData(0, balance_in_btc)
             self.setItem(numrow, 2, item)
             # Balance (Fiat)
-            balance_in_fiat = prices.btcToFiat(
+            balance_in_fiat = prices.btc_to_fiat(
                 balance_in_btc, currency=self.FIAT_CURRENCY)
             item = QTableWidgetItem()
             item.setData(0, balance_in_fiat)
@@ -538,7 +554,8 @@ class HistoricalBalancesTable(QTableWidget):
         self.clear()
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
-            ['Date', 'Account', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
+            ['Date', 'Account', 'Balance', 'Balance(BTC)',
+             f"Balance({FIAT_CURRENCY.upper()})"])
 
         rows_to_insert = chistoricalbalances.get_entries_with_token(token)
         self.setRowCount(len(rows_to_insert))
@@ -563,7 +580,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[confighandler.get_fiat_currency().lower()]])
+            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 4, item)
 
         self.resizeColumnsToContents()
@@ -575,7 +592,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.clear()
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
-            ['Date', 'Token', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
+            ['Date', 'Token', 'Balance', 'Balance(BTC)', f"Balance({FIAT_CURRENCY.upper()})"])
 
         rows_to_insert = chistoricalbalances.get_entries_with_account(account)
         self.setRowCount(len(rows_to_insert))
@@ -601,7 +618,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[confighandler.get_fiat_currency().lower()]])
+            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 4, item)
 
         self.resizeColumnsToContents()
@@ -616,7 +633,8 @@ class HistoricalBalancesTable(QTableWidget):
         self.clear()
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(
-            ['Date', 'Account', 'Token', 'Balance', 'Balance(BTC)', f"Balance({confighandler.get_fiat_currency().upper()})"])
+            ('Date', 'Account', 'Token', 'Balance', 'Balance(BTC)',
+             f"Balance({FIAT_CURRENCY.upper()})"))
 
         rows_to_insert = chistoricalbalances.get_all_entries()
         self.setRowCount(len(rows_to_insert))
@@ -646,7 +664,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[confighandler.get_fiat_currency().lower()]])
+            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 5, item)
 
         self.resizeColumnsToContents()
@@ -990,7 +1008,7 @@ class BalanceHistoryChartView(QChartView):
         self.btcseries.attachAxis(self.x_axis)
         self.btcseries.attachAxis(self.y_axis_btc)
         # Fiat
-        self.fiatseries.setName(confighandler.get_fiat_currency().upper())
+        self.fiatseries.setName(FIAT_CURRENCY.upper())
         self.chart.addSeries(self.fiatseries)
         self.fiatseries.attachAxis(self.x_axis)
         self.fiatseries.attachAxis(self.y_axis_fiat)

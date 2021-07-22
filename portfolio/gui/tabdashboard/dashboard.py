@@ -11,56 +11,54 @@ from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis, QSplineSeries
 
 from portfolio.utils import confighandler
-from portfolio.gui.tabdashboard.widgets_left import TotalWealthWidget, LastMonthWidget, LastMonthsHistogramWidget, TotalEquityWidget, DistributionWidget
-from portfolio.gui.tabdashboard.widgets_right import FilterLayout, QueryResultsWidget
+from portfolio.gui.ui_components.widgets.total_wealth import TotalWealthWidget
+from portfolio.gui.ui_components.widgets.current_month_results import CurrentMonthResultsWidget
+from portfolio.gui.ui_components.widgets.last_months_balance import LastMonthsHistogramWidget
+from portfolio.gui.ui_components.widgets.total_equity import TotalEquityWidget
+from portfolio.gui.ui_components.widgets.balances_distribution import DistributionWidget
 
 
 class TabDashboard(QWidget):
-    """
-    Displays all the main information about the portfolio
-    """
+    """ Displays all the main information about the portfolio """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # UI
+        # ---- UI ----
         self.setWindowTitle(self.tr("Dashboard"))
         self.setStyleSheet("border: 0px")
 
-        # Layout
+        # ---- Content ----
         self.mainlayout = QHBoxLayout()
 
-        # ------------------------------------------------------------------
-        # ------------  Left layout: General portfolio data ---------------
-        # ------------------------------------------------------------------
+        # ---  Left layout ---
         self.leftlayout = QVBoxLayout()
         self.leftlayout.setSpacing(30)
 
-        # -- First Widget: Total wealth --
+        # Total wealth
         self.totalwealth = TotalWealthWidget(self)
+        self.leftlayout.addWidget(self.totalwealth)
 
-        # -- Second & Third Widgets: Last Month and Histogram --
+        # Last Month and Histogram
         self.secondrow_lyt = QHBoxLayout()
         self.secondrow_lyt.setSpacing(30)
-
-        self.lastmonth = LastMonthWidget(self)
+        self.lastmonth = CurrentMonthResultsWidget(self)
         self.secondrow_lyt.addWidget(self.lastmonth)
-
         self.histogram = LastMonthsHistogramWidget(self)
         self.secondrow_lyt.addWidget(self.histogram)
-
-        # -- Fourth Widget: Total Equity Chart --
-        self.totalequity = TotalEquityWidget(self)
-
-        # -- Fourth Widget: Distribution Chart --
-        self.distribution = DistributionWidget(self)
-
-        self.leftlayout.addWidget(self.totalwealth)
         self.leftlayout.addLayout(self.secondrow_lyt)
-        self.leftlayout.addWidget(self.totalequity)
-        self.leftlayout.addWidget(self.distribution)
 
-        # Make Left Layout Scroll Area
+        #  Total Equity Chart
+        self.totalequity = TotalEquityWidget(self)
+        self.leftlayout.addWidget(self.totalequity)
+
+        # Wrap Left Layout inside QWidget
+        self.wrapper = QWidget()
+        self.wrapper.setStyleSheet(
+            "border:0;margin:0 0 0 0; padding: 0 0 0 0")
+        self.wrapper.setLayout(self.leftlayout)
+
+        # Wrap wrapper inside Scroll Area
         self.leftlayout_scrollarea = QScrollArea(self)
         self.leftlayout_scrollarea.setStyleSheet(
             "border:0;margin:0 0 0 0; padding: 0 0 0 0")
@@ -69,42 +67,23 @@ class TabDashboard(QWidget):
         self.leftlayout_scrollarea.verticalScrollBar().setStyleSheet(
             "QScrollBar:vertical {width: 3px;}")  # Customize verticalScrollBar
         self.leftlayout_scrollarea.verticalScrollBar().setSingleStep(10)
-
-        self.leftlayout_scrollarea_wrapper = QWidget()  # Wrap leftlayout inside QWidget
-        self.leftlayout_scrollarea_wrapper.setStyleSheet(
-            "border:0;margin:0 0 0 0; padding: 0 0 0 0")
-        self.leftlayout_scrollarea_wrapper.setLayout(self.leftlayout)
         self.leftlayout_scrollarea.setWidget(
-            self.leftlayout_scrollarea_wrapper)  # Set wrapper widget as QScrollArea's Widget
+            self.wrapper)
 
-        # ------------------------------------------------------------------
-        # ------------  Right layout: General portfolio data ---------------
-        # ------------------------------------------------------------------
+        self.mainlayout.addWidget(self.leftlayout_scrollarea)
+
+        # ---  Right layout ---
         self.rightlayout = QVBoxLayout()
         self.rightlayout.setContentsMargins(10, 0, 0, 0)
         self.rightlayout.setSpacing(30)
 
-        # -- First Widget: Filter buttons --
-        self.filterbuttons = FilterLayout()
+        # Distribution Chart
+        self.distribution = DistributionWidget(self)
+        self.rightlayout.addWidget(self.distribution)
 
-        # -- Second Widget: General results --
-        self.queryresultswdgt = QueryResultsWidget()
-
-        self.rightlayout.addLayout(self.filterbuttons)
-        self.rightlayout.addWidget(self.queryresultswdgt)
-        self.rightlayout.addWidget(QLabel("Test"))
-        self.rightlayout.addWidget(QLabel("Test"))
-        self.rightlayout.addWidget(QLabel("Test"))
-
-        self.mainlayout.addWidget(self.leftlayout_scrollarea)
         self.mainlayout.addLayout(self.rightlayout)
-
-        # --- Functionality ----
-        # When the filters change, we update the results
-        self.filterbuttons.querysignal.newquery.connect(
-            self.queryresultswdgt.updateData)
 
         self.setLayout(self.mainlayout)
 
-        # Initialization
-        self.filterbuttons.sendQuery()
+        # ---- Functionality ----
+        # TODO

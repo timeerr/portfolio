@@ -8,11 +8,11 @@ import os
 import sys
 import logging
 
-import qdarkstyle
-
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import QTranslator
+
+import qdarkstyle
 
 from portfolio.utils import confighandler, resource_gatherer
 from portfolio.gui.app.app import MainWindow, PreferencesSelection
