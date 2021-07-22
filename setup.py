@@ -20,7 +20,6 @@ setup(name='portfolio',
           'QDarkStyle',
           'pandas',
           'openpyxl',
-          'appdirs',
           'requests'
       ],
       zip_safe=False)
