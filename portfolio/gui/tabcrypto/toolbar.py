@@ -172,7 +172,7 @@ class AddAccountDialog(QDialog):
         # First, we need to check if the account's token is new.
         # In that case, we need to ask the user on how to get info avout the token itself
         token = self.token_edit.text().lower()
-        if prices.tokenInPrices(token.lower()) is False:
+        if prices.token_in_prices(token.lower()) is False:
             # We display a dialog
             new_token_dialog = NewTokenDialog(token, self)
             new_token_dialog.exec_()
@@ -337,7 +337,7 @@ class NewTokenDialog(QDialog):
                 method = 'custom'
                 _id = self.manual_id.text()
                 price = float(self.currentprice.text())
-            prices.addTokenPrice(token, method, _id, price)
+            prices.add_token_price(token, method, _id, price)
             self.close()
 
         except Exception:
@@ -355,7 +355,7 @@ class NewTokenDialog(QDialog):
         if method == 'Coingecko':
             self.manual_id.hide()  # Not needed
             # Checking if there are multiple tokens for a certain symbol
-            possibleids = prices.symbolToId_CoinGeckoList(self.tokenname)
+            possibleids = prices.symbol_to_id_coingecko_list(self.tokenname)
             if len(possibleids) == 0:
                 self.select_id.addItem(
                     self.tr("No ids for that token name"))
@@ -388,7 +388,7 @@ class NewTokenDialog(QDialog):
         we can finally get the token's price and display it
         """
         try:
-            price = prices.toBTCAPI(_id, 1)
+            price = prices.to_btc_api(_id, 1)
         except:
             price = self.tr("Couldn't get price in BTC")
         self.currentprice.setText(str(price) + " BTC")
@@ -663,9 +663,9 @@ class UpdateCustomPricesDialog(QDialog):
         # All token with custom prices
         method = method.lower()
         if method == 'custom':
-            self.tokenswithprices = prices.getTokensWithCustomPrices()
+            self.tokenswithprices = prices.get_tokens_with_custom_prices()
         if method == 'coingecko':
-            self.tokenswithprices = prices.getTokensWithCoingeckoPrices()
+            self.tokenswithprices = prices.get_tokens_with_coingecko_prices()
 
         # Content
         self.row_lyts_list = []
@@ -733,7 +733,7 @@ class UpdateCustomPricesDialogRow(QHBoxLayout):
         self.changemethod = QComboBox()
         self.changemethod.addItems(['Custom', 'Coingecko'])
         self.changemethod.currentTextChanged.connect(self.changeTokenMethod)
-        current_method = prices.getTokenMethod(self.tokensymbol)
+        current_method = prices.get_token_method(self.tokensymbol)
         self.changemethod.setCurrentText(
             current_method[0].upper()+current_method[1:])
         self.addWidget(self.changemethod)
@@ -752,7 +752,8 @@ class UpdateCustomPricesDialogRow(QHBoxLayout):
         elif method == 'coingecko':
             # The user has to decide which token from coingecko
             # corresponds to the symbol
-            ids_with_symbol = prices.symbolToId_CoinGeckoList(self.tokensymbol)
+            ids_with_symbol = prices.symbol_to_id_coingecko_list(
+                self.tokensymbol)
             if ids_with_symbol == []:
                 # Symbol not in coingeckos list
                 self.changemethod.setCurrentText('Custom')
@@ -769,7 +770,7 @@ class UpdateCustomPricesDialogRow(QHBoxLayout):
 
     def setCoingeckoPrice(self, _id):
         if self.changemethod.currentText().lower() == 'coingecko':
-            self.tokennewprice_wgt.setValue(prices.toBTCAPI(_id, 1))
+            self.tokennewprice_wgt.setValue(prices.to_btc_api(_id, 1))
 
     def setCurrentPriceOnPrices(self):
         """
@@ -783,7 +784,7 @@ class UpdateCustomPricesDialogRow(QHBoxLayout):
             tokenid = self.select_id_coingecko.currentText()
         price = self.tokennewprice_wgt.value()
 
-        prices.addTokenPrice(tokensymbol, method, tokenid, price)
+        prices.add_token_price(tokensymbol, method, tokenid, price)
 
 
 class UpdateTabCryptoSignal(QObject):

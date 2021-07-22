@@ -23,7 +23,7 @@ def initialize_prices(path=None):
     # TODO: Decorator to go to path and return to use here and in db initializations
 
 
-def updateCoinListFile():
+def update_coin_list_file():
     """ Gets all tokens from CoinGecko's API, and stores symbols and names on a file """
     # Getting data
     get_all_coins_url = 'https://api.coingecko.com/api/v3/coins/list'
@@ -44,7 +44,7 @@ def updateCoinListFile():
         f.close()
 
 
-def updateBTCToFiat():
+def update_btc_to_fiat():
     """ Writes btc in several fiat terms """
     with open(btctofiat_path, 'w', encoding='utf-8') as f:
         btcfiat_rate = requests.get(
@@ -53,7 +53,7 @@ def updateBTCToFiat():
         json.dump(btcfiat_rate, f, ensure_ascii=False, indent=4)
 
 
-def updateCoingeckoPrices():
+def update_coingecko_prices():
     """ Reads coinprices and updates prices that use coingecko's api """
     with open(coinprices_path) as f:
         scheduled_tokens = []
@@ -75,7 +75,7 @@ def updateCoingeckoPrices():
         data = requests.get(url).json()
         result = {}
         for coinid in data.keys():
-            symbol = idToSymbol(coinid)
+            symbol = id_to_symbol(coinid)
             result[symbol] = data[coinid]['btc']
 
         # Updating prices
@@ -88,7 +88,7 @@ def updateCoingeckoPrices():
         f.close()
 
 
-def updateCustomPrice(token, price_in_btc):
+def update_custom_price(token, price_in_btc):
     """Writes a custom price for a certaing token on customprices.json file"""
     with open(coinprices_path) as f:
         coinprices = json.load(f)
@@ -115,7 +115,7 @@ def to_btc(token, amount):
         return round(prices[token]['price'] * amount, 8)
 
 
-def toBTCAPI(tokenid, amount):
+def to_btc_api(tokenid, amount):
     """ Calls coingecko's api and returns the token expressed in btc terms """
     if tokenid == None:
         return None
@@ -133,7 +133,7 @@ def toBTCAPI(tokenid, amount):
     return price_btc
 
 
-def idToSymbol(_id):
+def id_to_symbol(_id):
     """Returns corresponding symbol of id according to coinlist.json"""
     with open(coinprices_path) as f:
         coinprices = json.load(f)
@@ -143,7 +143,7 @@ def idToSymbol(_id):
     return None
 
 
-def symbolToId(tokensymbol):
+def symbol_to_id(tokensymbol):
     """Returns coingecko's id of a symbol"""
     with open(coinprices_path) as f:
         coinprices = json.load(f)
@@ -155,10 +155,8 @@ def symbolToId(tokensymbol):
                 "Symbol {} not in coinprices.".format(tokensymbol))
 
 
-def symbolToId_CoinGeckoList(symbol):
-    """
-    Returns all ids that have that symbol associated
-    """
+def symbol_to_id_coingecko_list(symbol):
+    """ Returns all ids that have that symbol associated """
     symbol = symbol.lower()
     with open(coingeckoids_path) as f:
         coingeckoids = json.load(f)
@@ -173,13 +171,13 @@ def symbolToId_CoinGeckoList(symbol):
 def btc_to_fiat(amount, currency="EUR"):
     """Converts btc amount to fiat using btcfiat.json file"""
     if 'prices' not in os.listdir() or BTC_TO_FIAT_NAME not in os.listdir('prices'):
-        updateBTCToFiat()
+        update_btc_to_fiat()
     with open(btctofiat_path) as f:
         f = json.load(f)
         return(round(amount * f['bitcoin'][currency.lower()], 2))
 
 
-def btcToFiat_Date(amount, date, currency="EUR"):
+def btc_to_fiat_date(amount, date, currency="EUR"):
     """
     Returns a btc amount converted to the selected fiat
     currency on a certain date in the past
@@ -198,7 +196,7 @@ def btcToFiat_Date(amount, date, currency="EUR"):
     return amount*btcfiat_rate
 
 
-def addTokenPrice(token, _method, _id, price):
+def add_token_price(token, _method, _id, price):
     """ Adds a new token on coinprices.json """
     token = token.lower()
 
@@ -213,7 +211,7 @@ def addTokenPrice(token, _method, _id, price):
         json.dump(coinprices, f, ensure_ascii=False, indent=4)
 
 
-def tokenInPrices(token):
+def token_in_prices(token):
     """Return if token is in prices already"""
     with open(coinprices_path) as f:
         coinprices = json.load(f)
@@ -224,7 +222,7 @@ def tokenInPrices(token):
     return False
 
 
-def changeTokenMethod(token, newmethod):
+def change_token_method(token, newmethod):
     """ Changes data obtaining method for a specific token """
     with open(coinprices_path) as f:
         coinprices = json.load(f)
@@ -234,7 +232,7 @@ def changeTokenMethod(token, newmethod):
         json.dump(coinprices, f, ensure_ascii=False, indent=4)
 
 
-def getTokensWithCustomPrices():
+def get_tokens_with_custom_prices():
     """Returns list with all tokens that have currently their price set as 'custom' and their current prices """
     result = []
     with open(coinprices_path) as f:
@@ -247,7 +245,7 @@ def getTokensWithCustomPrices():
     return result
 
 
-def getTokensWithCoingeckoPrices():
+def get_tokens_with_coingecko_prices():
     """Returns list with all tokens that have currently their price set as 'coingecko' and their current prices """
     result = []
     with open(coinprices_path) as f:
@@ -260,7 +258,7 @@ def getTokensWithCoingeckoPrices():
     return result
 
 
-def getAllTokens():
+def get_all_tokens():
     """
     Returns all tokens that have prices on coinprices.json
     """
@@ -270,7 +268,7 @@ def getAllTokens():
         return list(coinprices.keys())
 
 
-def getAllTokensWithPrices():
+def get_all_tokens_with_prices():
     """Returns list with all tokens and their price"""
     result = []
     with open(coinprices_path) as f:
@@ -282,7 +280,7 @@ def getAllTokensWithPrices():
     return result
 
 
-def getTokenMethod(tokensymbol):
+def get_token_method(tokensymbol):
     """
     Returns the current data obtaining method
     for a certainf token

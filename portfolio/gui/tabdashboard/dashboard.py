@@ -10,7 +10,6 @@ from PyQt5.QtCore import Qt, QDateTime
 
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QPieSlice, QLineSeries, QDateTimeAxis, QValueAxis, QSplineSeries
 
-from portfolio.utils.prices import prices
 from portfolio.utils import confighandler
 from portfolio.gui.tabdashboard.widgets_left import TotalWealthWidget, LastMonthWidget, LastMonthsHistogramWidget, TotalEquityWidget, DistributionWidget
 from portfolio.gui.tabdashboard.widgets_right import FilterLayout, QueryResultsWidget
