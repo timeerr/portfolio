@@ -125,6 +125,10 @@ class AddPortfolioDialog(QDialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # ---- UI ----
+        self.setWindowTitle(self.tr("Add New Portfolio"))
+
+        # ---- Content ----
         self.layout = QVBoxLayout()
 
         # Portfolio Name
