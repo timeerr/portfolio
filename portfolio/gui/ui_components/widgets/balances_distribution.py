@@ -33,9 +33,9 @@ class DistributionWidget(QFrame):
         self.layout.addWidget(self.header)
         # -- Buttons --
         self.buttons_layout = QHBoxLayout()
-        self.accs = DistributionButton(self.tr("Accounts"), color_num=1)
-        self.cryptoaccs = DistributionButton(self.tr("Crypto"), color_num=1)
-        self.strategies = DistributionButton(self.tr("Currency"), color_num=1)
+        self.accs = DistributionButton(self.tr("Accounts"))
+        self.cryptoaccs = DistributionButton(self.tr("Crypto"))
+        self.strategies = DistributionButton(self.tr("Currency"))
         self.bttns = (self.accs, self.cryptoaccs, self.strategies)
         for bttn in self.bttns:
             self.buttons_layout.addWidget(bttn)
@@ -46,9 +46,12 @@ class DistributionWidget(QFrame):
 
         # ---- Functionality ----
         # Connect button checks to handle them
-        for bttn in self.bttns:
-            bttn.clicked.connect(
-                lambda checked: self.handleCheck(self.accs, checked))
+        self.accs.clicked.connect(
+            lambda checked: self.handleCheck(self.accs, checked))
+        self.cryptoaccs.clicked.connect(
+            lambda checked: self.handleCheck(self.cryptoaccs, checked))
+        self.strategies.clicked.connect(
+            lambda checked: self.handleCheck(self.strategies, checked))
 
         self.setLayout(self.layout)
 
