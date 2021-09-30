@@ -189,7 +189,7 @@ class AdjustResultNewBalanceDialog(QDialog):
         self.label2.setMinimumWidth(60)
         self.label2.setMaximumWidth(60)
         self.account_select = QComboBox()
-        self.account_select.add_items(
+        self.account_select.addItems(
             [i[0] for i in balances.get_all_accounts()])
         self.account_select.setCurrentText(account)
         # Whenever an account is changed, we change the previousbalance

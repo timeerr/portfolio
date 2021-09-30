@@ -4,11 +4,12 @@ import os
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 
-from portfolio.gui.tabcrypto.tabcrypto import TabCrypto
-from portfolio.gui.tabtransactions.tabtransactions import TabTransactions
-from portfolio.gui.tabaccounts.tabaccounts import TabAccounts
-from portfolio.gui.tabresults.tabresults import TabResults
 from portfolio.gui.tabdashboard.dashboard import TabDashboard
+from portfolio.gui.tabresults.tabresults import TabResults
+from portfolio.gui.tabaccounts.tabaccounts import TabAccounts
+from portfolio.gui.tabtransactions.tabtransactions import TabTransactions
+from portfolio.gui.tabcrypto.tabcrypto import TabCrypto
+from portfolio.gui.tabpreferences.tabpreferences import TabPreferences
 
 
 class MainWidget(QTabWidget):
@@ -38,6 +39,9 @@ class MainWidget(QTabWidget):
         # Tab 5 : Crypto
         self.tabcrypto = TabCrypto(self)
         self.addTab(self.tabcrypto,  self.tabcrypto.windowTitle())
+        # Tab 6 : Preferences
+        self.tabpreferences = TabPreferences(self)
+        self.addTab(self.tabpreferences,  self.tabpreferences.windowTitle())
 
         # --------------- Functionality between Tabs --------------
         # Whenever a result is removed, we update tabaccounts
