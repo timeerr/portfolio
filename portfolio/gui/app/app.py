@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         # Remove Welcome Screen
         self.welcomewidget.deleteLater()
         # Set portfolio as new central widget
-        self.setWindowTitle(portfolioname)
+        self.setWindowTitle(f'Portfolio - {portfolioname}')
         self.setCentralWidget(MainWidget(self))
         # Add Status Bar
         self.statusbar = StatusBar()
