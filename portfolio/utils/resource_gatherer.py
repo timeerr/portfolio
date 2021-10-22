@@ -4,9 +4,9 @@ import os
 
 from PyQt5.QtGui import QIcon, QPixmap
 
-from portfolio.utils import confighandler
+from portfolio.utils.confighandler import Paths
 
-RESOURCES_PATH = confighandler.get_user_data_path()
+RESOURCES_PATH = Paths.RESOURCES_PATH
 
 
 def get_resource(name: str) -> str:

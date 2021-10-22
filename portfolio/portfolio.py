@@ -15,9 +15,11 @@ from PyQt5.QtCore import QTranslator
 import qdarkstyle
 
 from portfolio.utils import confighandler, resource_gatherer
+from portfolio.utils.confighandler import Paths
 from portfolio.gui.app.app import MainWindow, PreferencesSelection
+from portfolio import logger
 
-logging.basicConfig(level=logging.INFO)
+RESOURCES_PATH = Paths.RESOURCES_PATH
 
 
 def check_saved():
@@ -42,12 +44,21 @@ def main():
         preferences_dlg = PreferencesSelection()
         preferences_dlg.finished.connect(check_saved)
         preferences_dlg.exec_()
+    # Load language
     selected_language = confighandler.get_language()
-    if selected_language != 'en':
-        translator = QTranslator()
-        translator.load(os.path.join(os.path.expanduser(
-            '~'), '.config', 'portfolio', "app_{}.qm".format(selected_language)))
-        app.installTranslator(translator)
+    if selected_language != 'EN':
+        logger.info(f"Loading language {selected_language}")
+        # Search for translation file
+        translation_file = os.path.join(
+            RESOURCES_PATH, f"app_{selected_language.lower()}.qm")
+        if not os.path.exists(translation_file):
+            logger.warning(
+                f"Couldn't tanslate app to {selected_language} : Translation file missing")
+        else:
+            # Translate
+            translator = QTranslator()
+            translator.load(translation_file)
+            app.installTranslator(translator)
 
     # ------- Style ---------
     # Dark Style Theme

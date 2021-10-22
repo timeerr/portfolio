@@ -17,28 +17,22 @@ LANGUAGES = "ES", "EN"
 FIAT_CURRENCIES = "USD", "EUR", "JPY"
 
 
-def get_config_path():
-    return user_config_dir('portfolio')
-
-
-def get_user_data_path():
-    return user_data_dir('portfolio')
-
-
-CONFIG_PATH = get_config_path()
-CONFIG_FILE_PATH = os.path.join(get_config_path(), 'config.ini')
+class Paths:
+    CONFIG_PATH = user_config_dir('portfolio')
+    CONFIG_FILE_PATH = os.path.join(CONFIG_PATH, 'config.ini')
+    RESOURCES_PATH = user_data_dir('portfolio')
 
 
 def initial_setup():
     if 'portfolio' not in os.listdir(user_config_dir()):
-        os.mkdir(CONFIG_PATH)
-    if 'config.ini' not in os.listdir(CONFIG_PATH):
+        os.mkdir(Paths.CONFIG_PATH)
+    if 'config.ini' not in os.listdir(Paths.CONFIG_PATH):
         create_config_file()
     migrate_version()
 
 
 def create_config_file():
-    with open(CONFIG_FILE_PATH, 'w') as cf:
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
         config = configparser.ConfigParser()
 
         config.add_section('LANGUAGE')
@@ -58,7 +52,7 @@ def create_config_file():
 def get_version():
     """Reads configuration file to get the current version of the app"""
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     try:
         return config['INFO']['version']
@@ -68,7 +62,7 @@ def get_version():
         config.add_section('INFO')
         config.set('INFO', 'version', "None")
 
-        with open(CONFIG_FILE_PATH, "w") as cf:
+        with open(Paths.CONFIG_FILE_PATH, "w") as cf:
             config.write(cf)
 
         return "None"
@@ -77,7 +71,7 @@ def get_version():
 def get_language():
     """Reads configuration file to parse the current selected language"""
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     return config['LANGUAGE']['language']
 
@@ -85,7 +79,7 @@ def get_language():
 def get_fiat_currency():
     """Reads configuration file to parse the current selected language"""
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     return config['PREFERENCES']['fiat_currency']
 
@@ -93,7 +87,7 @@ def get_fiat_currency():
 def get_portfolios():
     """Reads the configuration file and returns all portfolio directories"""
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     return(config['PORTFOLIODATA PATHS'])
 
@@ -101,11 +95,11 @@ def get_portfolios():
 def set_version(version=VERSION):
     """ Sets the version on the config file """
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     config.set('INFO', 'version', version)
 
-    with open(CONFIG_FILE_PATH, 'w') as cf:
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
 
 
@@ -115,11 +109,11 @@ def set_language(language):
     if language not in LANGUAGES:
         raise ValueError("f{language=} has to be in {LANGUAGES}")
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     config.set('LANGUAGE', 'language', language)
 
-    with open(CONFIG_FILE_PATH, 'w') as cf:
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
 
 
@@ -129,11 +123,11 @@ def set_fiat_currency(fiat_currency):
     if fiat_currency not in FIAT_CURRENCIES:
         raise ValueError(f"{fiat_currency=} has to be in {FIAT_CURRENCIES}")
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
 
     config.set('PREFERENCES', 'fiat_currency', fiat_currency)
 
-    with open(CONFIG_FILE_PATH, 'w') as cf:
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
 
 
@@ -156,9 +150,9 @@ def add_portfolio(name, location):
 
     # ---- Add to config file ----
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
+    config.read(Paths.CONFIG_FILE_PATH)
     config.set('PORTFOLIODATA PATHS', name, location)
-    with open(CONFIG_FILE_PATH, 'w') as cf:
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
         config.write(cf)
 
 
