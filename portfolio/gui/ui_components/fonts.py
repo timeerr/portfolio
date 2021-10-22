@@ -79,3 +79,21 @@ class ChartTitleFont(QFont):
         self.setFamily('Roboto')
         self.setPointSize(fontsize)
         self.setBold(True)
+
+
+class PreferencesLabelFont(QFont):
+    def __init__(self, * args, fontsize=10, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setFamily('Roboto')
+        self.setBold(True)
+        self.setPointSize(34)
+
+
+class PreferencesButtonFont(QFont):
+    def __init__(self, * args, fontsize=10, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.setFamily('Roboto')
+        self.setBold(True)
+        self.setPointSize(24)

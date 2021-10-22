@@ -13,6 +13,9 @@ from portfolio.utils.appdirs import user_config_dir, user_data_dir
 VERSION = "0.0.2"
 PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
+LANGUAGES = "ES", "EN"
+FIAT_CURRENCIES = "USD", "EUR", "JPY"
+
 
 def get_config_path():
     return user_config_dir('portfolio')
@@ -108,6 +111,9 @@ def set_version(version=VERSION):
 
 def set_language(language):
     """ Sets the desired language on the config file """
+    language = language.upper()
+    if language not in LANGUAGES:
+        raise ValueError("f{language=} has to be in {LANGUAGES}")
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
 
@@ -119,6 +125,9 @@ def set_language(language):
 
 def set_fiat_currency(fiat_currency):
     """ Sets the desired fiat currency on the config file """
+    fiat_currency = fiat_currency.upper()
+    if fiat_currency not in FIAT_CURRENCIES:
+        raise ValueError(f"{fiat_currency=} has to be in {FIAT_CURRENCIES}")
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE_PATH)
 
@@ -291,11 +300,11 @@ def add_balance_fiat_to_cportfoliodb(path):
             single_date = datetime(
                 single_date.year, single_date.month, single_date.day).timestamp()
             priceshistory_eur = {
-                single_date: prices.btcToFiat_Date(1, single_date, 'eur')}
+                single_date: prices.btc_to_fiat_date(1, single_date, 'eur')}
             priceshistory_usd = {
-                single_date: prices.btcToFiat_Date(1, list(dates)[0], 'usd')}
+                single_date: prices.btc_to_fiat_date(1, list(dates)[0], 'usd')}
             priceshistory_jpy = {
-                single_date: prices.btcToFiat_Date(1, list(dates)[0], 'jpy')}
+                single_date: prices.btc_to_fiat_date(1, list(dates)[0], 'jpy')}
 
         # Convert each balances_btc to balance_fiat
         balances_fiat = []
