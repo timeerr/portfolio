@@ -1,14 +1,17 @@
 #!/usr/bin/python3
 
 import os
+import platform
 import configparser
 import sqlite3
 import logging
 from datetime import datetime
 
+import appdirs
 
 from portfolio.utils.prices import prices
 from portfolio.utils.appdirs import user_config_dir, user_data_dir
+from portfolio import logger
 
 VERSION = "0.0.2"
 PORTFOLIO_DATABASE_DIR_NAME = 'database'
@@ -25,7 +28,8 @@ class Paths:
 
 def initial_setup():
     if 'portfolio' not in os.listdir(user_config_dir()):
-        os.mkdir(Paths.CONFIG_PATH)
+        logger.info(f"Creating {Paths.CONFIG_PATH}")
+        os.makedirs(appdirs.user_data_dir('portfolio'))
     if 'config.ini' not in os.listdir(Paths.CONFIG_PATH):
         create_config_file()
     migrate_version()
