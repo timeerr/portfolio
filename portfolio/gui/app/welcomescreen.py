@@ -69,7 +69,7 @@ class WelcomeWidget(QWidget):
 
     def addPortfolioLyt(self, name: str, path: str):
         """ Displays new portfolio """
-        db_version = confighandler.get_version()
+        db_version = confighandler.get_database_version(path)
 
         portfolio_lyt = QHBoxLayout()
         portfolio_lyt.setAlignment(Qt.AlignHCenter)
@@ -96,7 +96,11 @@ class WelcomeWidget(QWidget):
 
         # If the database has a version that is superior to the one
         # on the app, hide open button
-        if db_version > confighandler.get_version():
+        if db_version == "Missing":
+            open_portfolio_bttn.setStyleSheet(
+                "font:bold; font-size:20px;background-color:grey")
+            open_portfolio_bttn.setCheckable(False)
+        elif db_version > confighandler.get_version():
             open_portfolio_bttn.hide()
             portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
 

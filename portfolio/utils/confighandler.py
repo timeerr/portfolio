@@ -170,7 +170,9 @@ def migrate_version():
     # ----------- Database Migration ----------
     db_paths = get_portfolios().values()
     for path in db_paths:
-        db_version = str(get_database_version(path))
+        db_version = get_database_version(path)
+        if db_version == "Missing":
+            continue  # Portfolio does not longer exist
         if db_version == "None":
             logging.info("Updating to version %s", VERSION)
             update_timestamps_from_db_to_ints(path)
@@ -189,8 +191,11 @@ def get_database_version(path_to_db):
     """
     Returns the version number of the database
     """
+    DATABASE_DIR = os.path.join(path_to_db, "database")
+    if not os.path.exists(DATABASE_DIR):
+        return "Missing"
     with open(os.path.join(path_to_db, "database", "version.txt")) as f:
-        return f.read().split()[0]
+        return str(f.read().split()[0])
 
 
 def add_version_to_databases():
