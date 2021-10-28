@@ -24,8 +24,6 @@ from portfolio.utils.prices import prices
 from portfolio.gui.tabcrypto.toolbar import TabCryptoToolBar
 from portfolio.utils import confighandler, resource_gatherer
 
-FIAT_CURRENCY = confighandler.get_fiat_currency()
-
 
 class TabCrypto(QWidget):
 
@@ -275,7 +273,6 @@ class DescriptionLayout(QWidget):
         """
         If 'All' is selected, we show the full balance of all tokens in all accounts
         """
-
         self.token_or_account_name.setText(self.tr("All Coins"))
         totalbalancebtc, totalbalancefiat = 0, 0
         for t in cbalances.get_all_tokens():
@@ -536,6 +533,7 @@ class HistoricalBalancesTable(QTableWidget):
     """
     Table showing recorded previous balances of accounts and tokens, that changes dynamically.
     """
+    FIAT_CURRENCY = confighandler.get_fiat_currency()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -555,7 +553,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
             ['Date', 'Account', 'Balance', 'Balance(BTC)',
-             f"Balance({FIAT_CURRENCY.upper()})"])
+             f"Balance({self.FIAT_CURRENCY.upper()})"])
 
         rows_to_insert = chistoricalbalances.get_entries_with_token(token)
         self.setRowCount(len(rows_to_insert))
@@ -580,7 +578,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
+            item.setData(0, row[d[self.FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 4, item)
 
         self.resizeColumnsToContents()
@@ -592,7 +590,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.clear()
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(
-            ['Date', 'Token', 'Balance', 'Balance(BTC)', f"Balance({FIAT_CURRENCY.upper()})"])
+            ['Date', 'Token', 'Balance', 'Balance(BTC)', f"Balance({self.FIAT_CURRENCY.upper()})"])
 
         rows_to_insert = chistoricalbalances.get_entries_with_account(account)
         self.setRowCount(len(rows_to_insert))
@@ -618,7 +616,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
+            item.setData(0, row[d[self.FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 4, item)
 
         self.resizeColumnsToContents()
@@ -634,7 +632,7 @@ class HistoricalBalancesTable(QTableWidget):
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(
             ('Date', 'Account', 'Token', 'Balance', 'Balance(BTC)',
-             f"Balance({FIAT_CURRENCY.upper()})"))
+             f"Balance({self.FIAT_CURRENCY.upper()})"))
 
         rows_to_insert = chistoricalbalances.get_all_entries()
         self.setRowCount(len(rows_to_insert))
@@ -664,7 +662,7 @@ class HistoricalBalancesTable(QTableWidget):
             # Balance(fiat)
             item = QTableWidgetItem()
             d = {'eur': 6, 'usd': 7, 'jpy': 8}
-            item.setData(0, row[d[FIAT_CURRENCY.lower()]])
+            item.setData(0, row[d[self.FIAT_CURRENCY.lower()]])
             self.setItem(numrow, 5, item)
 
         self.resizeColumnsToContents()
@@ -909,6 +907,8 @@ class BalanceHistoryChartView(QChartView):
     from an account, token or whole portfolio
     """
 
+    FIAT_CURRENCY = confighandler.get_fiat_currency()
+
     def __init__(self,  *args,  **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -1008,7 +1008,7 @@ class BalanceHistoryChartView(QChartView):
         self.btcseries.attachAxis(self.x_axis)
         self.btcseries.attachAxis(self.y_axis_btc)
         # Fiat
-        self.fiatseries.setName(FIAT_CURRENCY.upper())
+        self.fiatseries.setName(self.FIAT_CURRENCY.upper())
         self.chart.addSeries(self.fiatseries)
         self.fiatseries.attachAxis(self.x_axis)
         self.fiatseries.attachAxis(self.y_axis_fiat)
