@@ -68,7 +68,7 @@ def main():
     defaultfont.setFamily('Roboto')
     app.setFont(defaultfont)
     # Icon
-    app.setWindowIcon(resource_gatherer.get_resource_QIcon('icon_64.png'))
+    app.setWindowIcon(resource_gatherer.get_resource_QIcon('logo.png'))
 
     # ---- Execution ----
     window = MainWindow()
