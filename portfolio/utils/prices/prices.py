@@ -41,15 +41,12 @@ def update_coin_list_file():
     with open(coingeckoids_path, 'w', encoding='utf-8') as f:
         json.dump(coinlist, f, ensure_ascii=False, indent=4)
 
-        f.close()
-
 
 def update_btc_to_fiat():
     """ Writes btc in several fiat terms """
     with open(btctofiat_path, 'w', encoding='utf-8') as f:
         btcfiat_rate = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur%2Cusd%2Cjpy%2Ccad%2Caud%2Cchf")
-        btcfiat_rate = btcfiat_rate.json()
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur%2Cusd%2Cjpy%2Ccad%2Caud%2Cchf").json()
         json.dump(btcfiat_rate, f, ensure_ascii=False, indent=4)
 
 
