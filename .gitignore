@@ -8,6 +8,7 @@ gui/resources/account-icons
 cositaskhacer.txt
 truquillos.txt
 links.txt
+*.spec
 *.db
 *.pyc
 *.ts
