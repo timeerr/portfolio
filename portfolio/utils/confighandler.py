@@ -23,7 +23,8 @@ FIAT_CURRENCIES = "USD", "EUR", "JPY"
 class Paths:
     CONFIG_PATH = user_config_dir('portfolio')
     CONFIG_FILE_PATH = os.path.join(CONFIG_PATH, 'config.ini')
-    RESOURCES_PATH = user_data_dir('portfolio')
+    RESOURCES_PATH = os.path.join(os.getcwd(
+    ), "./resources") if platform.system() == "Windows" else user_data_dir('portfolio')
 
 
 def initial_setup():
