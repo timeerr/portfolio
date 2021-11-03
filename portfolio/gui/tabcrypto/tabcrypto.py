@@ -398,7 +398,7 @@ class BalancesTable(QTableWidget):
         self.verticalHeader().hide()
 
         # Selecting fiat currency
-        self.FIAT_CURRENCY = FIAT_CURRENCY.upper()
+        self.FIAT_CURRENCY = confighandler.get_fiat_currency().upper()
 
     def updateWithToken(self, token):
         """Only shows database entries where token=token"""
@@ -533,7 +533,6 @@ class HistoricalBalancesTable(QTableWidget):
     """
     Table showing recorded previous balances of accounts and tokens, that changes dynamically.
     """
-    FIAT_CURRENCY = confighandler.get_fiat_currency()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -545,6 +544,8 @@ class HistoricalBalancesTable(QTableWidget):
 
         self.setMaximumHeight(300)
         self.verticalHeader().hide()
+
+        self.FIAT_CURRENCY = confighandler.get_fiat_currency()
 
     def updateWithToken(self, token):
         """Only shows entries where token=token"""
@@ -907,12 +908,11 @@ class BalanceHistoryChartView(QChartView):
     from an account, token or whole portfolio
     """
 
-    FIAT_CURRENCY = confighandler.get_fiat_currency()
-
     def __init__(self,  *args,  **kwargs):
         super().__init__(*args, **kwargs)
 
         self.chart = QChart()
+        self.FIAT_CURRENCY = confighandler.get_fiat_currency()
 
     def setupChartWithData(self, selectiontype, name=None):
         """
