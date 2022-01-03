@@ -1,15 +1,8 @@
-#!/usr/bin/python3
-"""
-A GUI to track a trading/investing portfolio's results, transactions and balances.
-Includes cryptocurrency accounts support
-"""
-
 import os
 import sys
-import logging
 
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QTranslator
 
 import qdarkstyle
@@ -20,12 +13,6 @@ from portfolio.gui.app.app import MainWindow, PreferencesSelection
 from portfolio import logger
 
 RESOURCES_PATH = Paths.RESOURCES_PATH
-
-
-def check_saved():
-    if confighandler.get_language() == 'None' or confighandler.get_fiat_currency() == 'None':
-        sys.exit()
-
 
 def main():
     try:
@@ -42,7 +29,6 @@ def main():
     if confighandler.get_language() == 'None' or confighandler.get_fiat_currency() == 'None':
         # Select language for the first time
         preferences_dlg = PreferencesSelection()
-        preferences_dlg.finished.connect(check_saved)
         preferences_dlg.exec_()
     # Load language
     selected_language = confighandler.get_language()
