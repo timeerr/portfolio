@@ -7,8 +7,6 @@ import sqlite3
 import logging
 from datetime import datetime
 
-import appdirs
-
 from portfolio.utils.prices import prices
 from portfolio.utils.appdirs import user_config_dir, user_data_dir
 from portfolio import logger
@@ -30,7 +28,7 @@ class Paths:
 def initial_setup():
     if 'portfolio' not in os.listdir(user_config_dir()):
         logger.info(f"Creating {Paths.CONFIG_PATH}")
-        os.makedirs(appdirs.user_data_dir('portfolio'))
+        os.makedirs(Paths.CONFIG_PATH)
     if 'config.ini' not in os.listdir(Paths.CONFIG_PATH):
         create_config_file()
     migrate_version()

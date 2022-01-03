@@ -24,10 +24,10 @@ def initialize():
         logger.info(f"Deleting previous resources: {RESOURCES_PATH}")
         shutil.rmtree(RESOURCES_PATH)
     # Translation files
-    for file in os.listdir('tanslations'):
+    for file in os.listdir('translations'):
         if ".qm" in file:
             dest = os.path.join(RESOURCES_PATH, file)
-            shutil.copy(file, dest)
+            shutil.copy(os.path.join('translations',file), dest)
             logger.info(f"- Moved {file} translation to {dest}")
     # Assets
     shutil.copytree(os.path.join('resources'), RESOURCES_PATH)
