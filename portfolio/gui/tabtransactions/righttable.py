@@ -354,7 +354,7 @@ class RightTable(QTableWidget):
         elif columnselected_name == self.tr("Description"):
             # A description can be any data. So no checks
             transactions.update_transaction(
-                database_entry_id, newdescription=new_item_data)
+                database_entry_id, new_description=new_item_data)
 
 
 class LineRemovedSignal(QObject):
