@@ -28,7 +28,7 @@ class WelcomeWidget(QWidget):
         wrapper_lyt = QVBoxLayout()
         wrapper_lyt.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         wrapper_lyt.setSpacing(0)
-:
+
         self.title = QLabel(self.tr("Welcome"))
         self.title.setMaximumHeight(200)
         self.title.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
