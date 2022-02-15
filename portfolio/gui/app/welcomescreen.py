@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QMargins, QObject, pyqtSignal
 
-from portfolio.gui.ui_components.fonts import SuperTitleFont, DescriptionFont
+from portfolio.gui.ui_components.widgets.buttons import OpenPortfolioButton
+from portfolio.gui.ui_components.fonts import SuperTitleFont, DescriptionFont, LightFont
 from portfolio.utils import confighandler
 
 
@@ -27,7 +28,7 @@ class WelcomeWidget(QWidget):
         wrapper_lyt = QVBoxLayout()
         wrapper_lyt.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         wrapper_lyt.setSpacing(0)
-
+:
         self.title = QLabel(self.tr("Welcome"))
         self.title.setMaximumHeight(200)
         self.title.setAlignment(Qt.AlignBottom | Qt.AlignHCenter)
@@ -69,60 +70,39 @@ class WelcomeWidget(QWidget):
 
     def addPortfolioLyt(self, name: str, path: str):
         """ Displays new portfolio """
-        db_version = confighandler.get_database_version(path)
-
         portfolio_lyt = QHBoxLayout()
         portfolio_lyt.setAlignment(Qt.AlignHCenter)
 
-        open_portfolio_bttn = QPushButton(name)
-        open_portfolio_bttn.setFixedWidth(100)
-        open_portfolio_bttn.setStyleSheet("font: bold; font-size:20px")
-        open_portfolio_bttn.setObjectName(path+";"+name)
-        open_portfolio_bttn.setCheckable(True)
-        open_portfolio_bttn.toggled.connect(self.goToPortfolio)
-        self.buttons.append(open_portfolio_bttn)
-        portfolio_lyt.addWidget(open_portfolio_bttn)
+        bttn = OpenPortfolioButton(name, path)
+        bttn.toggled.connect(lambda: self.goToPortfolio(bttn))
+        portfolio_lyt.addWidget(bttn)
 
         portfolio_path_label = QLabel(path)
-        font = QFont()
-        font.setWeight(QFont.Light)
-        portfolio_path_label.setFont(font)
+        portfolio_path_label.setFont(LightFont())
         portfolio_path_label.setFixedWidth(500)
         portfolio_lyt.addWidget(portfolio_path_label)
 
+        db_version = confighandler.get_database_version(path)
         portfolio_version_label = QLabel(db_version)
-        portfolio_version_label.setFixedWidth(50)
+        portfolio_version_label.setFixedWidth(60)
         portfolio_lyt.addWidget(portfolio_version_label)
 
         # If the database has a version that is superior to the one
         # on the app, hide open button
         if db_version == "Missing":
-            open_portfolio_bttn.setStyleSheet(
-                "font:bold; font-size:20px;background-color:grey")
-            open_portfolio_bttn.setCheckable(False)
+            bttn.set_unfunctional()
         elif db_version > confighandler.get_version():
-            open_portfolio_bttn.hide()
             portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
 
         self.portfolios_container.addLayout(portfolio_lyt)
 
     def openAddPortfolioDialog(self):
         """ Opens a Dialog to add a new portfolio, on a new directory """
-        addportfolio_dlg = AddPortfolioDialog(self)
-        addportfolio_dlg.exec_()
+        AddPortfolioDialog(self).exec_()
 
-    def goToPortfolio(self):
-        """
-        Changes the program location to the portfolio path, so that when
-        the main app is opened, it takes the data from that directory
-        """
-        for bttn in self.buttons:
-            if bttn.isChecked() is True:
-                path = bttn.objectName().split(";")[0]
-                name = bttn.objectName().split(";")[1]
-                os.chdir(path)  # Change location to portfolio
-        # Emit open portfolio signal
-        self.portfolioselected.emit(name)
+    def goToPortfolio(self, bttn: OpenPortfolioButton):
+        os.chdir(bttn.path)  # Change location to portfolio
+        self.portfolioselected.emit(bttn.name)
 
 
 class AddPortfolioDialog(QDialog):
@@ -166,15 +146,12 @@ class AddPortfolioDialog(QDialog):
 
         self.setLayout(self.layout)
 
-    def setPortolioLocation(self, newlocation):
-        self.portfoliolocation.setText(newlocation)
-
     def openLocationSelectionDialog(self):
         """ Displays a Dialog to select a directory for the new portfolio """
-        location_select_dialog = QFileDialog()
-        location_select_dialog.setFileMode(QFileDialog.FileMode.DirectoryOnly)
-        location_select_dialog.fileSelected.connect(self.setPortolioLocation)
-        location_select_dialog.exec_()
+        dlg = QFileDialog()
+        dlg.setFileMode(QFileDialog.FileMode.DirectoryOnly)
+        dlg.fileSelected.connect(self.portfoliolocation.setText)
+        dlg.exec_()
 
     def addNewPortfolio(self):
         """ Creates new portfolio data and UI entry """

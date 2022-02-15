@@ -3,6 +3,18 @@
 from PyQt5.QtGui import QFont
 
 
+class BoldFont(QFont):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setBold(True)
+
+
+class LightFont(QFont):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWeight(25)
+
+
 class SuperTitleFont(QFont):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,12 +42,6 @@ class SubtitleFont(QFont):
         self.setPointSize(18)
         self.setBold(True)
         self.setItalic(True)
-
-
-class BoldFont(QFont):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setBold(True)
 
 
 class DateButtonFont(QFont):
