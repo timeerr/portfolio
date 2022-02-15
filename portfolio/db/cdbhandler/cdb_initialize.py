@@ -7,11 +7,10 @@ import sqlite3
 import os
 
 from portfolio.db.dbutils import DBHandler
+from portfolio.db.dbutils import create_connection_c as create_connection
 
 
 def create_tables(path_to_db):
-    conn = sqlite3.connect(path_to_db)
-    cursor = conn.cursor()
 
     transactions_table_query = """
         CREATE TABLE IF NOT EXISTS ctransactions(
@@ -22,7 +21,6 @@ def create_tables(path_to_db):
         amount integer NOT NULL,
         account_receive text NOT NULL
     )"""
-
     balances_table_query = """
         CREATE TABLE IF NOT EXISTS cbalances(
         account text NOT NULL,
@@ -34,7 +32,6 @@ def create_tables(path_to_db):
         UNIQUE(account,token)
     )
     """
-
     balancehistory_table_query = """
         CREATE TABLE IF NOT EXISTS cbalancehistory(
         id integer PRIMARY KEY,
@@ -48,14 +45,13 @@ def create_tables(path_to_db):
         balance_jpy integer NOT NULL
     )"""
 
-    # Inserting tables
-    cursor.execute(transactions_table_query)
-    cursor.execute(balances_table_query)
-    cursor.execute(balancehistory_table_query)
-
-    # Closing db
-    conn.commit()
-    conn.close()
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        # Inserting tables
+        cursor.execute(transactions_table_query)
+        cursor.execute(balances_table_query)
+        cursor.execute(balancehistory_table_query)
+        conn.commit()
 
 
 def initialize(path=None):

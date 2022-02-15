@@ -14,8 +14,7 @@ from portfolio.db.dbutils import create_connection_c as create_connection
 
 
 def get_balances_from_last_day():
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         tdy = datetime.today()
         tdy_start_tmstp = datetime(
@@ -27,12 +26,11 @@ def get_balances_from_last_day():
 
 def get_balances_by_day(cryptoaccs=None):
     """ Returns a dictionary with the total btc balance of all accounts by each day """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = "SELECT date, balance_btc FROM cbalancehistory"
         if cryptoaccs is not None:
-            query += f"WHERE account IN {cryptoaccs}"
+            query += f" WHERE account IN {cryptoaccs}"
         cursor.execute(query)
 
         result = cursor.fetchall()
@@ -46,8 +44,7 @@ def get_balances_by_day(cryptoaccs=None):
 def get_balances_by_day_fiat(cryptoaccs=None):
     """ Returns a dictionary with the total btc balance of all accounts by each day """
     fiat = confighandler.get_fiat_currency().lower()
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = f"SELECT date, balance_{fiat} FROM cbalancehistory"
         if cryptoaccs is not None:
@@ -67,12 +64,9 @@ def get_balances_by_day_tuple():
     Returns a dict of tuples with the total balance of all accounts by each day
     Formatted as dict[date] = (balance_btc,balance_fiat)
     """
-    conn = create_connection()
-
-    with conn:
+    fiat = confighandler.get_fiat_currency().lower()
+    with create_connection() as conn:
         cursor = conn.cursor()
-
-        fiat = confighandler.get_fiat_currency().lower()
         cursor.execute(
             f"SELECT date, balance_btc,balance_{fiat} FROM cbalancehistory")
 
@@ -89,12 +83,12 @@ def get_balances_by_day_tuple():
 def get_balances_with_token(token: str):
     """Returns all entries where a token is involved"""
     token = token.lower()
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         fiat = confighandler.get_fiat_currency().lower()
         cursor.execute(
-            f"SELECT date,balance_btc,balance_{fiat} FROM cbalancehistory WHERE token = '{token}'")
+            f"SELECT date,balance_btc,balance_{fiat} FROM cbalancehistory \
+            WHERE token = '{token}'")
         return cursor.fetchall()
 
 
@@ -113,11 +107,11 @@ def get_balances_with_token_tuple(token: str):
 
 def get_balances_with_account(account: str):
     """Returns all entries where an account is involved"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory \
+            f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} \
+            FROM cbalancehistory \
             WHERE account = '{account}'")
         return cursor.fetchall()
 
@@ -128,11 +122,13 @@ def get_balances_with_account_tuple(account: str):
     Formatted as dict[date] = (balance_btc,balance_fiat)
     """
     conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT date,balance_btc,balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory WHERE account = '{account}'")
+            f"SELECT date, balance_btc, balance_{confighandler.get_fiat_currency().lower()} FROM cbalancehistory \
+            WHERE account='{account}'")
         data = cursor.fetchall()
+
     final = {d[0]: (0, 0) for d in data}
     for entry in data:
         date, btc, fiat = entry
@@ -145,8 +141,7 @@ def add_todays_balances():
     Reads balances from balances table,
     and updates the balancehistory table accordingly
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = """INSERT INTO 'cbalancehistory'
                 (account, date, token, balance, balance_btc,
@@ -163,15 +158,14 @@ def add_todays_balances():
         for acc in accounts:
             # Prepare
             account, token, balance, *_ = acc
-            balance_btc = prices.to_btc(token, balance)
-            balance_eur = prices.btc_to_fiat(balance_btc, currency='eur')
-            balance_usd = prices.btc_to_fiat(balance_btc, currency='usd')
-            balance_jpy = prices.btc_to_fiat(balance_btc, currency='jpy')
+            date = int(datetime.today().timestamp())
+            b_btc = prices.to_btc(token, balance)
+            b_eur = prices.btc_to_fiat(b_btc, currency='eur')
+            b_usd = prices.btc_to_fiat(b_btc, currency='usd')
+            b_jpy = prices.btc_to_fiat(b_btc, currency='jpy')
             # Insert
             cursor.execute(query,
-                           (account, int(datetime.today().timestamp()),
-                            token, balance, balance_btc,
-                            balance_eur, balance_usd, balance_jpy))
+                           (account, date, token, balance, b_btc, b_eur, b_usd, b_jpy))
         conn.commit()
 
 
@@ -201,11 +195,10 @@ def get_all_entry_dates():
     """
     Returns all the dates with an entry on the database
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT date FROM cbalancehistory")
-        return list(set([i[0] for i in cursor.fetchall()]))
+        return list(set([i[0] for i in cursor.fetchall()]))  # No duplicates
 
 
 def get_first_entry_date():
@@ -219,7 +212,7 @@ def get_first_entry_date():
     return datetime.today().timestamp()
 
 
-def get_first_month_entry_date(month: float, year: float = datetime.today().year):
+def get_first_month_entry_date(month: int, year: int = datetime.today().year):
     """
     Returns the date from the first entry of
     the selected month.
@@ -227,12 +220,12 @@ def get_first_month_entry_date(month: float, year: float = datetime.today().year
     """
     all_dates = get_all_entry_dates()
 
-    selected_month_first_day = datetime(year, month, 1).timestamp()
-    selected_month_last_day = date_handler.next_month_date(
-        datetime(year, month, 1)).timestamp()
+    month_first_day = datetime(year, month, 1)
+    month_last_day = date_handler.next_month_date(month_first_day).timestamp()
+    month_first_day = month_first_day.timestamp()
 
-    dates_from_month = [d for d in all_dates if d >
-                        selected_month_first_day and d < selected_month_last_day]
+    dates_from_month = [d for d in all_dates
+                        if d > month_first_day and d < month_last_day]
     if len(dates_from_month) == 0:
         # No entries on selected month, no balance assumed
         return None
@@ -240,7 +233,7 @@ def get_first_month_entry_date(month: float, year: float = datetime.today().year
     return str(min(dates_from_month))
 
 
-def get_month_first_total_balance(month: float, year: float = datetime.today().year):
+def get_month_first_total_balance(month: int, year: int = datetime.today().year):
     """
     Returns the total balance from the earliest entry of
     the selected month
@@ -253,7 +246,7 @@ def get_month_first_total_balance(month: float, year: float = datetime.today().y
     return get_balances_by_day()[int(first_month_entry_date)]
 
 
-def get_month_first_total_balance_fiat(month: float, year: float = datetime.today().year):
+def get_month_first_total_balance_fiat(month: int, year: int = datetime.today().year):
     """
     Returns the total balance from the earliest entry of
     the selected month.
@@ -263,7 +256,7 @@ def get_month_first_total_balance_fiat(month: float, year: float = datetime.toda
     first_month_entry_date = get_first_month_entry_date(month, year)
     if first_month_entry_date is None:
         return 0
-    # we want the earliest one
+    # We want the earliest one
     return get_balances_by_day_fiat()[int(first_month_entry_date)]
 
 
@@ -289,53 +282,44 @@ def get_account_balance_min_date(cryptoacc: str, startdate):
     If there are no entries, retuns current balance from that acc.
     Expressed in fiat
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         timestamps = get_all_entry_dates().sort()
-        date = None
+        min_date = None
         # Get first entry's date
         for tm in timestamps:
             if tm >= startdate:
-                date = tm
+                min_date = tm
                 break
-        if date is None:
+        if min_date is None:
+            # Return current balance
             return cbalances.get_total_account_balance_fiat(cryptoacc)
         # Get data
         cursor.execute(f"SELECT balance_{confighandler.get_fiat_currency()} \
-                       FROM cbalancehistory WHERE date={date} and account='{cryptoacc}'")
+                       FROM cbalancehistory WHERE date={min_date} and account='{cryptoacc}'")
         return sum([i[0] for i in cursor.fetchall()])
 
 
 def get_all_entries():
-    """
-    Returns all entries
-    """
-    conn = create_connection()
-    with conn:
+    """ Returns all entries """
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM cbalancehistory")
         return cursor.fetchall()
 
 
 def get_entries_with_token(token: str):
-    """
-    Returns all entries where token=token
-    """
+    """ Returns all entries where token=token """
     token = token.lower()
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM cbalancehistory WHERE token='{token}'")
         return cursor.fetchall()
 
 
 def get_entries_with_account(account: str):
-    """
-    Returns all entries where account=account
-    """
-    conn = create_connection()
-    with conn:
+    """ Returns all entries where account=account """
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT * FROM cbalancehistory WHERE account='{account}'")
@@ -343,7 +327,6 @@ def get_entries_with_account(account: str):
 
 
 def delete_balance_from_id(_id):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"DELETE FROM cbalancehistory WHERE id = {_id}")

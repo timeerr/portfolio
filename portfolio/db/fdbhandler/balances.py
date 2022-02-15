@@ -5,10 +5,10 @@ Handles all the input and output operations that use the balances table from por
 
 import sqlite3
 import os
-import logging
 
 from portfolio.db.fdbhandler import costbasis
 from portfolio.db.dbutils import create_connection_f as create_connection
+from portfolio import logger
 
 
 def add_account(new_account: str, starting_amount: float):
@@ -16,20 +16,17 @@ def add_account(new_account: str, starting_amount: float):
     Adds account to database.
     If it already exists, skips.
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = """INSERT INTO 'balances'
             ('account','amount')
             VALUES (?,?);"""
         try:
-            cursor.execute(query,
-                           (new_account, starting_amount))
-            logging.info(
-                "Added new account '{}' on database".format(new_account))
+            cursor.execute(query, (new_account, starting_amount))
+            logger.info(f"Added new account '{new_account}' on database")
 
         except sqlite3.IntegrityError:
-            logging.warning(f"Account {new_account} already exists")
+            logger.warning(f"Account {new_account} already exists")
             return
         conn.commit()
     # A new cost basis associated with this account has to be added
@@ -38,16 +35,14 @@ def add_account(new_account: str, starting_amount: float):
 
 def delete_account(account_name: str):
     """Removes account from database"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"DELETE FROM balances WHERE account= '{account_name}'")
         conn.commit()
 
 
 def edit_account(account: str, new_name: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"UPDATE balances SET account = '{new_name}' WHERE account = '{account}' ")
@@ -59,8 +54,7 @@ def update_balances_with_new_result(account: str, amount: float):
     if isinstance(amount, str):
         amount = int(
             (round(float(amount[:-2]), 0)) if '.' in amount else amount)
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         current_balance = get_account(account)[1]
         new_balance = current_balance + amount
@@ -71,8 +65,7 @@ def update_balances_with_new_result(account: str, amount: float):
 
 def get_account(account: str):
     """Returns account entry"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM balances WHERE account= '{account}'")
         result = cursor.fetchall()
@@ -81,8 +74,7 @@ def get_account(account: str):
 
 def get_account_balance(account: str):
     """Returns account balance"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT amount FROM balances WHERE account= '{account}'")
@@ -91,8 +83,7 @@ def get_account_balance(account: str):
 
 
 def get_all_accounts():
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM balances")
         return cursor.fetchall()
@@ -106,8 +97,7 @@ def get_total_balance_all_accounts():
     """
     Returns the sum of all the balances of all the accounts on this table
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT amount FROM balances")
         return sum([i[0] for i in cursor.fetchall()])
