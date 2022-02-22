@@ -3,13 +3,15 @@
 import os
 import configparser
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QDialog, QLineEdit, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QDialog
+from PyQt5.QtWidgets import QCheckBox, QLineEdit, QPushButton, QFileDialog
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, QMargins, QObject, pyqtSignal
 
-from portfolio.gui.ui_components.widgets.buttons import OpenPortfolioButton
-from portfolio.gui.ui_components.fonts import SuperTitleFont, DescriptionFont, LightFont
+from portfolio.gui.ui_components.widgets.buttons import OpenPortfolioButton, DeletePortfolioButton
+from portfolio.gui.ui_components.fonts import SuperTitleFont, DescriptionFont, LightFont, BoldFont
 from portfolio.utils import confighandler
+from portfolio import logger
 
 
 class WelcomeWidget(QWidget):
@@ -44,9 +46,9 @@ class WelcomeWidget(QWidget):
         self.layout.addLayout(wrapper_lyt)
 
         # -------Low container-------
+        self.layouts_tracker = {}
         self.portfolios_container = QVBoxLayout()
         self.portfolios_container.setAlignment(Qt.AlignBottom)
-        self.buttons = []
         self.setup_portfolios()
         self.layout.addLayout(self.portfolios_container)
 
@@ -87,22 +89,98 @@ class WelcomeWidget(QWidget):
         portfolio_version_label.setFixedWidth(60)
         portfolio_lyt.addWidget(portfolio_version_label)
 
+        del_bttn = DeletePortfolioButton(name, path)
+
+        del_bttn.clicked.connect(
+            lambda: self.openDeletePortfolioDialog(name))
+        del_bttn.deleted.connect(lambda: self.deletePortfolioLyt(name))
+        portfolio_lyt.addWidget(del_bttn)
+
+        self.layouts_tracker[name] = (
+            bttn, portfolio_path_label, portfolio_version_label, del_bttn)
         # If the database has a version that is superior to the one
         # on the app, hide open button
         if db_version == "Missing":
             bttn.set_unfunctional()
         elif db_version > confighandler.get_version():
-            portfolio_lyt.addWidget(QLabel(self.tr("Update App First")))
+            label = QLabel(self.tr("Update App First"))
+            portfolio_lyt.addWidget(label)
+            self.layouts_tracker[name].append(label)
 
         self.portfolios_container.addLayout(portfolio_lyt)
+
+    def deletePortfolioLyt(self, name: str):
+        logger.info(f"Deleting portfolio entry for {name}")
+        confighandler.delete_portfolio_entry(name)
+        for w in self.layouts_tracker[name]:
+            w.deleteLater()
+        # Delete entry
+
+    def deletePortfolioData(self, path: str):
+        logger.info(f"Deleting portfolio data for {name}")
+        # Delete entry
+        confighandler.delete_portfolio_data(path)
 
     def openAddPortfolioDialog(self):
         """ Opens a Dialog to add a new portfolio, on a new directory """
         AddPortfolioDialog(self).exec_()
 
+    def openDeletePortfolioDialog(self, name):
+        """ Opens a Dialog to delete a new portfolio """
+        path = confighandler.get_portfolio_path(name)
+        dlg = DeletePortfolioDialog(self)
+        dlg.delete.connect(lambda: self.deletePortfolioLyt(name))
+        dlg.delete_files.connect(lambda: self.deletePortfolioData(path))
+        dlg.exec_()
+
     def goToPortfolio(self, bttn: OpenPortfolioButton):
         os.chdir(bttn.path)  # Change location to portfolio
         self.portfolioselected.emit(bttn.name)
+
+
+class DeletePortfolioDialog(QDialog):
+    delete = pyqtSignal()
+    delete_files = pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ---- UI ----
+        self.setWindowTitle(self.tr("Add New Portfolio"))
+        self.setMaximumSize(300, 100)
+
+        # ---- Content ----
+        self.layout = QVBoxLayout()
+
+        # Message
+        self.label = QLabel(
+            self.tr("Are you sure you want to delete this portfolio?"))
+        self.label.setFont(BoldFont())
+        self.layout.addWidget(self.label)
+
+        # Delete files checkbox
+        self.delete_files_checkbox = QCheckBox(self.tr("Also delete files"))
+        self.layout.addWidget(self.delete_files_checkbox)
+
+        # Options
+        self.options_lyt = QHBoxLayout()
+        self.ok = QPushButton(self.tr("OK"))
+        self.cancel = QPushButton(self.tr("Cancel"))
+        self.options_lyt.addWidget(self.ok)
+        self.options_lyt.addWidget(self.cancel)
+        self.layout.addLayout(self.options_lyt)
+
+        self.setLayout(self.layout)
+
+        # Functionality
+        self.cancel.clicked.connect(self.close)
+        self.ok.clicked.connect(self.sendDeleteSignal)
+
+    def sendDeleteSignal(self):
+        self.delete.emit()
+        if self.delete_files_checkbox.isChecked():
+            self.delete_files.emit()
+        self.close()
 
 
 class AddPortfolioDialog(QDialog):

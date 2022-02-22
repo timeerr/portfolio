@@ -16,8 +16,8 @@ PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
 
 class Vars:
-LANGUAGES = "ES", "EN"
-FIAT_CURRENCIES = "USD", "EUR", "JPY"
+    LANGUAGES = "ES", "EN"
+    FIAT_CURRENCIES = "USD", "EUR", "JPY"
 
 
 class Paths:
@@ -162,9 +162,34 @@ def add_portfolio(name, location):
         config.write(cf)
 
 
+def delete_portfolio_entry(name):
+    """ Removes portfolio entry from config file"""
+    config = configparser.ConfigParser()
+    config.read(Paths.CONFIG_FILE_PATH)
+    del config['PORTFOLIODATA PATHS'][name]
+    with open(Paths.CONFIG_FILE_PATH, 'w') as cf:
+        config.write(cf)
+
+
+def delete_portfolio_data(path: str):
+    """ Deletes all content from portfolio path"""
+    os.rmdir(path)
+    # TODO: Checks to not delete undesired things accidentally
+
+
+def get_portfolio_path(name):
+    config = configparser.ConfigParser()
+    config.read(Paths.CONFIG_FILE_PATH)
+    try:
+        return config['PORTFOLIODATA PATHS'][name]
+    except KeyError:
+        return None
+
+
 # ----------------------------------------------------
 # ------------- Version Migration --------------------
 # ----------------------------------------------------
+
 def migrate_version():
     """
     Checks the current version, and executes
