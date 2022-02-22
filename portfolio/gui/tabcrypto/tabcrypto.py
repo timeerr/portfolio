@@ -173,9 +173,8 @@ class TabCrypto(QWidget):
             # Account mode
             self.description.select_mode.setText("Account")
             self.description.select_token_or_account.clear()
-            DATABASE_ACCOUNTS = cbalances.get_all_accounts()
-            self.description.select_token_or_account.addItems(
-                DATABASE_ACCOUNTS)
+            accs = cbalances.get_all_accounts()
+            self.description.select_token_or_account.addItems(accs)
             self.accountpiechart.allMode()
 
     def updateWithDoubleClick(self, item):

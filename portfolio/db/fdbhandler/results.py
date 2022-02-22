@@ -12,8 +12,7 @@ from portfolio.db.dbutils import create_connection_f as create_connection
 
 
 def add_result(date, account: str, strategy: str, amount: str, description: str = ""):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         account_exists = balances.get_account(account) != []
         if not account_exists:
@@ -25,8 +24,8 @@ def add_result(date, account: str, strategy: str, amount: str, description: str 
             strategies.add_strategy(strategy, 'None')
 
         query = """INSERT INTO 'results'
-            ('date','account', 'strategy', 'amount', 'description')
-            VALUES (?,?,?,?,?);"""
+                ('date','account', 'strategy', 'amount', 'description')
+                VALUES (?,?,?,?,?);"""
         cursor.execute(query,
                        (date, account, strategy, amount, description))
         conn.commit()
@@ -37,8 +36,7 @@ def add_result(date, account: str, strategy: str, amount: str, description: str 
 
 
 def delete_result(resultid):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         # First, we need to select the result so that we know the amount and the account involved
         # as we'll need to update the balances table aswell
@@ -64,8 +62,7 @@ def update_result(resultid, new_date=None, new_account=None,
     the account balance of the balances table won't be updated here
     """
     resultid = int(resultid)
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         # First, we get the current result data,
         # in case some of it doesn't need to be updated
@@ -91,8 +88,7 @@ def update_result(resultid, new_date=None, new_account=None,
 
 def get_current_accounts():
     """ Returns all accounts """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT DISTINCT account FROM results")
         return [acc[0] for acc in cursor.fetchall()]
@@ -100,8 +96,7 @@ def get_current_accounts():
 
 def get_result_all():
     """ Returns all results """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM results")
         return cursor.fetchall()
@@ -109,8 +104,7 @@ def get_result_all():
 
 def get_result_by_id(_id):
     """Returns the result with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -118,8 +112,7 @@ def get_result_by_id(_id):
 
 def get_result_date_by_id(_id):
     """Returns the result's date with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT date FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -127,8 +120,7 @@ def get_result_date_by_id(_id):
 
 def get_result_account_by_id(_id):
     """Returns the result's account with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT account FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -136,8 +128,7 @@ def get_result_account_by_id(_id):
 
 def get_result_strategy_by_id(_id):
     """Returns the result's strategy with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT strategy FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -145,8 +136,7 @@ def get_result_strategy_by_id(_id):
 
 def get_result_amount_by_id(_id):
     """Returns the result's amount with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT amount FROM results WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -159,8 +149,7 @@ def get_results_from_query(start_date: datetime = datetime(1980, 1, 1),
     Returns rows with certain start&end dates + account.
     Dates get passed as datetimes
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
 
         query = "SELECT * FROM results"
@@ -181,8 +170,7 @@ def get_results_from_query(start_date: datetime = datetime(1980, 1, 1),
 
 def get_strategies_from_account(account: str):
     """Searchs for all the strategies where an account is involved"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT strategy FROM results WHERE account = '{account}'")

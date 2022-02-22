@@ -14,6 +14,8 @@ from portfolio import logger
 VERSION = "0.0.2"
 PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
+
+class Vars:
 LANGUAGES = "ES", "EN"
 FIAT_CURRENCIES = "USD", "EUR", "JPY"
 
@@ -22,7 +24,7 @@ class Paths:
     CONFIG_PATH = user_config_dir('portfolio')
     CONFIG_FILE_PATH = os.path.join(CONFIG_PATH, 'config.ini')
     RESOURCES_PATH = os.path.join(os.getcwd(
-    ), "./resources") if platform.system() == "Windows" else user_data_dir('portfolio')
+    ), "./resources") if platform.system() == "Windows" else "/usr/share/portfolio"
 
 
 def initial_setup():
@@ -109,8 +111,8 @@ def set_version(version=VERSION):
 def set_language(language):
     """ Sets the desired language on the config file """
     language = language.upper()
-    if language not in LANGUAGES:
-        raise ValueError("f{language=} has to be in {LANGUAGES}")
+    if language not in Vars.LANGUAGES:
+        raise ValueError(f"{language=} has to be in {Vars.LANGUAGES}")
     config = configparser.ConfigParser()
     config.read(Paths.CONFIG_FILE_PATH)
 
@@ -123,8 +125,9 @@ def set_language(language):
 def set_fiat_currency(fiat_currency):
     """ Sets the desired fiat currency on the config file """
     fiat_currency = fiat_currency.upper()
-    if fiat_currency not in FIAT_CURRENCIES:
-        raise ValueError(f"{fiat_currency=} has to be in {FIAT_CURRENCIES}")
+    if fiat_currency not in Vars.FIAT_CURRENCIES:
+        raise ValueError(
+            f"{fiat_currency=} has to be in {Vars.FIAT_CURRENCIES}")
     config = configparser.ConfigParser()
     config.read(Paths.CONFIG_FILE_PATH)
 

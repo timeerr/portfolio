@@ -13,8 +13,7 @@ from portfolio.db.dbutils import create_connection_f as create_connection
 
 
 def get_balances_from_last_day():
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         tdy = datetime.today()
         tdy_start_tmstp = datetime(
@@ -29,8 +28,7 @@ def get_balances_by_day(fiataccs=None):
     Returns a dictionary with the total balance
     of all accounts by each day
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = "SELECT date, balance FROM balancehistory"
         if fiataccs is not None:
@@ -51,7 +49,7 @@ def add_todays_balances():
     and updates the balancehistory table accordingly
     """
     conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         todays_balances = get_balances_from_last_day()
         current_accounts = balances.get_all_accounts()
@@ -84,8 +82,7 @@ def get_first_total_balance():
 
 def get_all_entry_dates():
     """Returns all the dates with an entry on the database"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT date FROM balancehistory")
         return list(set([i[0] for i in cursor.fetchall()]))
@@ -143,7 +140,6 @@ def get_current_month_first_total_balance():
 
 
 def delete_balance_from_id(_id):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"DELETE FROM balancehistory WHERE id= {_id}")

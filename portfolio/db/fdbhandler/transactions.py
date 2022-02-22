@@ -15,8 +15,7 @@ from portfolio.db.dbutils import create_connection_f as create_connection
 def add_transaction(date, account_send: str, amount: float,
                     account_receive: str, depositwithdrawal: str,
                     description: str = ""):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
 
         # If accounts do not exist, they get created
@@ -52,13 +51,13 @@ def add_transaction(date, account_send: str, amount: float,
 
 
 def delete_transaction(transactionid):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         # First, we need to get it
         # so that we know the amount and the account involved,
         # as we new to update the balances table aswell
-        select_query = f"SELECT account_send, account_receive, amount FROM transactions WHERE id= {transactionid}"
+        select_query = f"SELECT account_send, account_receive, amount FROM transactions \
+                        WHERE id= {transactionid}"
         result = cursor.execute(select_query).fetchall()[0]
         sender, receiver, amount, *_ = result
         # Now, we delete the result from the results table on the database
@@ -83,8 +82,7 @@ def update_transaction(transactionid,
     the account balance+costbasis of the balances+costbasis tables won't be updated here
     """
     transactionid = int(transactionid)
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         # First, we select the current result data, in case some of it does not need to be updated
         cursor.execute(
@@ -114,8 +112,7 @@ def update_transaction(transactionid,
 
 def get_transactions_all():
     """ Returns all transactions """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM transactions")
         return cursor.fetchall()
@@ -123,8 +120,7 @@ def get_transactions_all():
 
 def get_transaction_by_id(_id):
     """Returns the transaction with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -132,8 +128,7 @@ def get_transaction_by_id(_id):
 
 def get_transaction_amount_by_id(_id):
     """Returns the transaction's amount with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT amount FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -141,8 +136,7 @@ def get_transaction_amount_by_id(_id):
 
 def get_transaction_date_by_id(_id):
     """Returns the transaction's date with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(f"SELECT date FROM transactions WHERE id = {_id}")
         return cursor.fetchall()[0][0]
@@ -150,8 +144,7 @@ def get_transaction_date_by_id(_id):
 
 def get_transaction_sender_account_by_id(_id):
     """Returns the transaction's sender account with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT account_send FROM transactions WHERE id = {_id}")
@@ -160,8 +153,7 @@ def get_transaction_sender_account_by_id(_id):
 
 def get_transaction_receiver_account_by_id(_id):
     """Returns the transaction's receive account with a specific id"""
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT account_receive FROM transactions WHERE id = {_id}")
@@ -175,8 +167,7 @@ def get_transactions_from_query(start_date=datetime(1900, 1, 1),
     Return rows with each result
     that satisfies the args
     """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
 
         query = "SELECT * FROM transactions"
@@ -197,17 +188,15 @@ def get_transactions_from_query(start_date=datetime(1900, 1, 1),
 
 def get_all_sender_accounts():
     """ Returns all send accounts from db """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(" SELECT account_send FROM transactions ")
+        cursor.execute("SELECT account_send FROM transactions ")
         return cursor.fetchall()
 
 
 def get_all_receiver_accounts():
     """ Returns all receive accounts from db """
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(" SELECT account_receive FROM transactions ")
+        cursor.execute("SELECT account_receive FROM transactions ")
         return cursor.fetchall()

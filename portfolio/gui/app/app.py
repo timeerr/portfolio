@@ -6,15 +6,12 @@ This module creates the essential configuration and initializes the main widget 
 from PyQt5.QtWidgets import QVBoxLayout, QDialog, QComboBox, QPushButton, QMainWindow
 
 from portfolio import logger
-from portfolio.db.cdbhandler import chistoricalbalances
-from portfolio.db.fdbhandler import historicalbalances, costbasis
 from portfolio.db import dbhandler
 from portfolio.utils import confighandler
+from portfolio.utils.confighandler import Vars
 from portfolio.gui.app.welcomescreen import WelcomeWidget
 from portfolio.gui.app.statusbar import StatusBar
 from portfolio.gui.app.mainwidget import MainWidget
-
-logger = logger.get_logger()
 
 
 class MainWindow(QMainWindow):
@@ -68,15 +65,14 @@ class PreferencesSelection(QDialog):
                            background-color: #19232d; color: white; }")
 
         self.lang_selection = QComboBox()
-        self.lang_selection.addItems(('EN', 'ES'))
+        self.lang_selection.addItems(Vars.LANGUAGES)
         self.layout.addWidget(self.lang_selection)
 
         self.fiat_selection = QComboBox()
-        self.fiat_selection.addItems(
-            ('EUR', 'USD', 'JPY', 'CAD', 'AUD'))
+        self.fiat_selection.addItems(Vars.FIAT_CURRENCIES)
         self.layout.addWidget(self.fiat_selection)
 
-        self.select_bttn = QPushButton("Select Language")
+        self.select_bttn = QPushButton("Save")
         self.select_bttn.clicked.connect(self.setInitialPreferences)
         self.layout.addWidget(self.select_bttn)
 

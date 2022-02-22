@@ -13,8 +13,7 @@ from portfolio.db.dbutils import create_connection_f as create_connection
 
 
 def add_strategy(strategy: str, markettype: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         query = "INSERT INTO strategies ('strategy','markettype','amount') VALUES (?,?,?);"
         try:
@@ -28,8 +27,7 @@ def add_strategy(strategy: str, markettype: str):
 
 
 def delete_strategy(strategy_name: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"DELETE FROM strategies WHERE strategy= '{strategy_name}' ")
@@ -37,8 +35,7 @@ def delete_strategy(strategy_name: str):
 
 
 def edit_strategy_name(strategy: str, new_name: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"UPDATE strategies SET strategy = '{new_name}' WHERE strategy = '{strategy}' ")
@@ -46,8 +43,7 @@ def edit_strategy_name(strategy: str, new_name: str):
 
 
 def edit_strategy_type(_type: str, new_type: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"UPDATE strategies SET markettype = '{_type}' WHERE markettype = '{new_type}' ")
@@ -60,8 +56,7 @@ def update_strategies_with_new_result(strategy: str, amount: float):
     strategy involved, updating its balance
     """
     amount = int(round(float(amount[:-2]), 0) if '.' in amount else amount)
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         new_balance = get_strategy_balance(strategy) + amount
         cursor.execute(
@@ -70,8 +65,7 @@ def update_strategies_with_new_result(strategy: str, amount: float):
 
 
 def get_strategy(strategy: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT * FROM strategies WHERE strategy= '{strategy}'")
@@ -80,8 +74,7 @@ def get_strategy(strategy: str):
 
 
 def get_strategy_balance(strategy: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT amount FROM strategies WHERE strategy= '{strategy}'")
@@ -90,8 +83,7 @@ def get_strategy_balance(strategy: str):
 
 
 def get_strategy_market_type(strategy: str):
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT markettype FROM strategies WHERE strategy = '{strategy}'")
@@ -99,8 +91,7 @@ def get_strategy_market_type(strategy: str):
 
 
 def get_all_strategies():
-    conn = create_connection()
-    with conn:
+    with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM strategies")
         return cursor.fetchall()
