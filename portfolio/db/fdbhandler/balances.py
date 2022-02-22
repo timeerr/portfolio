@@ -19,12 +19,11 @@ def add_account(new_account: str, starting_amount: float):
     with create_connection() as conn:
         cursor = conn.cursor()
         query = """INSERT INTO 'balances'
-            ('account','amount')
-            VALUES (?,?);"""
+                ('account','amount')
+                VALUES (?,?);"""
         try:
             cursor.execute(query, (new_account, starting_amount))
             logger.info(f"Added new account '{new_account}' on database")
-
         except sqlite3.IntegrityError:
             logger.warning(f"Account {new_account} already exists")
             return
@@ -51,9 +50,11 @@ def edit_account(account: str, new_name: str):
 
 def update_balances_with_new_result(account: str, amount: float):
     """Adds the new result to the specific account involved, updating its balance"""
+    # Convert if str
     if isinstance(amount, str):
         amount = int(
             (round(float(amount[:-2]), 0)) if '.' in amount else amount)
+
     with create_connection() as conn:
         cursor = conn.cursor()
         current_balance = get_account(account)[1]

@@ -1,3 +1,4 @@
+import faulthandler
 import os
 import sys
 
@@ -12,7 +13,13 @@ from portfolio.utils.confighandler import Paths
 from portfolio.gui.app.app import MainWindow, PreferencesSelection
 from portfolio import logger
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
+faulthandler.enable()  # Trace back Segmentation Faults
+
 RESOURCES_PATH = Paths.RESOURCES_PATH
+
 
 def main():
     try:
