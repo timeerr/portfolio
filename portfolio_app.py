@@ -24,7 +24,7 @@ RESOURCES_PATH = Paths.RESOURCES_PATH
 def main():
     try:
         from PyQt5.QtWinExtras import QtWin
-        myappid = 'timeerr.portfolio.0-0-1'
+        myappid = f'timeerr.portfolio.{confighandler.get_version().replace(".","-")}'
         QtWin.setCurrentProcessExplicitAppUserModelID(myappid)
     except ImportError:
         pass
@@ -43,7 +43,7 @@ def main():
         logger.info(f"Loading language {selected_language}")
         # Search for translation file
         translation_file = os.path.join(
-            RESOURCES_PATH, f"app_{selected_language.lower()}.qm")
+            RESOURCES_PATH, f"app_{selected_language.lower()}_{confighandler.get_version()}.qm")
         if not os.path.exists(translation_file):
             logger.warning(
                 f"Couldn't tanslate app to {selected_language} : Translation file missing")

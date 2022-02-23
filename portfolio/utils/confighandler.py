@@ -11,7 +11,7 @@ from portfolio.utils.prices import prices
 from portfolio.utils.appdirs import user_config_dir, user_data_dir
 from portfolio import logger
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 PORTFOLIO_DATABASE_DIR_NAME = 'database'
 
 
@@ -205,13 +205,13 @@ def migrate_version():
         if db_version == "Missing":
             continue  # Portfolio does not longer exist
         if db_version == "None":
-            logging.info("Updating to version %s", VERSION)
+            logging.info(f"Updating to version {VERSION}")
             update_timestamps_from_db_to_ints(path)
         if db_version == "0.0.1":
-            logging.info("Updating to version %s", VERSION)
+            logging.info(f"Updating to version {VERSION}")
             add_balance_fiat_to_cportfoliodb(path)
         if db_version < VERSION:
-            add_version_to_databases()
+            add_version_to_database(path)
         if db_version > VERSION:
             logging.info(
                 path, " database's version is ahead of current app version. update app required")
@@ -229,17 +229,14 @@ def get_database_version(path_to_db):
         return str(f.read().split()[0])
 
 
-def add_version_to_databases():
+def add_version_to_database(path):
     """
     Scans all portfolios added and adds a version file on the database folder
     of each one
     """
-    paths = get_portfolios().values()
-
-    for path in paths:
-        with open(os.path.join(path, "database", "version.txt"), "w+") as f:
-            print(f"Writing version file on {path}")
-            f.write(VERSION)
+    with open(os.path.join(path, "database", "version.txt"), "w+") as f:
+        print(f"Writing version file on {path}")
+        f.write(VERSION)
 
 
 # Database version migration scripts
