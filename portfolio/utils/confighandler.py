@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import shutil
 import platform
 import configparser
 import sqlite3
@@ -173,7 +174,7 @@ def delete_portfolio_entry(name):
 
 def delete_portfolio_data(path: str):
     """ Deletes all content from portfolio path"""
-    os.rmdir(path)
+    shutil.rmtree(path)
     # TODO: Checks to not delete undesired things accidentally
 
 

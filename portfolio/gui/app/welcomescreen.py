@@ -117,7 +117,8 @@ class WelcomeWidget(QWidget):
         # Delete entry
 
     def deletePortfolioData(self, path: str):
-        logger.info(f"Deleting portfolio data for {name}")
+        logger.info(
+            f"Deleting portfolio data for {path}")
         # Delete entry
         confighandler.delete_portfolio_data(path)
 
